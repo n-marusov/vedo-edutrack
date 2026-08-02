@@ -6,37 +6,31 @@
 
 VEDO EduTrack is an educational route service built **on top of the VEDO Hub** ontology platform. It reads knowledge ontologies from VEDO Hub via its REST API and MCP server, and adds unique educational mechanics:
 
-- **Route engine**: `Route = f(learner, goal, pedagogy concept, ontology) → route`. Computes personalized learning paths by walking the knowledge graph, respecting link types, the essential core, and learner pace.
-- **Gap diagnosis**: finds the root cause of a learner's lag by climbing strict-prerequisite links up the graph to the first unmastered module.
-- **Learning plan**: snapshots of the route at checkpoints, "plan vs actual" tracking, deviation forecasts, notifications.
-- **Educational visualization**: knowledge map with progress/ gap color-coding, dashboards for learners, parents, HR and methodologists, route builder.
+- **Route planning**: `Route = f(learner, goal, pedagogy concept, ontology) → route`. Computes personalized learning paths by walking the knowledge graph, respecting link types, the essential core, and learner pace. Auto-recompute on triggers. Plan fixation as a route snapshot with timeline.
+- **Plan execution**: tracks progress against the fixed plan — "plan vs actual" comparison, deviation alerts, readiness forecasts. Gap diagnosis: finds the root cause of a learner's lag by climbing strict-prerequisite links up the graph to the first unmastered module. Live FGOS/professional-standard coverage, deficit lists, attestation readiness reports.
+- **Educational visualization**: knowledge map with progress/gap color-coding, dashboards for learners, parents, HR and methodologists, route builder.
 - **Resource & context matching**: attaches materials, stories and project ideas to route modules, filtered by format, difficulty and learning style.
-- **FGOS / professional-standard coverage**: live coverage of formal requirements, deficit lists, readiness forecasts.
 
 ## Core Features
 
-- **F1. Knowledge ontology** (via VEDO Hub): topics, 5 types of cross-subject links (`hasStrictPrerequisite` / `hasSoftPrerequisite` / `enriches` / `appliesTo` / `isAnalogousTo`), FGOS mappings, resources, stories, project ideas, pedagogy concepts.
-- **F2. Route engine**: SPARQL queries to VEDO Hub, shortest-path with strict-link constraints, auto-recompute triggers (progress, goal change, ontology update), three horizons (far / mid / near).
-- **F3. Learning plan**: checkpoint snapshots, plan-vs-actual, deviation tracking, basic readiness forecast.
-- **F4. Checkpoints & FGOS/professional standards**: live requirement coverage, deficit lists, attestation readiness reports.
-- **F5. Resources, stories & project ideas**: catalog bound to topics, format/source filtering, 50+ stories, 30+ project ideas at launch.
-- **F6. Knowledge graph & route visualization**: 2D knowledge map with progress colors, gap map view, group dashboards (parents / school director / HR), learner dashboard, route builder.
-- **F7. Methodologist community** (in VEDO Hub): forks, merge requests, contributor profiles.
-- **F8. Corporate module**: onboarding plans, time-to-productivity metric, gap analysis to target role.
-- **F9. Integrations**: REST API for EdTech (`GET /routes/compute`, `GET /progress/{learner_id}`, `GET /fgos/coverage/{learner_id}`), read-only SPARQL endpoint, webhooks (`module.mastered`, `plan.deviated`).
+- **F0. Knowledge ontology port** (via VEDO Hub): reading the ontology through Hub's REST API and MCP server — modules, 5 link types (`hasStrictPrerequisite` / `hasSoftPrerequisite` / `enriches` / `appliesTo` / `isAnalogousTo`), FGOS mappings, resources, stories, project ideas, pedagogy concepts. Copying the relevant subgraph for in-memory computation. Infrastructure foundation — not a user-facing domain.
+- **F1. Route planning**: `Route = f(position, goal, pedagogy concept, ontology) → route`. Shortest-path with strict/soft/enrich link weights, three horizons (far / mid / near), auto-recompute triggers (progress, goal change, ontology update), cascade recompute. Plan fixation: route snapshot with timeline. Input constraints: checkpoints and FGOS/framework requirements. Pedagogy-concept-aware routing. Inter-subject schedule sync. Resource matching.
+- **F2. Plan execution**: progress tracking against the fixed plan — plan-vs-actual with deviation reasons. Completion forecast (on-track / at-risk / off-track). Deviation alerts. Gap diagnosis: root-cause analysis by climbing strict-prerequisite links. Assessment items and IRT calibration. Live FGOS/professional-standard coverage, deficit lists, attestation readiness reports. Real-knowledge-to-framework mapping.
+- **F3. Resources**: all resource types bound to modules — content resources (video, text, interactive, textbooks) and enabling resources (tutors, lab equipment, access passes, budget). Filters by format, style, difficulty, duration. Availability checks, cost estimation, route budget.
+- **F4. Visualization**: 2D knowledge graph with progress colors, gap map view, learner dashboard, parent/HR/methodologist dashboards, route builder, group management panel.
+- **F5. Real-world connection**: stories, context and project ideas served at the moment of module mastery (via `appliesTo`/`enriches` graph links). Qualities map (what traits a module develops). Motivation through practical relevance.
+- **F6. Integrations**: REST API, read-only SPARQL endpoint, LMS connectors (WebTutor, iSpring, SAP SuccessFactors), webhooks (`module.mastered`, `plan.deviated`, `route.recalculated`), SSO/SAML (Keycloak), MCP server for AI agents.
 
 ## MVP Scope
 
 - 1000+ topics for grades 5–11 (math, biology, physics, chemistry, history, literature, geography, computer science, social studies), 500+ base cross-subject links, full FGOS mapping, 3–5 pedagogy concepts.
-- Route engine: shortest path with strict links, gap diagnosis, recompute on progress/goal change.
-- Learning plan: checkpoint snapshots, plan-vs-actual, binary readiness forecast.
-- FGOS coverage, deficits, attestation readiness report.
+- Route planning: shortest path with strict links, recompute on progress/goal change, plan fixation.
+- Plan execution: plan-vs-actual, binary readiness forecast, gap diagnosis, FGOS coverage, deficits, attestation readiness report.
+- Resources: catalog of materials bound to modules, format/source filtering, 50+ stories, 30+ project ideas at launch.
 - Visualization: knowledge map, gap map, group panel, learner dashboard, route builder.
-- Community: fork + basic merge request + contributor profile.
-- Corporate: onboarding plan + time-to-productivity metric.
 - Integrations: REST API, read-only SPARQL, webhooks.
 
-**Excluded from MVP**: pedagogy-concept-aware routes, all 5 link types (MVP: strict + soft + appliesTo), ontology-update cascades, risk-level forecasts, learning-style resource matching, semantic merge comparison, DOI, out-of-the-box LMS connectors (API only), career tracks & compliance module (onboarding only), corporate dashboard.
+**Excluded from MVP**: pedagogy-concept-aware routes, all 5 link types (MVP: strict + soft + appliesTo), ontology-update cascades, risk-level forecasts, learning-style resource matching, inter-subject schedule sync, out-of-the-box LMS connectors (API only).
 
 ## Tech Stack
 
