@@ -37,6 +37,7 @@ vedo-edutrack/
 |------|---------|
 | `vision.md` | Authoritative product vision: business requirements, MVP scope, roadmap, monetization |
 | `specs/requirements/` | Formalized requirements: 60 FR + 48 NFR, each with measurable acceptance criteria |
+| `specs/adr/` | Architecture decision records (ADR-DES.*): style, stack, boundaries |
 | `.ai-factory.json` | AI Factory manifest: installed skills and MCP server flags |
 | `.ai-factory/DESCRIPTION.md` | Machine-readable project specification (English) |
 | `.ai-factory/config.yaml` | AI Factory configuration: `language.ui: ru`, `language.artifacts: en`, git settings |
@@ -47,6 +48,7 @@ vedo-edutrack/
 |----------|------|-------------|
 | Product vision | `vision.md` | Business requirements, scope, MVP, roadmap (Russian) |
 | Requirements | `specs/requirements/` | FR + NFR requirements with measurable acceptance criteria, README with conventions (Russian) |
+| Architecture decisions | `specs/adr/` | ADR records: style, stack, boundaries, conventions (Russian) |
 | Project description | `.ai-factory/DESCRIPTION.md` | Spec for AI tooling (English) |
 
 ## AI Context Files
