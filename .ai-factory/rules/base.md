@@ -23,3 +23,9 @@
 ## Logging
 
 - *TBD — no code yet.* Expected: configurable via `LOG_LEVEL` (see DESCRIPTION.md).
+
+## Tooling (Auxiliary Tasks)
+
+- Auxiliary/tooling tasks run through **pnpm** (root `package.json` scripts + `scripts/`), never ad-hoc `npm install` in the repo root.
+- Tooling dependencies are added as devDependencies: `pnpm add -D <pkg>`; lockfile `pnpm-lock.yaml` is committed and is the single source of truth.
+- `pnpm validate:mermaid` — validates mermaid blocks in `specs/c4/*.md`; `pnpm validate:mermaid:all` — across all specs (used in CI / before committing C4 or DDD diagrams).
