@@ -1,39 +1,41 @@
 # Research
 
-Updated: 2026-08-03 12:00
+Updated: 2026-08-03 02:43
 Status: active
 
 ## Active Summary (input for /aif-plan)
 <!-- aif:active-summary:start -->
-Topic: CLI interface for the backend executable — embedded into the single binary (decision taken, ADR created)
+Topic: Gate automation for the agent pipeline — unified gate manifest + two-tier fast/delivery model
 
-Goal: Fixed the CLI-embedding decision as ADR-DES.API.cli-interface; updated folder structure (cmd/vedo-edutrack + internal/cli) and all corresponding documentation. Next: carry the CLI skeleton into M0.2/M0.3 plans (T1 structure + T9 Makefile already updated).
+Goal: Make the "task ready for delivery" decision executable: one gate manifest consumed by the dev loop (fast tier), the delivery handoff (full tier), CI, and agent skills; the agent must run the full tier before declaring a task done.
 
 Constraints:
 - ui_language = ru, artifact_language = en, technical_terms = keep
-- Single binary `vedo-edutrack` (Go, cobra); CLI = input adapter over Application layer (same pattern as MCP)
-- CLI is dev/support/testing tooling (trusted operator, bypasses JWT by design); audit logging via zap; scriptable (no prompts); --output json|table|csv
-- Per-command lazy wire: each command builds its minimal graph (migrate = config + Postgres; server = full graph)
-- MCP stdio (REQ-FR-api.mcp.server) requires a spawnable mode of the same binary — CLI embedding is required, not optional
+- Single source of truth: deploy/ci/gates.yaml; consumers (Makefile, CI T12, /aif-verify, pre-commit later) call the runner and never duplicate commands
+- Shared output contract: aif-gate-result JSON (schema v1: gate, status pass|warn|fail, blocking, blockers, affected_files, suggested_next)
+- Fast tier (dev loop): ≤ 2–3 min, no Postgres/Docker/E2E — go build, tsc --noEmit, gofmt/biome, golangci-lint, biome ci, unit of touched modules, gen-consistency (openapi/sqlc), validate:mermaid, gitleaks
+- Delivery tier (handoff): fast + full unit -race, integration (Postgres), e2e (phase <= current — regression: current + all previous phases), docker build ≤ 20 MB, gosec, pnpm audit, syft (ci-main), atlas validate, coverage-check, agent gates (TQS/RCS, docs/env/drift)
+- Severity: blocking = NFR acceptance criteria (lint 0 errors, format 0 diff); advisory escalates (coverage advisory on M0.2 → blocking on M1)
+- Traceability: gates reference NFR IDs (REQ-NFR-process.dev.engineering-gates P0, REQ-NFR-process.dev.test-coverage P1)
 
 Decisions:
-1. Single binary with cobra subcommands: server / mcp / migrate / seed / ontology sync / route compute / plan get / gap diagnose / report — ADR-DES.API.cli-interface (ПРИНЯТО, 2026-08-03)
-2. cmd/server renamed to cmd/vedo-edutrack; CLI command tree lives in internal/cli (not cmd/, not platform/)
-3. CLI also used for testing: route compute --stub (route engine TDD without Postgres/Hub); CLI commands unit-tested with mocked ports
-4. Makefile becomes a thin wrapper: make migrate → vedo-edutrack migrate up
-5. Traceability: new ADR instance tr:adr-des-api-cli-interface in traceability.ttl
+1. Two-tier model: tier fast (feedback loop during implementation) and tier delivery (full set, mandatory before "ready for delivery"); fast ⊆ delivery
+2. Gate manifest + runner: deploy/ci/gates.yaml + deploy/ci/run-gates.sh; CI YAML becomes a skeleton calling the runner with --group; Makefile gains make dev-check (fast) and make check (delivery)
+3. Decision rule: task ready ⇔ delivery tier completes with zero blocking fails; then /aif-verify (semantic: drift, docs, context gates) → /aif-review → /aif-security-checklist → /aif-commit
+4. Wire into aif-implement: Step 3.4 → --tier fast after each task; Final Step → --tier delivery mandatory before /aif-verify
+5. Phase-aware regression: run all gates with phase <= current_phase (current phase from ROADMAP)
 
 Open questions:
-- Exact M0.3 scope: minimal skeleton (server + migrate + seed + version) in M0.3 vs route compute --stub deferred to M1 with the engine
-- --output formats finalized (json/table/csv) once commands are implemented
-- Audit-log schema for CLI invocations (actor, command, args, result) — design in M0.3/M1
+- Plan task placement in m0-2-engineering-platform.md (new Phase 7 "Gate Automation" + T16 vs extending T12)
+- Manifest location: deploy/ci/gates.yaml vs .ai-factory (project convention: deploy/ci for infra)
+- Pre-commit hook scope (later, --trigger precommit, fast gates only)
+- Mutation testing (REQ-NFR-process.dev.test-coverage ≤ 15%): phase m1, advisory initially
 
 Success signals:
-- ADR-DES.API.cli-interface.md created with full alternative analysis ✅
-- repository-structure + development-tooling ADRs, AGENTS.md, DESCRIPTION.md, M0.2 plan, traceability.ttl updated ✅
-- go build ./... + pnpm validate:mermaid pass ✅
+- RESEARCH saved with the gate-automation design ✅
+- M0.2 plan updated with the gate-automation task (pending: /aif-improve)
 
-Next step: /aif-plan to fold the CLI skeleton into M0.2/M0.3 tasks (T1 structure already updated; add cobra wiring + command stubs + audit logging)
+Next step: /aif-improve to add the gate-automation task (Phase 7, T16) to m0-2-engineering-platform.md
 <!-- aif:active-summary:end -->
 
 ## Sessions
@@ -113,5 +115,27 @@ Links (paths):
 - .ai-factory/plans/m0-2-engineering-platform.md (T1, T5, T9, T10, T12)
 - traceability.ttl (tr:adr-des-api-cli-interface)
 - backend/cmd/vedo-edutrack/main.go, backend/internal/cli/cli.go
+
+### 2026-08-03 02:43 — Gate automation: unified manifest + two-tier fast/delivery model
+
+What changed:
+Designed how to unify delivery gates into automation: a single gate manifest + runner consumed by the dev loop, delivery handoff, CI, and agent skills. Mapped the user's gate list (build, lint/format, docker, unit, integration+e2e for current and all previous phases) to M0.2 T12 and closed the gaps: typecheck, generated-code consistency (oapi-codegen/sqlc), test quality (TQS/RCS), security (gosec/gitleaks/syft/pnpm audit), DB migrations (atlas), traceability, artifact consistency (docs/env/drift).
+
+Key notes:
+- Two tiers: fast (dev feedback loop: compile/types/lint/format/touched-unit/gen-consistency/mermaid/secrets, ≤ 2–3 min, no external services) and delivery (full set, phase <= current for regression; mandatory before declaring a task ready)
+- Single source of truth: deploy/ci/gates.yaml; runner deploy/ci/run-gates.sh --tier fast|delivery [--phase] [--out-format table|json|github]; aggregated aif-gate-result JSON; exit 1 on blocking fail
+- Decision rule: ready for delivery ⇔ delivery tier zero blocking fails → /aif-verify (semantic gates) → /aif-review → /aif-security-checklist → /aif-commit
+- Wiring: aif-implement Step 3.4 → fast tier per task; Final Step → delivery tier before /aif-verify; CI T12 jobs call the runner with --group (no command duplication); Makefile gains make dev-check / make check
+- NFR grounding: REQ-NFR-process.dev.engineering-gates (P0: lint 0 errors, format 0 diff, review ≥ 1 approve, runbooks, make up ≤ 30 min), REQ-NFR-process.dev.test-coverage (P1: unit ≥ 90% core / ≥ 80% rest, integration ≥ 70% API contracts, e2e 100% MVP Must, mutation ≤ 15%, regression = 0)
+- Honest boundaries: code review, mutation testing, runbook coverage, onboarding — declared in the manifest (runner: agent / phase m1) but not executed as shell commands
+
+Links (paths):
+- specs/requirements/REQ-NFR-process.dev.engineering-gates.md
+- specs/requirements/REQ-NFR-process.dev.test-coverage.md
+- .ai-factory/plans/m0-2-engineering-platform.md (T12 CI pipeline, T9 Makefile)
+- .agents/skills/aif-implement/SKILL.md (Step 3.4, Final Step — Verify or Commit)
+- .agents/skills/aif-verify/SKILL.md (Step 2/3, aif-gate-result contract)
+- .agents/skills/aif-test-quality/SKILL.md (TQS/RCS/B1–B7)
+- .agents/skills/aif-security-checklist/SKILL.md
 
 <!-- aif:sessions:end -->

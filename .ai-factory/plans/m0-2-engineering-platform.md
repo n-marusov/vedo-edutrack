@@ -41,6 +41,9 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 - [ ] T14: Frontend test scaffolds (Vitest + RTL, placeholder, red)
 - [ ] T15: E2E test scaffold (Playwright, placeholder, red)
 
+### Phase 7: Gate Automation
+- [ ] T16: Unified gate manifest + two-tier runner
+
 ## Commit Plan
 - **Commit 1** (after T1–T3): `chore: scaffold repository directory tree`
 - **Commit 2** (after T4–T8): `feat: add Docker configs and container strategy`
@@ -48,6 +51,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 - **Commit 4** (after T10–T11): `chore: configure development tooling (lint, pre-commit)`
 - **Commit 5** (after T12): `ci: add GitHub Actions CI pipeline`
 - **Commit 6** (after T13–T15): `test: add placeholder test scaffolds`
+- **Commit 7** (after T16): `ci: add unified gate manifest and two-tier runner`
 
 ## Tasks
 
@@ -275,17 +279,19 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   | `test` | `cd backend && go test ./... -count=1` + `cd frontend && pnpm test` | All tests |
   | `lint` | `cd backend && golangci-lint run ./...` + `cd frontend && pnpm biome ci .` | Lint both ends |
   | `format` | `cd backend && gofmt -l -w .` + `cd frontend && pnpm biome check --write .` | Auto-format |
+  | `dev-check` | `bash deploy/ci/run-gates.sh --tier fast` | Fast feedback loop: compile, types, lint, format, touched-unit, gen-consistency, mermaid (T16) |
+  | `check` | `bash deploy/ci/run-gates.sh --tier delivery` | Full delivery gate set for task handoff (T16) |
   | `migrate` | `cd backend && go run ./cmd/vedo-edutrack migrate up` (wraps Atlas, ADR-DES.API.cli-interface) | Apply DB migrations |
   | `migrate-down` | `cd backend && go run ./cmd/vedo-edutrack migrate down` | Revert last migration |
   | `hooks` | `pre-commit install` | Install git hooks |
-  | `ci` | `lint` → `test` → `build` (mirrors GitHub Actions) | Full local CI run |
+  | `ci` | `bash deploy/ci/run-gates.sh --tier delivery --trigger ci` | Full local CI run (delegates to gate runner, T16) |
   | `clean` | `down` + `rm -rf backend/bin/ frontend/dist/` | Full cleanup |
 
   Additional requirements:
   - `.PHONY` declarations for all targets
   - `SHELL := /bin/bash` for consistency
   - Default target: `help` — prints available targets with descriptions
-  - `make ci` is an exact mirror of `.github/workflows/ci.yml` steps
+  - `make ci` delegates to the gate runner (`run-gates.sh --tier delivery --trigger ci`, T16) — single source of truth is `deploy/ci/gates.yaml`, not the CI YAML
   - Environment variables read from `.env` (auto-loaded via `include .env` or `-include .env`)
   - `DATABASE_URL` default: `postgres://edutrack:edutrack@localhost:5432/edutrack?sslmode=disable`
   - Idempotent targets: running twice doesn't break state
@@ -368,7 +374,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   Trigger: `push` to all branches, `pull_request` to `main`.
   Concurrency group: cancel in-progress runs for same branch/PR.
 
-  Jobs (sequential where arrows indicate dependency):
+  Jobs (sequential where arrows indicate dependency). Each job is a thin wrapper over the gate runner (T16): `bash deploy/ci/run-gates.sh --trigger ci --group <job>`. The actual commands live only in `deploy/ci/gates.yaml` (single source of truth); this YAML stays a skeleton without command duplication.
 
   1. **`lint`** (parallel: backend + frontend):
      - Backend: `golangci-lint run --out-format=github-actions ./...` (with annotations)
@@ -404,6 +410,8 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   - `pnpm/action-setup@v4` with `version: 9` (from pnpm-workspace)
   - Caching: Go modules + pnpm store
   - Timeout: 15 min per job (MTR ≤ 2 h across all jobs)
+
+  Deferred stages (declared in the manifest, not active at M0.2): `mutation` (gremlins, `phase: m1`, advisory — core F1/F2 lands on M1, REQ-NFR-process.dev.test-coverage) and `smoke` (post-MVP). Declared so DESCRIPTION.md's CI/CD chain (lint → test → mutation → coverage → security → build → deploy → smoke) and the pipeline never drift.
 
   **`deploy/ci/`** helpers:
   - `wait-for-postgres.sh` — health-check loop for PostgreSQL readiness in integration test job
@@ -508,6 +516,34 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.repository-structure.md §5; M0.2 exit criterion "E2E test scaffolds exist with intentionally red/placeholder tests".
   **Logging:** INFO — Playwright outputs test status with TODO annotations visible in report.
 
+### Phase 7: Gate Automation
+
+- [ ] **T16: Unified gate manifest + two-tier runner**
+
+  Create a single source of truth for quality gates and a runner that both the dev loop (fast tier) and the delivery handoff (full tier) execute. Implements the gate-automation design from RESEARCH (session 2026-08-03 02:43) and makes the "task ready for delivery" decision executable: the agent runs the full tier before declaring a task done.
+
+  **`deploy/ci/gates.yaml`** — gate manifest (single source of truth):
+  - Each gate: `id`, `command`, `tier: fast|delivery`, `phase` (m0.0…m10), `severity: blocking|advisory`, `group` (lint|typecheck|test|coverage|gen|db|validate|security|build), `trigger` (local|ci|ci-main|precommit), `needs` (postgres, stack-up), `nfr` (requirement ID), optional `runner: agent` for non-command gates
+  - `current_phase` synchronized with ROADMAP (M0.2)
+  - Deferred stages declared explicitly so DESCRIPTION.md and CI don't drift: `mutation` (gremlins, `phase: m1`, advisory — core F1/F2 lands on M1), `smoke` (post-MVP)
+
+  **`deploy/ci/run-gates.sh`** — runner:
+  - `--tier fast` (dev loop, ≤ 2–3 min, no Postgres/Docker/E2E): `go build ./...`, `pnpm tsc --noEmit`, gofmt/biome format check, `golangci-lint run ./...`, `biome ci .`, unit tests for touched modules (auto-scope from `git diff --name-only`), `make gen && git diff --exit-code` (openapi + sqlc), `pnpm validate:mermaid:all`, `gitleaks detect`
+  - `--tier delivery` (task handoff): fast + `go test -race -count=1 -coverprofile=coverage.out ./...`, `go test -tags=integration -count=1 ./...` (Postgres service), e2e Playwright (phase ≤ current — regression: current + all previous phases), docker build (distroless ≤ 20 MB), `gosec ./...`, `pnpm audit`, `syft ... -o spdx-json` (ci-main), `atlas migrate validate`, `coverage-check.sh --min 90` (advisory at M0.2)
+  - Phase filter: run all gates with `phase <= current_phase` — current + all previous phases always execute
+  - Output: human table + `--out-format json` → aggregated `aif-gate-result` JSON (schema v1: status pass|warn|fail, blocking, blockers, affected_files, suggested_next); exit 1 on blocking fail
+  - Agent-declared gates (`runner: agent`): TQS/RCS via `/aif-test-quality`, docs/env/drift via `/aif-verify` Step 3 — listed in the report, executed by the agent
+
+  **Integration:**
+  - Makefile (T9): `make dev-check` → `run-gates.sh --tier fast`; `make check` → `run-gates.sh --tier delivery`; `make ci` → `--tier delivery --trigger ci`
+  - CI (T12): jobs call `run-gates.sh --trigger ci --group <job>`; commands removed from YAML
+  - Agent hooks (documented for `aif-implement`): Step 3.4 → `--tier fast` after each task; Final Step → `--tier delivery` mandatory before `/aif-verify`
+
+  **Decision rule:** task ready for delivery ⇔ `--tier delivery` completes with zero blocking fails.
+
+  **Source:** REQ-NFR-process.dev.engineering-gates (P0); REQ-NFR-process.dev.test-coverage (P1); RESEARCH session 2026-08-03 02:43; `aif-gate-result` contract (aif-verify/aif-review/aif-rules-check/aif-security-checklist).
+  **Logging:** INFO — runner logs each gate (id, status, duration); JSON summary at end.
+
 ---
 
 ## Dependencies Between Tasks
@@ -528,7 +564,9 @@ T3 ──┼── T4, T5 (Dockerfiles depend on directory structure)
      │
      ├── T12 (CI — depends on T9 Makefile targets + T10, T11 configs)
      │
-     └── T13, T14, T15 (test scaffolds — depend on T1, T2 directory structure)
+     ├── T13, T14, T15 (test scaffolds — depend on T1, T2 directory structure)
+     │
+     └── T16 (gate manifest + runner — depends on T9 Makefile, T12 CI, T13–T15 scaffolds; unifies them)
 ```
 
 **Execution order by phase:**
@@ -538,6 +576,7 @@ T3 ──┼── T4, T5 (Dockerfiles depend on directory structure)
 - Phase 4 (T10, T11) — parallel after T1, T2
 - Phase 5 (T12) — after T9, T10, T11
 - Phase 6 (T13, T14, T15) — parallel after T1, T2
+- Phase 7 (T16) — after T9, T12, T13, T14, T15
 
 ## Architecture References
 
@@ -551,12 +590,14 @@ T3 ──┼── T4, T5 (Dockerfiles depend on directory structure)
 | `ADR-DES.STACK.framework-vs-vs` | chi + oapi-codegen (backend), React + Vite (frontend) |
 | `ADR-DES.DATA.storage-strategy` | PostgreSQL, sqlc + Atlas migrations |
 | `specs/ddd/context-map` | 10 bounded contexts (core/supporting/generic) with exact slugs and relationships |
+| `deploy/ci/gates.yaml` + `deploy/ci/run-gates.sh` | Unified gate manifest + two-tier runner (T16): single source of truth for fast/delivery gates |
 
 ## Non-Functional Requirements Addressed
 
 | NFR | How M0.2 addresses it |
 |-----|----------------------|
-| `REQ-NFR-process.dev.engineering-gates` | CI pipeline with lint → test → coverage → security gates (§5, T12) |
+| `REQ-NFR-process.dev.engineering-gates` | CI pipeline with lint → test → coverage → security gates (§5, T12); unified gate manifest + runner makes the acceptance criteria executable (T16) |
+| `REQ-NFR-process.dev.test-coverage` | Delivery gate tier: full unit (race) + integration + e2e (phase ≤ current), coverage-check (advisory at M0.2 → blocking at M1), mutation deferred to m1 (T16) |
 | `REQ-NFR-process.dev.code-complexity` (CC ≤ 10) | golangci-lint gocyclo configured in T10 |
 | `REQ-NFR-process.dev.developer-documentation` | Container strategy doc (T8), deploy README |
 | `REQ-NFR-security.compliance.owasp-application-security` | CSP/HSTS headers via Traefik (T7), nonroot user (T4), rate limiting (T7), secret scan in CI (T12) |
