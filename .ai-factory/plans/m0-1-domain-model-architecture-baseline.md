@@ -19,7 +19,7 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 - [x] T2: Aggregates, entities, and domain events
 
 ### Phase 2: Architecture Decision Records
-- [ ] T3: Stack selection ADRs
+- [x] T3: Stack selection ADRs
 - [ ] T4: Database and communication patterns ADRs
 - [ ] T5: Repository structure and RBAC model ADRs
 
@@ -117,20 +117,20 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 
 ### Phase 2: Architecture Decision Records
 
-- [ ] **T3: Stack selection ADRs**
+- [x] **T3: Stack selection ADRs**
   Produce ADRs for the programming language and framework. Evaluate candidates from `DESCRIPTION.md` (TypeScript / Python / Java for language; Next.js / FastAPI+NestJS / Spring Boot for framework) against NFR constraints from `specs/requirements/REQ-NFR-*.md` (p95 ≤ 200ms, horizontal scaling, security requirements, i18n).
   
   **Deliverables:**
-  - `specs/adr/ADR-DES.STACK.language-vs-vs.md` — language selection (TypeScript vs Python vs Java)
-  - `specs/adr/ADR-DES.STACK.framework-vs-vs.md` — framework selection
+  - `specs/adr/ADR-DES.STACK.language-vs-vs.md` — language selection (TypeScript vs Python vs Java) ✅ (решение: **Go** + TS-фронт; кандидаты расширены Go, Python, Java — см. DESCRIPTION.md)
+  - `specs/adr/ADR-DES.STACK.framework-vs-vs.md` — framework selection ✅ (решение: **chi + oapi-codegen** (бэкенд) + **React + TS** (фронт); отклонены tRPC/Connect/Vue/Next.js)
   
-  **ADR format** (per `specs/adr/README.md`): Status (ПРИНЯТО), Date, Контекст, Требование-источник, Решение, Рассмотренные альтернативы, Последствия.
+  **ADR format** (per `specs/adr/README.md`): Status (ПРИНЯТО), Date, Контекст, Требование-источник, Решение, Рассмотренные альтернативы, Последствия. ✅
   
   **Constraints:**
-  - Must reference relevant NFRs: `REQ-NFR-api.performance.latency-p95`, `REQ-NFR-ops.performance.scalability`, `REQ-NFR-process.dev.test-coverage`, `REQ-NFR-security.compliance.owasp-application-security`
-  - Must account for i18n-readiness (`REQ-NFR-ops.compliance.i18n-readiness`): RU + EN, 0-code language addition
-  - Deterministic core + LLM module: the chosen stack must support both a deterministic routing engine and an optional LLM integration module
-  - Community contour (public ontology, families, EdTech) vs Enterprise contour (corporate, isolated, 152-ФЗ) may influence stack decisions
+  - Must reference relevant NFRs: `REQ-NFR-api.performance.latency-p95`, `REQ-NFR-ops.performance.scalability`, `REQ-NFR-process.dev.test-coverage`, `REQ-NFR-security.compliance.owasp-application-security` ✅
+  - Must account for i18n-readiness (`REQ-NFR-ops.compliance.i18n-readiness`): RU + EN, 0-code language addition ✅
+  - Deterministic core + LLM module: the chosen stack must support both a deterministic routing engine and an optional LLM integration module ✅ (Go-ядро + изолированный LLM-адаптер)
+  - Community contour (public ontology, families, EdTech) vs Enterprise contour (corporate, isolated, 152-ФЗ) may influence stack decisions ✅ (Go-бинарник для on-prem Enterprise; React для Community-скорости)
   
   **Logging:** Log each candidate evaluation dimension at INFO. Log the final decision at INFO with a summary of trade-offs. Log rejected alternatives with explicit rejection rationale at INFO.
 

@@ -34,12 +34,19 @@ VEDO EduTrack is an educational route service built **on top of the VEDO Hub** o
 
 ## Tech Stack
 
-> **Status: TBD — deferred by decision (2026-08-02).** The stack will be chosen by the user before implementation planning.
+> **Status: выбран (ПРИНЯТО, 2026-08-02)** — зафиксирован в ADR T3: `ADR-DES.STACK.language-vs-vs`, `ADR-DES.STACK.framework-vs-vs`, `ADR-IMPL.PROCESS.development-tooling`.
 
-- **Programming language:** *TBD* (candidates: TypeScript / Python / Java)
-- **Framework:** *TBD* (candidates: Next.js / FastAPI+NestJS / Spring Boot)
-- **Database:** *TBD* (candidate: PostgreSQL for learner/plan/progress data; knowledge graph lives in VEDO Hub, queried via SPARQL API)
-- **ORM:** *TBD* (candidate: Prisma / SQLAlchemy / JPA)
+- **Programming language:** Go (бэкенд) + TypeScript (фронтенд) — `ADR-DES.STACK.language-vs-vs`
+- **Framework:** chi + oapi-codegen (бэкенд, OpenAPI-first); React + TS (фронт, SPA) — `ADR-DES.STACK.framework-vs-vs`
+- **Database:** PostgreSQL (learner/plan/progress data; knowledge graph lives in VEDO Hub, queried via SPARQL API)
+- **Data access / migrations:** sqlc + Atlas (drift-детекция)
+- **DI / logging / i18n:** wire · zap + OTel · go-i18n
+- **Auth:** JWT RS256/JWKS (jwx); Keycloak — пост-MVP (Enterprise SSO)
+- **Testing:** Go testing + testify · testcontainers-go · gremlins (spike) · Playwright · React Testing Library
+- **Observability:** OTel (Go+Web) → Collector → Prometheus/Loki/Tempo + Grafana
+- **Infra:** Docker (distroless, Go embed) · docker-compose + Traefik (blue-green) · K8s — пост-MVP
+- **CI/CD:** GitHub Actions (lint → test → mutation → coverage → security → build → deploy → smoke)
+- **Dev tools:** Biome (фронт, pre-commit) · gofmt + golangci-lint (бэкенд) · pre-commit framework — `ADR-IMPL.PROCESS.development-tooling`
 - **External platform:** VEDO Hub (REST API + MCP server, SPARQL/Cypher endpoint, ontology storage/versioning)
 
 ## Architecture Notes
