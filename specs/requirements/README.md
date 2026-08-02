@@ -77,3 +77,5 @@ REQ-<TYPE>-<domain-or-area>.<qualifier>.<action|attribute>
 - [Прецеденты использования](../use-cases/README.md) — UC
 - [Пользовательские истории](../user-stories/README.md) — US в формате Gherkin
 - [Глоссарий](../glossary.md) — термины предметной области
+- [Роль-разрешение матрица](../rbac-matrix.md) — роли × области × CRUD (формализована в `REQ-NFR-security.compliance.role-catalog`, `permission-matrix`, `ops-admin-separation`)
+- [Граница ответственности](../boundary.md) — VEDO Hub ↔ EduTrack (формализована в `REQ-NFR-api.compliance.ontology-read-only`, `ownership-boundary`)

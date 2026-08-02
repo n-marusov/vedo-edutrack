@@ -28,28 +28,28 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 - [x] T7: Core Component diagrams
 
 ### Phase 4: Cross-Cutting Concerns
-- [ ] T8: Role-permission matrix
-- [ ] T9: Traceability model extension
-- [ ] T10: VEDO Hub / EduTrack responsibility boundary
+- [x] T8: Role-permission matrix
+- [x] T9: Traceability model extension
+- [x] T10: VEDO Hub / EduTrack responsibility boundary
 
 ### Phase 5: Validation & Finalization
 - [ ] T11: Cross-reference validation and M0.1 completion
 
 ## M0.1 Exit Criteria (from ROADMAP.md)
 
-- [ ] Bounded contexts, aggregates, domain events, and context map are documented
-- [ ] C4 System Context, Container, and core Component diagrams are available
-- [ ] ADRs cover stack, framework, database, communication patterns, repository structure, and RBAC model
-- [ ] Role-permission matrix covers all personas from `specs/vision.md`
-- [ ] Traceability model links US → UC → FR → COMP → TEST
-- [ ] VEDO Hub / EduTrack responsibility boundary is explicit: EduTrack reads ontology data and computes educational mechanics; Hub owns ontology storage, editing, versioning, forks, and social contribution flows
+- [x] Bounded contexts, aggregates, domain events, and context map are documented
+- [x] C4 System Context, Container, and core Component diagrams are available
+- [x] ADRs cover stack, framework, database, communication patterns, repository structure, and RBAC model
+- [x] Role-permission matrix covers all personas from `specs/vision.md`
+- [x] Traceability model links US → UC → FR → COMP → TEST
+- [x] VEDO Hub / EduTrack responsibility boundary is explicit: EduTrack reads ontology data and computes educational mechanics; Hub owns ontology storage, editing, versioning, forks, and social contribution flows
 
 ## Context Summary
 
 ### Source Material
 - `specs/vision.md` — authoritative product vision, personas, F0–F6 functions, domain events (2.4)
 - `specs/glossary.md` — domain terminology (7 sections, 50+ terms)
-- `specs/requirements/` — 60 FR + 48 NFR with acceptance criteria
+- `specs/requirements/` — 60 FR + 54 NFR with acceptance criteria
 - `specs/user-stories/` — 47 US in Gherkin format
 - `specs/use-cases/` — 42 UC with actor/channel/flow metadata
 - `traceability.ttl` — existing TBox (classes, properties, integrity constraints); 0 ABox instances for COMP/TEST/ADR/C4
@@ -134,7 +134,7 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
   
   **Logging:** Log each candidate evaluation dimension at INFO. Log the final decision at INFO with a summary of trade-offs. Log rejected alternatives with explicit rejection rationale at INFO.
 
-- [ ] **T4: Database and communication patterns ADRs**
+- [x] **T4: Database and communication patterns ADRs**
   Produce ADRs for the database technology and inter-service communication patterns.
   
   **Deliverables:**
@@ -149,7 +149,7 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
   
   **Logging:** Log candidate evaluation at INFO. Log final decisions with trade-off summaries at INFO.
 
-- [ ] **T5: Repository structure and RBAC model ADRs**
+- [x] **T5: Repository structure and RBAC model ADRs**
   Produce ADRs for the repository layout and role-based access control model.
   
   **Deliverables:**
@@ -206,7 +206,7 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 
 ### Phase 4: Cross-Cutting Concerns
 
-- [ ] **T8: Role-permission matrix**
+- [x] **T8: Role-permission matrix**
   Produce a role-permission matrix covering all personas from `specs/vision.md` §3.1, aligned with the RBAC ADR from T5.
   
   **Deliverables:**
@@ -221,7 +221,7 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
   
   **Logging:** Log each role at INFO with summary of permission count. Log any persona that maps ambiguously to the RBAC model at WARN.
 
-- [ ] **T9: Traceability model extension**
+- [x] **T9: Traceability model extension**
   Extend `traceability.ttl` to add ABox instances for the new M0.1 artifacts (ADRs, C4 diagrams) and ready the model for future COMP and TEST artifacts.
   
   **Deliverables:**
@@ -237,7 +237,7 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
   
   **Logging:** Log each new instance at INFO with its URI and linked artifacts. Log any missing class or property at ERROR. Log the total instance count after update at INFO.
 
-- [ ] **T10: VEDO Hub / EduTrack responsibility boundary**
+- [x] **T10: VEDO Hub / EduTrack responsibility boundary**
   Produce an explicit boundary specification documenting what EduTrack owns vs. what VEDO Hub owns, resolving ambiguities from `specs/vision.md`, `specs/glossary.md` §4, and `.ai-factory/DESCRIPTION.md`.
   
   **Deliverables:**

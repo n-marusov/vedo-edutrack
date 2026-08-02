@@ -34,7 +34,9 @@ vedo-edutrack/
 ├── specs/                 # Формализованные спецификации
 │   ├── vision.md          # Продуктовое видение (рус., авторитетный источник)
 │   ├── glossary.md        # Доменный глоссарий (единственный источник терминов)
-│   ├── requirements/      # Требования: 60 FR + 49 NFR + MVP-ACCEPTANCE-CRITERIA.md
+│   ├── rbac-matrix.md     # Роль-разрешение матрица (T8)
+│   ├── boundary.md        # Граница ответственности VEDO Hub ↔ EduTrack (T10)
+│   ├── requirements/      # Требования: 60 FR + 54 NFR + MVP-ACCEPTANCE-CRITERIA.md
 │   ├── use-cases/         # 42 use case (UC-<L1>.<L2>.<L3>)
 │   ├── user-stories/      # 47 user stories (US-*, Gherkin)
 │   ├── adr/               # Architecture Decision Records (ADR-DES/IMPL.*)
@@ -55,7 +57,9 @@ vedo-edutrack/
 | File | Purpose |
 |------|---------|
 | `vision.md` | Authoritative product vision: business requirements, MVP scope, roadmap, monetization |
-| `specs/requirements/` | Formalized requirements: 60 FR + 49 NFR, each with measurable acceptance criteria |
+| `specs/rbac-matrix.md` | Role-permission matrix: role × functional area × permission level (CRUD), Community/Enterprise scopes |
+| `specs/boundary.md` | VEDO Hub ↔ EduTrack responsibility boundary: data/computation/API/event/deployment ownership, ontology-port contract |
+| `specs/requirements/` | Formalized requirements: 60 FR + 54 NFR, each with measurable acceptance criteria |
 | `specs/adr/` | Architecture decision records (ADR-DES/IMPL.*): stack, storage, comm patterns, RBAC |
 | `specs/ddd/` | DDD artifacts: context map, aggregates, domain events |
 | `specs/c4/` | C4 diagrams: System Context, Container, Component (Mermaid + legend) |
@@ -74,6 +78,8 @@ vedo-edutrack/
 | User stories | `specs/user-stories/` | 47 US in Gherkin with @UC/@FR tags (Russian) |
 | Architecture decisions | `specs/adr/` | ADR records: stack, storage, comm patterns, repo structure, RBAC (Russian) |
 | Domain model | `specs/ddd/` | Context map, aggregates, domain events (Russian) |
+| RBAC matrix | `specs/rbac-matrix.md` | Role × functional area × CRUD permissions, Community/Enterprise differences (Russian) |
+| Responsibility boundary | `specs/boundary.md` | EduTrack vs VEDO Hub ownership across data, computation, API, events, deployment (Russian) |
 | C4 diagrams | `specs/c4/` | Context/Container/Component diagrams with legend, context, F0–F6 links (Russian) |
 | Traceability | `traceability.ttl` | OWL 2 DL: US → UC → FR → ADR/C4 → COMP → TEST chains |
 | Project description | `.ai-factory/DESCRIPTION.md` | Spec for AI tooling (English) |

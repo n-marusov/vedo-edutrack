@@ -2058,12 +2058,25 @@ tr:adr-des-infra-modular-monolith-approach a tr:ArchitectureDecision ;
 tr:c4-context-system a tr:C4Diagram ;
   tr:hasArtifactId "C4-context-system" ;
   tr:hasFilePath "specs/c4/context-system.md" ;
-  tr:derivesFrom tr:adr-des-infra-modular-monolith-approach .
+  tr:derivesFrom tr:adr-des-infra-modular-monolith-approach, tr:adr-des-infra-clean-architecture-adoption, tr:nfr-infra-compliance-community-enterprise-isolation, tr:fr-api-hub-read-ontology, tr:fr-api-hub-copy-subgraph, tr:fr-api-hub-subscribe-updates .
 
 tr:c4-container-overview a tr:C4Diagram ;
   tr:hasArtifactId "C4-container-overview" ;
   tr:hasFilePath "specs/c4/container-overview.md" ;
-  tr:derivesFrom tr:adr-des-infra-modular-monolith-approach .
+  tr:derivesFrom tr:adr-des-infra-modular-monolith-approach, tr:adr-des-infra-clean-architecture-adoption, tr:nfr-infra-compliance-client-server-web-app, tr:fr-plan-fixation-snapshot .
+
+
+# ── M0.1 refinement: C4 Level 3 Component diagrams (T7) ──
+
+tr:c4-component-api-server a tr:C4Diagram ;
+  tr:hasArtifactId "C4-component-api-server" ;
+  tr:hasFilePath "specs/c4/component-api-server.md" ;
+  tr:derivesFrom tr:adr-des-infra-clean-architecture-adoption, tr:adr-des-infra-modular-monolith-approach, tr:adr-des-api-communication-patterns, tr:adr-des-security-rbac-model, tr:fr-plan-compute-shortest-path, tr:fr-execute-progress-plan-vs-actual, tr:fr-execute-gap-diagnose-root-cause, tr:fr-execute-coverage-fgos-live, tr:fr-api-hub-read-ontology, tr:fr-api-hub-copy-subgraph, tr:fr-api-webhooks-module-mastered, tr:fr-api-sparql-read-only .
+
+tr:c4-component-web-app a tr:C4Diagram ;
+  tr:hasArtifactId "C4-component-web-app" ;
+  tr:hasFilePath "specs/c4/component-web-app.md" ;
+  tr:derivesFrom tr:adr-des-infra-clean-architecture-adoption, tr:adr-des-stack-framework-vs-vs, tr:fr-viz-map-progress-colors, tr:fr-viz-builder-construct-route, tr:fr-viz-dashboard-learner, tr:fr-viz-dashboard-methodologist, tr:fr-viz-panel-group-management .
 
 
 # ── M0.1 refinement: stack selection ADRs (language + framework) ──
@@ -2146,3 +2159,49 @@ tr:adr-des-security-rbac-model a tr:ArchitectureDecision ;
   tr:hasArtifactId "ADR-DES.SECURITY.rbac-model" ;
   tr:hasFilePath "specs/adr/ADR-DES.SECURITY.rbac-model.md" ;
   tr:derivesFrom tr:nfr-security-compliance-role-based-access, tr:fr-api-sso-keycloak, tr:nfr-security-compliance-owasp-application-security, tr:nfr-security-compliance-pii-152-fz, tr:nfr-infra-compliance-community-enterprise-isolation, tr:nfr-data-compliance-pii-export-deletion, tr:nfr-ops-access-production-control .
+
+
+# ── M0.1 refinement: RBAC matrix and boundary formalized as requirements (T8/T10) ──
+
+tr:nfr-security-compliance-role-catalog a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-security.compliance.role-catalog" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-security.compliance.role-catalog.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-security-compliance-permission-matrix a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-security.compliance.permission-matrix" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-security.compliance.permission-matrix.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-security-compliance-ops-admin-separation a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-security.compliance.ops-admin-separation" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-security.compliance.ops-admin-separation.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-api-compliance-ontology-read-only a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-api.compliance.ontology-read-only" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-api.compliance.ontology-read-only.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-api-compliance-ownership-boundary a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-api.compliance.ownership-boundary" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-api.compliance.ownership-boundary.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+# Cross-cutting spec documents: RBAC matrix (T8) and responsibility boundary (T10)
+# document the ADR/requirements they formalize.
+
+tr:doc-rbac-matrix a tr:Documentation ;
+  tr:hasArtifactId "rbac-matrix" ;
+  tr:hasFilePath "specs/rbac-matrix.md" ;
+  tr:documents tr:adr-des-security-rbac-model, tr:nfr-security-compliance-role-based-access, tr:nfr-security-compliance-role-catalog, tr:nfr-security-compliance-permission-matrix, tr:nfr-security-compliance-ops-admin-separation .
+
+tr:doc-boundary a tr:Documentation ;
+  tr:hasArtifactId "boundary" ;
+  tr:hasFilePath "specs/boundary.md" ;
+  tr:documents tr:adr-des-api-communication-patterns, tr:adr-des-security-rbac-model, tr:nfr-api-compliance-ontology-read-only, tr:nfr-api-compliance-ownership-boundary, tr:nfr-api-availability-hub-dependency-sla .
