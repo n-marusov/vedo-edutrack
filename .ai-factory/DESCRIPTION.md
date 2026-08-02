@@ -53,8 +53,14 @@ VEDO EduTrack is an educational route service built **on top of the VEDO Hub** o
 
 ## Non-Functional Requirements
 
-- **Logging:** configurable via `LOG_LEVEL`.
-- **Error handling:** structured error responses.
-- **Security:** role-based access (learner / parent / school / methodologist / HR), private corporate ontology isolation, PII protection (152-ФЗ context for Enterprise).
-- **Performance:** route recompute on graph traversal must stay interactive; SPARQL queries via VEDO Hub API.
-- **Observability:** readiness forecasts and plan deviations as first-class events (`module.mastered`, `plan.deviated` webhooks).
+Formal NFR corpus: **48 NFR** in `specs/requirements/REQ-NFR-*.md`, each with measurable acceptance criteria, traced in `traceability.ttl`. Coverage areas:
+
+- **Observability & ops:** structured logging (`LOG_LEVEL`, JSON, `request_id`/`trace_id`), golden-signals dashboards, alerting with P1–P4 escalation (noise ≤ 20%), distributed tracing, incident communication (status page), product metrics (NPS, forecast accuracy ±10%, FGOS coverage freshness).
+- **Release & change:** deployment verification (drift = 0), canary releases with kill switch ≤ 5 min, change management (0 manual prod changes, auto-rollback), CI/CD resilience (MTR ≤ 2 h), maintenance windows (attestation-period protection), reversible DB migrations (auto-rollback ≤ 15 min).
+- **Security:** role-based access (learner / parent / school / methodologist / HR), OWASP Top 10 (rate limiting, input validation, SPARQL parameterization, JWT RS256/JWKS), PII protection under 152-ФЗ (encryption at-rest/in-transit, incident notification ≤ 24 h), supply-chain security (pinning, SBOM, secrets scan), environment isolation (0 prod PII in dev), data residency in RU (242-ФЗ), archive security, production access (2-person rule, JIT).
+- **Data & lifecycle:** RPO ≤ 1 h / RTO ≤ 4 h, backup validity (restore-tested), retention policy per category, PII export ≤ 30 min / deletion ≤ 30 days, processor registry, decommissioning safety, concurrent-write consistency (optimistic locking, 0 lost updates).
+- **Performance & scalability:** API p95 ≤ 200 ms at 1000 concurrent, SPARQL route recompute < 1 s, horizontal scaling (10× load, autoscaling ≤ 5 min), multi-AZ (≥ 2 zones).
+- **UX & ergonomics:** WCAG 2.1 AA (axe-core gate: 0 critical), supported browsers/OS (Chrome/Firefox/Safari/Edge, Windows 10+/macOS 12+/iOS 15+/Android 11+), code complexity gates (CC ≤ 10), admin console ergonomics, user competency & training, i18n-readiness (RU+EN, ICU, 0-code language addition; RTL deferred).
+- **Support & docs:** tiered support SLA (Community ≤ 48 h / Pro ≤ 4 h / Enterprise ≤ 1 h), user documentation (100% scenarios), developer documentation (bus-factor ≥ 2).
+
+Total requirements corpus: **108** (60 FR + 48 NFR), plus 42 UC and 47 US, all traced in `traceability.ttl` (0 orphans).

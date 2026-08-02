@@ -1,39 +1,38 @@
 # Research
 
-Updated: 2026-08-02 17:00
+Updated: 2026-08-02 18:30
 Status: active
 
 ## Active Summary (input for /aif-plan)
 <!-- aif:active-summary:start -->
-Topic: Roadmap update — integrating 21-step engineering algorithm (DDD → first `make up`) with existing product roadmap
+Topic: i18n-readiness NFR — close quality-matrix cell 2.2 recommendation; deferred decisions recorded (A/B testing, vertical certification, RTL)
 
-Goal: Evolve ROADMAP.md to include a Phase 0 covering requirements elaboration, DDD modeling, architecture decisions, and engineering foundation — the work that must happen before the first line of production code.
+Goal: Create an NFR requirement for localization readiness (RU+EN supported, easy addition of new languages) following REQ-NFR conventions, plus record deferred decisions (A/B framework, industry vertical certification, RTL support) for roadmap review.
 
 Constraints:
-- Artifact naming MUST follow existing semantic conventions from READMEs: US = `US-<domain>.<subdomain>.<action>`, UC = `UC-<L1>.<L2>.<L3>`, ADR = `ADR-<LEVEL>.<AREA>.<semantic-tag>`
-- FR and NFR conventions do NOT exist yet — must be created following the same hierarchical pattern
+- NFR naming: `REQ-NFR-<area>.<qualifier>.<attribute>` (specs/requirements/README.md)
+- Mandatory fields: Приоритет, Ключевая функция, Источник, Описание, Критерии приёмки (measurable)
+- Priority: P2 (recommendatory); cell 2.2 (Эргономика/Эксплуатация)
+- traceability.ttl must get a new NFR instance (tr:nfr-<area>-<qualifier>-<attribute>)
 - ui_language = ru, artifact_language = en, technical_terms = keep
-- The roadmap is a product document; engineering phases should be added without diluting the product focus
+- Phase: M10 (Phase 4) — i18n hygiene NFR is set now (cheap now, expensive later)
 
 Decisions:
-1. Phase 0 with 4 milestones: M0.0 (Requirements), M0.1 (Domain Model & Architecture), M0.2 (Engineering Platform), M0.3 (App Scaffold)
-2. Requirements elaboration produces 4 artifact types: US, UC, FR, NFR — all with semantic IDs
-3. FR naming convention: `FR-<domain>.<subdomain>.<capability>` (by analogy with US)
-4. NFR naming convention: `NFR-<category>.<subcategory>.<semantic-tag>` (by analogy with ADR/UC)
-5. README files needed in `specs/requirements/` for FR and NFR conventions
-6. UC L1-domains for EduTrack need to be defined (current UC README is VEDO Core-specific)
+1. Write i18n-readiness NFR now (P2): RU (primary) + EN (M10); "easy language addition" = adding a language requires only translations + config, 0 code changes, ≤ 1 day for one developer
+2. A/B testing framework — DEFERRED: no product hypotheses for MVP; overlaps with REQ-NFR-ops.release.canary-kill-switch
+3. Industry vertical certification (ISO 27001, PCI DSS) — DEFERRED: no regulated vertical selected (M7); PCI scope likely sits with payment acquirer
+4. RTL support — DEFERRED: no RTL-market decision; SNG expansion (Moscow, Kazan, Vladivostok) does not require RTL
 
 Open questions:
-- Exact L1-domains for EduTrack UC (candidates: route, plan, viz, auth, api, resource, practice)
-- FR/NFR category taxonomy detail
-- Phase 0 timebox: 3-4 weeks for a team of 2-3
+- Exact acceptance metric for "easy addition": ≤ 1 day per language? 0 code changes?
+- Should user documentation (REQ-NFR-ops.compliance.user-documentation) be localized in the same NFR or cross-referenced?
 
 Success signals:
-- ROADMAP.md includes Phase 0 with M0.0–M0.3
-- `specs/requirements/` has README for FR and NFR conventions
-- Traceability chain US → UC → FR → COMP → TEST is formalized
+- REQ-NFR-ops.compliance.i18n-readiness.md created with measurable criteria
+- traceability.ttl updated with new instance
+- Deferred decisions visible in RESEARCH for roadmap review
 
-Next step: `/aif-plan` to create implementation plan for ROADMAP update with Phase 0
+Next step: `/aif-plan` to create implementation plan for the i18n-readiness NFR (single file + traceability + commit)
 <!-- aif:active-summary:end -->
 
 ## Sessions
@@ -73,4 +72,20 @@ Links (paths):
 - `vedo-edutrack/specs/vision.md` — business requirements (authoritative)
 - `vedo-edutrack/specs/glossary.md` — domain terminology
 - `vedo-edutrack/specs/requirements/` — empty; needs README for FR and NFR conventions
+### 2026-08-02 18:30 — Quality-matrix final audit + recommendatory NFR triage
+
+What changed:
+Final quality-matrix audit (2026-08-02) confirmed 20/20 green cells: 107 requirements (60 FR + 47 NFR), 0 lacunas, 0 hierarchy violations, all metrologically valid. Three recommendatory open questions from audit Step 7 were triaged with the user.
+
+Key notes:
+- A/B testing framework: deferred — no MVP product hypotheses; overlaps with canary-kill-switch
+- Vertical certification (ISO 27001/PCI DSS): deferred — no regulated vertical selected; PCI scope likely with acquirer
+- Localization: approved — i18n-readiness NFR (P2, cell 2.2): RU+EN, easy language addition (translations + config only, ≤ 1 day, 0 code changes), RTL explicitly out of scope
+- Requirement corpus grew from 79 (66 FR + 13 NFR) to 107 (60 FR + 47 NFR) across 8 loop iterations (commits 0fe934d..2975ae3)
+
+Links (paths):
+- specs/requirements/ (60 FR + 47 NFR)
+- traceability.ttl (107 requirement instances, 0 orphans)
+- specs/vision.md (authoritative)
+
 <!-- aif:sessions:end -->
