@@ -20,8 +20,8 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 
 ### Phase 2: Architecture Decision Records
 - [x] T3: Stack selection ADRs
-- [ ] T4: Database and communication patterns ADRs
-- [ ] T5: Repository structure and RBAC model ADRs
+- [x] T4: Database and communication patterns ADRs
+- [x] T5: Repository structure and RBAC model ADRs
 
 ### Phase 3: C4 Architecture Diagrams
 - [ ] T6: System Context and Container diagrams

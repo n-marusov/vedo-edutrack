@@ -2120,3 +2120,29 @@ tr:fr-api-integration-lms-connectors a tr:FunctionalRequirement ;
   tr:hasFilePath "specs/requirements/REQ-FR-api.integration.lms-connectors.md" ;
   tr:hasPriority "P1" ;
   tr:derivesFrom tr:vision .
+
+
+# ── M0.1 refinement: database and communication patterns ADRs (T4) ──
+
+tr:adr-des-data-storage-strategy a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.DATA.storage-strategy" ;
+  tr:hasFilePath "specs/adr/ADR-DES.DATA.storage-strategy.md" ;
+  tr:derivesFrom tr:nfr-api-performance-latency-p95, tr:nfr-ops-performance-scalability, tr:nfr-data-availability-write-consistency, tr:nfr-data-availability-backup-rpo, tr:nfr-data-availability-migration-rollback, tr:nfr-security-compliance-pii-152-fz, tr:nfr-data-compliance-data-residency, tr:fr-plan-fixation-snapshot, tr:fr-api-hub-copy-subgraph, tr:fr-api-webhooks-idempotency, tr:nfr-api-availability-webhook-idempotency, tr:nfr-ops-compliance-support-sla, tr:nfr-security-compliance-owasp-application-security .
+
+tr:adr-des-api-communication-patterns a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.API.communication-patterns" ;
+  tr:hasFilePath "specs/adr/ADR-DES.API.communication-patterns.md" ;
+  tr:derivesFrom tr:nfr-api-performance-latency-p95, tr:nfr-ops-performance-scalability, tr:nfr-api-availability-webhook-idempotency, tr:fr-api-webhooks-idempotency, tr:fr-api-sparql-read-only, tr:nfr-security-compliance-owasp-application-security, tr:nfr-api-availability-hub-dependency-sla, tr:nfr-ops-compliance-user-documentation, tr:nfr-infra-compliance-community-enterprise-isolation, tr:fr-api-mcp-server, tr:fr-api-hub-subscribe-updates .
+
+
+# ── M0.1 refinement: repository structure and RBAC model ADRs (T5) ──
+
+tr:adr-impl-process-repository-structure a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-IMPL.PROCESS.repository-structure" ;
+  tr:hasFilePath "specs/adr/ADR-IMPL.PROCESS.repository-structure.md" ;
+  tr:derivesFrom tr:nfr-process-dev-test-coverage, tr:nfr-process-dev-engineering-gates, tr:nfr-process-dev-code-complexity, tr:nfr-process-dev-developer-documentation, tr:nfr-ops-compliance-user-documentation, tr:nfr-infra-compliance-cicd-supply-chain-security, tr:nfr-ops-release-deployment-verification .
+
+tr:adr-des-security-rbac-model a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.SECURITY.rbac-model" ;
+  tr:hasFilePath "specs/adr/ADR-DES.SECURITY.rbac-model.md" ;
+  tr:derivesFrom tr:nfr-security-compliance-role-based-access, tr:fr-api-sso-keycloak, tr:nfr-security-compliance-owasp-application-security, tr:nfr-security-compliance-pii-152-fz, tr:nfr-infra-compliance-community-enterprise-isolation, tr:nfr-data-compliance-pii-export-deletion, tr:nfr-ops-access-production-control .

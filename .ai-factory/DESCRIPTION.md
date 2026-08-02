@@ -34,7 +34,7 @@ VEDO EduTrack is an educational route service built **on top of the VEDO Hub** o
 
 ## Tech Stack
 
-> **Status: выбран (ПРИНЯТО, 2026-08-02)** — зафиксирован в ADR T3: `ADR-DES.STACK.language-vs-vs`, `ADR-DES.STACK.framework-vs-vs`, `ADR-IMPL.PROCESS.development-tooling`.
+> **Status: выбран (ПРИНЯТО, 2026-08-02)** — зафиксирован в ADR T3–T5: `ADR-DES.STACK.language-vs-vs`, `ADR-DES.STACK.framework-vs-vs`, `ADR-DES.DATA.storage-strategy`, `ADR-DES.API.communication-patterns`, `ADR-IMPL.PROCESS.repository-structure`, `ADR-DES.SECURITY.rbac-model`, `ADR-IMPL.PROCESS.development-tooling`.
 
 - **Programming language:** Go (бэкенд) + TypeScript (фронтенд) — `ADR-DES.STACK.language-vs-vs`
 - **Framework:** chi + oapi-codegen (бэкенд, OpenAPI-first); React + TS (фронт, SPA) — `ADR-DES.STACK.framework-vs-vs`
