@@ -15,8 +15,8 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 ## Progress
 
 ### Phase 1: Domain Discovery
-- [ ] T1: Bounded contexts and context map
-- [ ] T2: Aggregates, entities, and domain events
+- [x] T1: Bounded contexts and context map
+- [x] T2: Aggregates, entities, and domain events
 
 ### Phase 2: Architecture Decision Records
 - [ ] T3: Stack selection ADRs
@@ -83,33 +83,33 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 
 ### Phase 1: Domain Discovery
 
-- [ ] **T1: Identify bounded contexts and create context map**
+- [x] **T1: Identify bounded contexts and create context map**
   Identify bounded contexts from the functional domain (F0–F6), glossary terms, and the two operational contours (Community / Enterprise). Produce a context map diagram showing relationships (partnership, customer-supplier, shared kernel, ACL) between bounded contexts.
   
   **Deliverables:**
-  - `specs/ddd/context-map.md` — Mermaid context map + bounded context descriptions
+  - `specs/ddd/context-map.md` — Mermaid context map + bounded context descriptions ✅
   
   **Boundary & domain alignment:**
-  - Use `specs/vision.md` §2.2 (Level 1–2 function decomposition) and `specs/glossary.md` §4 (architecture) as primary sources
-  - Each bounded context must trace to at least one F0–F6 domain and at least one UC
-  - Document the VEDO Hub ACL (Anti-Corruption Layer) as an explicit bounded-context boundary
+  - Use `specs/vision.md` §2.2 (Level 1–2 function decomposition) and `specs/glossary.md` §4 (architecture) as primary sources ✅
+  - Each bounded context must trace to at least one F0–F6 domain and at least one UC ✅ (10 контекстов, все трассируются)
+  - Document the VEDO Hub ACL (Anti-Corruption Layer) as an explicit bounded-context boundary ✅ (`ontology-port`)
   
   **Logging:** Record each identified bounded context at INFO with its rationale and mapping to F0–F6. Record context-map relationship decisions at INFO with justification.
 
-- [ ] **T2: Model aggregates, entities, value objects, and domain events**
+- [x] **T2: Model aggregates, entities, value objects, and domain events**
   For each bounded context from T1, model the core aggregates (transactional boundaries), their root entities, internal entities, and value objects. Produce a domain events catalog from vision.md §2.4 plus event-triggered behaviors in F1.2/F1.6/F2.1.
   
   **Deliverables:**
-  - `specs/ddd/aggregates.md` — aggregates, entities, value objects per bounded context
-  - `specs/ddd/domain-events.md` — event catalog: name, trigger, payload sketch, consuming contexts
+  - `specs/ddd/aggregates.md` — aggregates, entities, value objects per bounded context ✅
+  - `specs/ddd/domain-events.md` — event catalog: name, trigger, payload sketch, consuming contexts ✅
   
   **Key domain invariants to capture:**
-  - Route = f(position, goal, pedagogy concept, ontology) → route (function, not document)
-  - Plan = route snapshot + timeline (fixed at checkpoint; route continues recomputing independently)
-  - Trajectory = actual path taken (always visible alongside route and plan)
-  - Gap diagnosis = climb strict-prerequisite links upward to first unmastered module
-  - Essential core = mandatory subset defined by learning context; order/pace vary, dependency logic is unbreakable
-  - Two contours (Community / Enterprise) share one API contract
+  - Route = f(position, goal, pedagogy concept, ontology) → route (function, not document) ✅
+  - Plan = route snapshot + timeline (fixed at checkpoint; route continues recomputing independently) ✅
+  - Trajectory = actual path taken (always visible alongside route and plan) ✅
+  - Gap diagnosis = climb strict-prerequisite links upward to first unmastered module ✅
+  - Essential core = mandatory subset defined by learning context; order/pace vary, dependency logic is unbreakable ✅
+  - Two contours (Community / Enterprise) share one API contract ✅
   
   **Logging:** Log each aggregate and its root entity at INFO. Log each domain event at INFO with producer and consumer bounded contexts. Log any conflicting interpretations of glossary terms at WARN.
 

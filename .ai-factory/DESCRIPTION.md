@@ -53,7 +53,7 @@ VEDO EduTrack is an educational route service built **on top of the VEDO Hub** o
 
 ## Non-Functional Requirements
 
-Formal NFR corpus: **48 NFR** in `specs/requirements/REQ-NFR-*.md`, each with measurable acceptance criteria, traced in `traceability.ttl`. Coverage areas:
+Formal NFR corpus: **49 NFR** in `specs/requirements/REQ-NFR-*.md`, each with measurable acceptance criteria, traced in `traceability.ttl`. Coverage areas:
 
 - **Observability & ops:** structured logging (`LOG_LEVEL`, JSON, `request_id`/`trace_id`), golden-signals dashboards, alerting with P1–P4 escalation (noise ≤ 20%), distributed tracing, incident communication (status page), product metrics (NPS, forecast accuracy ±10%, FGOS coverage freshness).
 - **Release & change:** deployment verification (drift = 0), canary releases with kill switch ≤ 5 min, change management (0 manual prod changes, auto-rollback), CI/CD resilience (MTR ≤ 2 h), maintenance windows (attestation-period protection), reversible DB migrations (auto-rollback ≤ 15 min).
@@ -63,4 +63,4 @@ Formal NFR corpus: **48 NFR** in `specs/requirements/REQ-NFR-*.md`, each with me
 - **UX & ergonomics:** WCAG 2.1 AA (axe-core gate: 0 critical), supported browsers/OS (Chrome/Firefox/Safari/Edge, Windows 10+/macOS 12+/iOS 15+/Android 11+), code complexity gates (CC ≤ 10), admin console ergonomics, user competency & training, i18n-readiness (RU+EN, ICU, 0-code language addition; RTL deferred).
 - **Support & docs:** tiered support SLA (Community ≤ 48 h / Pro ≤ 4 h / Enterprise ≤ 1 h), user documentation (100% scenarios), developer documentation (bus-factor ≥ 2).
 
-Total requirements corpus: **108** (60 FR + 48 NFR), plus 42 UC and 47 US, all traced in `traceability.ttl` (0 orphans).
+Total requirements corpus: **109** (60 FR + 49 NFR), plus 42 UC and 47 US, all traced in `traceability.ttl` (0 orphans).

@@ -2036,6 +2036,23 @@ tr:nfr-ops-compliance-i18n-readiness a tr:NonFunctionalRequirement ;
   tr:derivesFrom tr:vision .
 
 
+# ── M0.1 refinement: NFR fixing product delivery form (web application, client-server architecture) ──
+
+tr:nfr-infra-compliance-client-server-web-app a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-infra.compliance.client-server-web-app" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-infra.compliance.client-server-web-app.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+
+# ── M0.1 refinement: ADR fixing architectural style (modular monolith) ──
+
+tr:adr-des-infra-modular-monolith-approach a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.INFRA.modular-monolith-approach" ;
+  tr:hasFilePath "specs/adr/ADR-DES.INFRA.modular-monolith-approach.md" ;
+  tr:derivesFrom tr:nfr-api-performance-latency-p95, tr:nfr-ops-performance-scalability, tr:nfr-infra-compliance-community-enterprise-isolation, tr:nfr-infra-compliance-client-server-web-app, tr:nfr-process-dev-test-coverage, tr:nfr-ops-compliance-support-sla .
+
+
 # ── Iteration 9 refinements: FRs closing FR-layer gaps (F0 ontology port, F6.3 LMS) ──
 
 tr:fr-api-hub-read-ontology a tr:FunctionalRequirement ;
