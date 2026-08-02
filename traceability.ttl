@@ -1935,3 +1935,24 @@ tr:nfr-ops-observability-product-metrics a tr:NonFunctionalRequirement ;
   tr:hasFilePath "specs/requirements/REQ-NFR-ops.observability.product-metrics.md" ;
   tr:hasPriority "P1" ;
   tr:derivesFrom tr:vision .
+
+
+# ── Iteration 5 refinements: NFRs closing remaining Step-5 missed aspects (cells 1.1, 2.1, 4.1, 4.3) ──
+
+tr:nfr-ops-release-cicd-resilience a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.release.cicd-resilience" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.release.cicd-resilience.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-infra-compliance-environment-isolation a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-infra.compliance.environment-isolation" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-infra.compliance.environment-isolation.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-data-availability-migration-rollback a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-data.availability.migration-rollback" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-data.availability.migration-rollback.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
