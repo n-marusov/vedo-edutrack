@@ -2,7 +2,7 @@
 
 **Приоритет:** P1
 **Ключевая функция:** cross-cutting (безопасность/операции)
-**Источник:** specs/rbac-matrix.md (T8), ADR-DES.SECURITY.rbac-model (T5), REQ-NFR-ops.access.production-control
+**Источник:** ADR-DES.SECURITY.rbac-model (T5), REQ-NFR-ops.access.production-control
 
 **Описание:** Операционные роли отделены от продуктовых: `admin` — администратор системы (пользователи, роли, конфигурация, аудит) в рамках продуктовых ресурсов; `ops` — производственный доступ только к инфраструктуре (деплой, БД, наблюдаемость), вне продуктовых данных, по правилу «двух пар глаз» (2-person rule) с JIT-выдачей прав ограниченного срока. Композиция ролей допускается только для операционных ролей (`admin` = продуктовые read-права + системные права), материализованный набор прав фиксируется в аудите.
 
@@ -13,4 +13,4 @@
 - Деструктивные операции на production — только по 2-person rule: 100% подтверждены вторым оператором.
 - Композиция ролей: только операционные роли могут включать другие роли; в аудите фиксируется материализованный (развёрнутый) набор прав субъекта.
 
-**Связанные артефакты:** [Роль-разрешение матрица](../rbac-matrix.md) (T8), [ADR-DES.SECURITY.rbac-model](../adr/ADR-DES.SECURITY.rbac-model.md) (T5), [REQ-NFR-ops.access.production-control](REQ-NFR-ops.access.production-control.md)
+**Связанные артефакты:** [ADR-DES.SECURITY.rbac-model](../adr/ADR-DES.SECURITY.rbac-model.md) (T5), [REQ-NFR-security.compliance.permission-matrix](REQ-NFR-security.compliance.permission-matrix.md), [REQ-NFR-ops.access.production-control](REQ-NFR-ops.access.production-control.md)

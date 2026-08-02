@@ -255,7 +255,8 @@ vedo-edutrack/
 │   └── vite.config.ts
 ├── specs/                            # Формализованные артефакты (источник истины домена)
 │   ├── vision.md, glossary.md, ddd/, c4/, adr/, requirements/, user-stories/, use-cases/
-│   ├── boundary.md, rbac-matrix.md
+│   ├── requirements/REQ-NFR-security.compliance.*.md   # RBAC (role-catalog, permission-matrix, ops-admin-separation)
+│   ├── requirements/REQ-NFR-api.compliance.*.md        # граница Hub (ownership-boundary, ontology-read-only)
 ├── docs/                             # Пользовательская/разработческая документация
 ├── scripts/                          # Вспомогательные скрипты (validate-mermaid.mjs и др.)
 ├── deploy/                           # Инфраструктура, конфигурация и CI/CD (единая точка)

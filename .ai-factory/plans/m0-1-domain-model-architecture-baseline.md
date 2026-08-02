@@ -33,7 +33,7 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 - [x] T10: VEDO Hub / EduTrack responsibility boundary
 
 ### Phase 5: Validation & Finalization
-- [ ] T11: Cross-reference validation and M0.1 completion
+- [x] T11: Cross-reference validation and M0.1 completion
 
 ## M0.1 Exit Criteria (from ROADMAP.md)
 
@@ -72,9 +72,9 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 | DDD models | Glossary (terms) | Bounded contexts, aggregates, entities, domain events catalog, context map |
 | ADR | `specs/adr/README.md` (conventions only) | 6 ADRs: stack, framework, database, communication, repo structure, RBAC |
 | C4 diagrams | `specs/c4/README.md` (conventions only) | System Context, Container, core Component diagrams |
-| RBAC | Personas in vision.md | Role-permission matrix |
+| RBAC | Personas in vision.md, RBAC ADR (T5) | Role-permission matrix as NFR specs: role-catalog, permission-matrix, ops-admin-separation |
 | Traceability | TBox in traceability.ttl | ABox: ADR instances, C4Diagram instances; COMP/TEST classes ready for future use |
-| Boundary | Implicit in vision.md and glossary | Explicit boundary document |
+| Boundary | Implicit in vision.md and glossary, comm ADR (T4) | Explicit boundary as NFR specs: ownership-boundary, ontology-read-only |
 | ROADMAP | M0.1 entry exists (unchecked) | Mark as completed |
 
 ---
@@ -210,10 +210,12 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
   Produce a role-permission matrix covering all personas from `specs/vision.md` §3.1, aligned with the RBAC ADR from T5.
   
   **Deliverables:**
-  - `specs/rbac-matrix.md` — matrix table: roles × functional areas × permission levels (CRUD, read, none)
+  - `specs/requirements/REQ-NFR-security.compliance.role-catalog.md` — role catalog: universal archetypes (contract) + personas from `specs/vision.md` §3.1 mapped to roles as seed instances
+  - `specs/requirements/REQ-NFR-security.compliance.permission-matrix.md` — permission matrix: roles × functional areas × permission levels (CRUD) × scope
+  - `specs/requirements/REQ-NFR-security.compliance.ops-admin-separation.md` — admin/ops separation
   
   **Matrix structure:**
-  - Rows: roles (learner, parent, teacher, methodologist, school-director, hr-manager, platform-integrator, content-contributor, admin)
+  - Rows: archetypes (self, dependents-owner, staff, management, integration, admin, ops) — universal contract layer; concrete roles are seed instances
   - Columns: functional areas (route-compute, plan-view, plan-manage, progress-track, gap-diagnose, coverage-view, resource-manage, visualization, user-manage, ontology-read, webhook-configure)
   - Cells: permission level (C — create, R — read, U — update, D — delete, — — none)
   - Separate sections for Community and Enterprise contours where permission scopes differ
@@ -241,7 +243,8 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
   Produce an explicit boundary specification documenting what EduTrack owns vs. what VEDO Hub owns, resolving ambiguities from `specs/vision.md`, `specs/glossary.md` §4, and `.ai-factory/DESCRIPTION.md`.
   
   **Deliverables:**
-  - `specs/boundary.md` — boundary specification with responsibility matrix
+  - `specs/requirements/REQ-NFR-api.compliance.ownership-boundary.md` — responsibility boundary with ownership matrix
+  - `specs/requirements/REQ-NFR-api.compliance.ontology-read-only.md` — ontology read-only contract (ontology port / ACL)
   
   **Boundary dimensions to cover:**
   - Data ownership: EduTrack stores learner profiles, plans, progress, gap diagnoses, coverage reports; Hub stores ontologies, modules, links, FGOS mappings, resources, stories, pedagogy concepts
@@ -257,19 +260,19 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 
 ### Phase 5: Validation & Finalization
 
-- [ ] **T11: Cross-reference validation and M0.1 completion**
+- [x] **T11: Cross-reference validation and M0.1 completion**
   Validate consistency across all M0.1 artifacts and mark the milestone as completed in ROADMAP.md.
   
   **Validation checklist:**
-  - [ ] Bounded contexts (T1) ↔ C4 components (T7): every component maps to exactly one bounded context
-  - [ ] Aggregates (T2) ↔ ADR storage strategy (T4): aggregate boundaries align with transactional boundaries
-  - [ ] Domain events (T2) ↔ ADR communication patterns (T4): events have defined channels (sync/async/webhook)
-  - [ ] Role-permission matrix (T8) ↔ RBAC ADR (T5): permissions are consistent
-  - [ ] RBAC ADR (T5) ↔ NFR role model: covers learner/parent/school/methodologist/HR
-  - [ ] C4 context (T6) ↔ Boundary spec (T10): VEDO Hub is external on all diagrams
-  - [ ] Traceability (T9): every ADR and C4 diagram has a tt:R instance; 0 orphan instances
-  - [ ] All exit criteria from ROADMAP M0.1 are satisfied
-  - [ ] No artifact references a non-existent file or convention
+  - [x] Bounded contexts (T1) ↔ C4 components (T7): every component maps to exactly one bounded context
+  - [x] Aggregates (T2) ↔ ADR storage strategy (T4): aggregate boundaries align with transactional boundaries
+  - [x] Domain events (T2) ↔ ADR communication patterns (T4): events have defined channels (sync/async/webhook)
+  - [x] Role-permission matrix (T8) ↔ RBAC ADR (T5): permissions are consistent
+  - [x] RBAC ADR (T5) ↔ NFR role model: covers learner/parent/school/methodologist/HR
+  - [x] C4 context (T6) ↔ Boundary spec (T10): VEDO Hub is external on all diagrams
+  - [x] Traceability (T9): every ADR and C4 diagram has a tt:R instance; 0 orphan instances
+  - [x] All exit criteria from ROADMAP M0.1 are satisfied
+  - [x] No artifact references a non-existent file or convention
   
   **ROADMAP update:**
   - In `.ai-factory/ROADMAP.md`, change `- [ ] **M0.1: Domain Model & Architecture Baseline**` to `- [x] **M0.1: Domain Model & Architecture Baseline** ✅ completed YYYY-MM-DD`

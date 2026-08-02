@@ -2,7 +2,7 @@
 
 **Приоритет:** P0
 **Ключевая функция:** cross-cutting (границы системы)
-**Источник:** specs/boundary.md (T10), vision.md §1.7 (идеология платформы), specs/glossary.md §4, RULES.md (не дублировать Hub-ответственность)
+**Источник:** vision.md §1.7 (идеология платформы), specs/glossary.md §4, RULES.md (не дублировать Hub-ответственность)
 
 **Описание:** Владение данными, вычислениями, API, событиями и развёртыванием строго разделено между VEDO EduTrack и VEDO Hub без дублирования ответственности. EduTrack владеет учебными данными и механиками (learner/plan/progress, маршруты, лакуны, покрытие); Hub владеет онтологией и её жизненным циклом (модули, связи, ФГОС, ресурсы, истории, концепции, версионирование, форки, социальные механики). EduTrack не реализует Hub-ответственность (редактор онтологий, версионирование, ABox, Git-модель, социальный хаб, LLM-извлечение).
 
@@ -14,4 +14,4 @@
 - Владение развёртыванием: EduTrack разворачивает свои контейнеры (веб, API-сервер, PostgreSQL) отдельно от Hub; Hub — отдельная платформа со своим SLA (согласуется с REQ-NFR-api.availability.hub-dependency-sla).
 - Отсутствие Hub-ответственности в EduTrack: в коде/архитектуре EduTrack отсутствуют редактор онтологий, версионирование онтологии, ABox, Git-модель онтологии, социальный хаб, LLM-извлечение (0 компонентов, проверка архитектурным обзором).
 
-**Связанные артефакты:** [Граница ответственности](../boundary.md) (T10), [ADR-DES.API.communication-patterns](../adr/ADR-DES.API.communication-patterns.md) (T4), [REQ-NFR-api.availability.hub-dependency-sla](REQ-NFR-api.availability.hub-dependency-sla.md)
+**Связанные артефакты:** [ADR-DES.API.communication-patterns](../adr/ADR-DES.API.communication-patterns.md) (T4), [REQ-NFR-api.compliance.ontology-read-only](REQ-NFR-api.compliance.ontology-read-only.md), [REQ-NFR-api.availability.hub-dependency-sla](REQ-NFR-api.availability.hub-dependency-sla.md)

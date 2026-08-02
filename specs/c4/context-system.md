@@ -94,6 +94,6 @@ C4Context
 - [Контейнеры](container-overview.md) — уровень 2 (T6)
 - [Компоненты](../c4/README.md) — уровень 3 (T7)
 - [Карта контекстов](../ddd/context-map.md) — ограниченные контексты
-- [Граница ответственности](../boundary.md) — EduTrack vs VEDO Hub (T10)
+- [Граница ответственности](../requirements/REQ-NFR-api.compliance.ownership-boundary.md) — EduTrack vs VEDO Hub (T10)
 - [Видение продукта](../vision.md) — §2.2, §3.1
 - [Глоссарий](../glossary.md) — §4

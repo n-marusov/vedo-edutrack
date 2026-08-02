@@ -2193,15 +2193,3 @@ tr:nfr-api-compliance-ownership-boundary a tr:NonFunctionalRequirement ;
   tr:hasPriority "P0" ;
   tr:derivesFrom tr:vision .
 
-# Cross-cutting spec documents: RBAC matrix (T8) and responsibility boundary (T10)
-# document the ADR/requirements they formalize.
-
-tr:doc-rbac-matrix a tr:Documentation ;
-  tr:hasArtifactId "rbac-matrix" ;
-  tr:hasFilePath "specs/rbac-matrix.md" ;
-  tr:documents tr:adr-des-security-rbac-model, tr:nfr-security-compliance-role-based-access, tr:nfr-security-compliance-role-catalog, tr:nfr-security-compliance-permission-matrix, tr:nfr-security-compliance-ops-admin-separation .
-
-tr:doc-boundary a tr:Documentation ;
-  tr:hasArtifactId "boundary" ;
-  tr:hasFilePath "specs/boundary.md" ;
-  tr:documents tr:adr-des-api-communication-patterns, tr:adr-des-security-rbac-model, tr:nfr-api-compliance-ontology-read-only, tr:nfr-api-compliance-ownership-boundary, tr:nfr-api-availability-hub-dependency-sla .

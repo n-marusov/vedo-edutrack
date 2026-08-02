@@ -4,16 +4,16 @@
 
 ## Current Focus
 
-**Now:** Phase 0 — Foundation (M0.0 complete ✅)  
-**Next milestone:** M0.1: Domain Model & Architecture Baseline  
-**Blocking decision:** Technology stack selection before M0.2/M0.3  
+**Now:** Phase 0 — Foundation (M0.0 + M0.1 complete ✅)
+**Next milestone:** M0.2: Engineering Platform
+**Blocking decision:** None — stack, architecture, and repository structure fixed (T3–T5)
 **External blocker:** Starter ontology readiness in VEDO Hub before M1/M2
 
 ## Milestone Status
 
 | Total | Completed | Current | Next |
 |-------|-----------|---------|------|
-| 14 | 1 (M0.0) | M0.1: Domain Model & Architecture Baseline | M0.2: Engineering Platform |
+| 14 | 2 (M0.0, M0.1) | M0.2: Engineering Platform | M0.3: Runnable Product Scaffold |
 
 ## External Dependencies
 
@@ -48,16 +48,16 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   **Dependencies:** `specs/vision.md` (authoritative), `.ai-factory/DESCRIPTION.md`.
   **Business goals:** G1, G2, G3, G4, G6.
 
-- [ ] **M0.1: Domain Model & Architecture Baseline**
+- [x] **M0.1: Domain Model & Architecture Baseline** ✅ completed 2026-08-03
   Define the domain, system boundaries, architecture decisions, and traceability model before implementation.
 
   **Exit criteria:**
-  - Bounded contexts, aggregates, domain events, and context map are documented.
-  - C4 System Context, Container, and core Component diagrams are available.
-  - ADRs cover stack, framework, database, communication patterns, repository structure, and RBAC model.
-  - Role-permission matrix covers all personas from `specs/vision.md`.
-  - Traceability model links US → UC → FR → COMP → TEST.
-  - VEDO Hub / EduTrack responsibility boundary is explicit: EduTrack reads ontology data and computes educational mechanics; Hub owns ontology storage, editing, versioning, forks, and social contribution flows.
+  - ✅ Bounded contexts, aggregates, domain events, and context map are documented.
+  - ✅ C4 System Context, Container, and core Component diagrams are available.
+  - ✅ ADRs cover stack, framework, database, communication patterns, repository structure, and RBAC model.
+  - ✅ Role-permission matrix covers all personas from `specs/vision.md`.
+  - ✅ Traceability model links US → UC → FR → COMP → TEST.
+  - ✅ VEDO Hub / EduTrack responsibility boundary is explicit: EduTrack reads ontology data and computes educational mechanics; Hub owns ontology storage, editing, versioning, forks, and social contribution flows.
 
   **Dependencies:** M0.0.
   **Business goals:** G1, G2, G3, G4, G5, G6.
@@ -292,7 +292,8 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 
 | Milestone | Date |
 |-----------|------|
-| *(none yet)* | |
+| M0.0: Requirements Baseline | 2026-08-02 |
+| M0.1: Domain Model & Architecture Baseline | 2026-08-03 |
 
 ---
 

@@ -97,4 +97,4 @@ C4Container
 - [Компоненты](../c4/README.md) — уровень 3 (T7): мастер-индекс — [API-сервер](component-api-server.md), [Веб-приложение](component-web-app.md)
 - [Карта контекстов](../ddd/context-map.md) — bounded contexts ↔ модули
 - [ADR модульного монолита](../adr/ADR-DES.INFRA.modular-monolith-approach.md)
-- [Граница ответственности](../boundary.md) — EduTrack vs VEDO Hub (T10)
+- [Граница ответственности](../requirements/REQ-NFR-api.compliance.ownership-boundary.md) — EduTrack vs VEDO Hub (T10)
