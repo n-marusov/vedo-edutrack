@@ -2025,3 +2025,30 @@ tr:nfr-ops-compliance-user-competency a tr:NonFunctionalRequirement ;
   tr:hasFilePath "specs/requirements/REQ-NFR-ops.compliance.user-competency.md" ;
   tr:hasPriority "P1" ;
   tr:derivesFrom tr:vision .
+
+
+# ── Iteration 9 refinements: FRs closing FR-layer gaps (F0 ontology port, F6.3 LMS) ──
+
+tr:fr-api-hub-read-ontology a tr:FunctionalRequirement ;
+  tr:hasArtifactId "REQ-FR-api.hub.read-ontology" ;
+  tr:hasFilePath "specs/requirements/REQ-FR-api.hub.read-ontology.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:fr-api-hub-copy-subgraph a tr:FunctionalRequirement ;
+  tr:hasArtifactId "REQ-FR-api.hub.copy-subgraph" ;
+  tr:hasFilePath "specs/requirements/REQ-FR-api.hub.copy-subgraph.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:fr-api-hub-subscribe-updates a tr:FunctionalRequirement ;
+  tr:hasArtifactId "REQ-FR-api.hub.subscribe-updates" ;
+  tr:hasFilePath "specs/requirements/REQ-FR-api.hub.subscribe-updates.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:fr-api-integration-lms-connectors a tr:FunctionalRequirement ;
+  tr:hasArtifactId "REQ-FR-api.integration.lms-connectors" ;
+  tr:hasFilePath "specs/requirements/REQ-FR-api.integration.lms-connectors.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
