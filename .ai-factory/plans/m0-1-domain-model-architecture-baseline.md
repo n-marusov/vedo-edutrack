@@ -24,8 +24,8 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 - [x] T5: Repository structure and RBAC model ADRs
 
 ### Phase 3: C4 Architecture Diagrams
-- [ ] T6: System Context and Container diagrams
-- [ ] T7: Core Component diagrams
+- [x] T6: System Context and Container diagrams
+- [x] T7: Core Component diagrams
 
 ### Phase 4: Cross-Cutting Concerns
 - [ ] T8: Role-permission matrix
@@ -168,12 +168,12 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
 
 ### Phase 3: C4 Architecture Diagrams
 
-- [ ] **T6: System Context and Container diagrams**
+- [x] **T6: System Context and Container diagrams**
   Produce C4 Level 1 (System Context) and Level 2 (Container) diagrams following conventions in `specs/c4/README.md`.
   
   **Deliverables:**
-  - `specs/c4/context-system.md` — System Context diagram: EduTrack system, external actors, VEDO Hub as external system, two deployment contours
-  - `specs/c4/container-overview.md` — Container diagram: web app, API server, route engine, execution engine, resource service, PostgreSQL, cache, VEDO Hub (external)
+  - `specs/c4/context-system.md` — System Context diagram: EduTrack system, external actors, VEDO Hub as external system, two deployment contours ✅
+  - `specs/c4/container-overview.md` — Container diagram: web app, API server (modular monolith), PostgreSQL, VEDO Hub (external). Route/execution/resource engines are modules of the API server per `ADR-DES.INFRA.modular-monolith-approach`; cache is PostgreSQL + in-memory (Redis post-MVP) ✅
   
   **Diagram format** (per `specs/c4/README.md`):
   - Mermaid diagram in ` ```mermaid ` block
@@ -188,18 +188,17 @@ Rationale: M0.1 is the second milestone of Phase 0, directly dependent on the co
   
   **Logging:** Log which actors and external systems are included at INFO. Log design decisions (e.g., number of containers) at INFO.
 
-- [ ] **T7: Core Component diagrams**
+- [x] **T7: Core Component diagrams**
   Produce C4 Level 3 (Component) diagrams for the core bounded contexts.
   
-  **Deliverables:**
-  - `specs/c4/component-route-engine.md` — Route planning engine: graph copier, path calculator, horizon resolver, plan fixer, recalc trigger
-  - `specs/c4/component-execution.md` — Plan execution engine: progress tracker, plan-vs-actual comparator, gap diagnoser, coverage calculator, attestation readiness reporter
-  - `specs/c4/component-ontology-port.md` — Ontology port: Hub API client, subgraph copier, update subscription listener
+  **Deliverables** (master-index per container, see `specs/c4/README.md`; core contexts covered as components inside the API server):
+  - `specs/c4/component-api-server.md` — API server (Go / chi modular monolith): 8 infrastructure components + 10 bounded-context modules (Clean Architecture circles); covers route planning (`RouteComputationService`, `HorizonService`, `CascadeRecomputeService`), execution (`TrajectoryService`, `PlanVsActualService`, `ForecastService`), gap & coverage (`GapDiagnosisService`, `CoverageService`, `AttestationReadinessService`), and the Ontology Port ACL
+  - `specs/c4/component-web-app.md` — Web app (React SPA): Domain / Application (Zustand stores) / Interface Adapters / Frameworks circles, mirroring the backend clean architecture
   
   **Component boundaries:**
-  - Components must align with bounded contexts from T1
-  - Each component must trace to at least one UC and one FR
-  - The Ontology Port (F0) is the ACL between EduTrack and VEDO Hub — explicitly show the boundary
+  - Components align with bounded contexts from T1 ✅ (all 10 contexts as modules)
+  - Each component traces to at least one UC and one FR ✅ (F0–F6 tables in both files)
+  - The Ontology Port (F0) is the ACL between EduTrack and VEDO Hub — explicitly shown as a boundary ✅ (`OntologyReaderPort` / `OntologyUpdatedSubscriberPort` + hubClient adapter)
   
   **Logging:** Log each component and its responsibilities at INFO. Log component-to-bounded-context mapping at INFO.
 

@@ -91,7 +91,7 @@ C4Context
 
 ## Связанные артефакты
 
-- [Контейнеры](container-overview.md) — уровень 2 (создаётся в T6)
+- [Контейнеры](container-overview.md) — уровень 2 (T6)
 - [Компоненты](../c4/README.md) — уровень 3 (T7)
 - [Карта контекстов](../ddd/context-map.md) — ограниченные контексты
 - [Граница ответственности](../boundary.md) — EduTrack vs VEDO Hub (T10)

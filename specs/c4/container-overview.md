@@ -94,7 +94,7 @@ C4Container
 ## Связанные артефакты
 
 - [System Context](context-system.md) — уровень 1
-- [Компоненты](../c4/README.md) — уровень 3 (T7: route-engine, execution, ontology-port)
+- [Компоненты](../c4/README.md) — уровень 3 (T7): мастер-индекс — [API-сервер](component-api-server.md), [Веб-приложение](component-web-app.md)
 - [Карта контекстов](../ddd/context-map.md) — bounded contexts ↔ модули
 - [ADR модульного монолита](../adr/ADR-DES.INFRA.modular-monolith-approach.md)
 - [Граница ответственности](../boundary.md) — EduTrack vs VEDO Hub (T10)
