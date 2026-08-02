@@ -33,3 +33,4 @@
 - Route computation is deterministic; LLM output (stories, project ideas, assessment items) is generated with validation.
 - Stack is TBD: STACK/IMPL ADRs are deferred until the stack is chosen; stack-independent invariants (boundaries, data model, API contract) are decided at DES level.
 - Use the established domain terms from `specs/glossary.md` (Route, Trajectory, Mastery, Gap, Checkpoint, Coverage, etc.) consistently.
+- Any change to an artifact requires a traceability pass in `traceability.ttl`: verify and update the entire affected chain, both upstream (back to `specs/vision.md`) and downstream (to code, tests, and documentation).
