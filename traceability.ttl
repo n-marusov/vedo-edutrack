@@ -1,0 +1,493 @@
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix tr:   <https://vedo-edutrack.dev/traceability#> .
+
+# ════════════════════════════════════════════════════════════════════════════
+# VEDO EduTrack — Artifact Traceability Ontology
+# File: traceability.ttl · Format: OWL 2 DL (Turtle) · Status: TBox only
+#
+# TBox (Terminology Box) — the part of the ontology that holds the
+# "terminology": definitions of classes, object and datatype properties,
+# relations, and general constraints (axioms). It defines the schema /
+# structure of the knowledge domain. Instances (ABox) are added by tooling
+# and maintainers as artifacts are created.
+#
+# Canonical chain (existing project rule, extended):
+#   specs/vision.md → UC → US → REQ (FR) → ADR → COMP → TEST
+#                                                       ↓
+#                                              DOC (documentation)
+#   US is part of the user interaction described by a UC; requirements (FR)
+#   are formalized from user stories and drive E2E test generation (API/GUI).
+#   Code (COMP) realizes FR in accordance with the governing ADR.
+#   Test kinds: UnitTest (validates FR), IntegrationTest (checks interfaces
+#   between related bounded contexts / microservices), E2ETest (from US),
+#   Gate (checks pipeline adherence during agent work), LoadTest (NFR perf).
+#   cross-cutting: Glossary (terms), C4 diagrams (design), priority P0–P2,
+#   functions F1–F6 and problems P1–P22 (vision anchors).
+#
+# Relation directions:
+#   tr:derivesFrom / tr:refines   — upstream:  child artifact → its source
+#   tr:isSourceOf                 — downstream: source artifact → children
+#   tr:traceableTo                — transitive closure over all relations
+#
+# Change rule (enforced by project RULES.md):
+#   changing ANY artifact requires verifying & updating the whole affected
+#   chain — upstream back to vision.md AND downstream to code, tests, docs.
+# ════════════════════════════════════════════════════════════════════════════
+
+tr: a owl:Ontology ;
+  rdfs:label "VEDO EduTrack Artifact Traceability Ontology"@en ;
+  rdfs:comment "TBox: artifact types, dependency relations and integrity constraints for full-chain traceability (requirements → code → documentation)."@en ;
+  owl:versionInfo "0.3.0" .
+
+# ────────────────────────────────────────────────────────────────────────────
+# 1. Classes — artifact taxonomy
+# ────────────────────────────────────────────────────────────────────────────
+
+tr:Artifact a owl:Class ;
+  rdfs:label "Artifact"@en ;
+  rdfs:comment "Top-level class: any traceable project artifact — document, model, code unit or test."@en .
+
+tr:Vision a owl:Class ;
+  rdfs:label "Vision"@en ;
+  rdfs:comment "Product vision and business requirements, specs/vision.md — root of the traceability chain."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+tr:Glossary a owl:Class ;
+  rdfs:label "Glossary"@en ;
+  rdfs:comment "Domain terminology, specs/glossary.md."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+tr:ArchitectureDecision a owl:Class ;
+  rdfs:label "Architecture Decision (ADR)"@en ;
+  rdfs:comment "Architecture decision record, ADR-<LEVEL>.<AREA>.<semantic-tag> (LEVEL: BIZ|DES|IMPL)."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+tr:UseCase a owl:Class ;
+  rdfs:label "Use Case (UC)"@en ;
+  rdfs:comment "Use case, UC-<L1>.<L2>.<L3>."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+tr:Requirement a owl:Class ;
+  rdfs:label "Requirement (REQ)"@en ;
+  rdfs:comment "Abstract requirement class; refined by FR and NFR."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+tr:FunctionalRequirement a owl:Class ;
+  rdfs:label "Functional Requirement (FR)"@en ;
+  rdfs:comment "REQ-FR-<domain>.<qualifier>.<action>."@en ;
+  rdfs:subClassOf tr:Requirement .
+
+tr:NonFunctionalRequirement a owl:Class ;
+  rdfs:label "Non-Functional Requirement (NFR)"@en ;
+  rdfs:comment "REQ-NFR-<area>.<qualifier>.<attribute>."@en ;
+  rdfs:subClassOf tr:Requirement .
+
+tr:UserStory a owl:Class ;
+  rdfs:label "User Story (US)"@en ;
+  rdfs:comment "Gherkin user story, US-<domain>.<subdomain>.<action>."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+tr:C4Diagram a owl:Class ;
+  rdfs:label "C4 Diagram"@en ;
+  rdfs:comment "C4 architecture diagram, <LEVEL>-<name>.md (context|container|component)."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+tr:Component a owl:Class ;
+  rdfs:label "Component (COMP)"@en ;
+  rdfs:comment "Implementation artifact: module, service, class, API endpoint; realizes FR in accordance with an ADR."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+# Test taxonomy — verification artifacts; each concrete kind has its own
+# traceability axiom (see section 4).
+tr:Test a owl:Class ;
+  rdfs:label "Test (TEST)"@en ;
+  rdfs:comment "Abstract verification artifact; concrete kinds: UnitTest, IntegrationTest, E2ETest, Gate, LoadTest."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+tr:UnitTest a owl:Class ;
+  rdfs:label "Unit Test"@en ;
+  rdfs:comment "Module-level test; validates a functional requirement (FR)."@en ;
+  rdfs:subClassOf tr:Test .
+
+tr:IntegrationTest a owl:Class ;
+  rdfs:label "Integration Test"@en ;
+  rdfs:comment "Checks interfaces between related bounded contexts / microservices."@en ;
+  rdfs:subClassOf tr:Test .
+
+tr:E2ETest a owl:Class ;
+  rdfs:label "End-to-End Test (E2E)"@en ;
+  rdfs:comment "Scenario-level test generated from user stories; channels: API or GUI."@en ;
+  rdfs:subClassOf tr:Test .
+
+tr:E2EApiTest a owl:Class ;
+  rdfs:label "E2E API Test"@en ;
+  rdfs:comment "End-to-end test over the public API channel."@en ;
+  rdfs:subClassOf tr:E2ETest .
+
+tr:E2EGuiTest a owl:Class ;
+  rdfs:label "E2E GUI Test"@en ;
+  rdfs:comment "End-to-end test over the graphical UI channel."@en ;
+  rdfs:subClassOf tr:E2ETest .
+
+tr:Gate a owl:Class ;
+  rdfs:label "Gate (process)"@en ;
+  rdfs:comment "Process gate: checks that the agent followed the pipeline correctly during its work (e.g., rules-compliance gate, verify step)."@en ;
+  rdfs:subClassOf tr:Test .
+
+tr:LoadTest a owl:Class ;
+  rdfs:label "Load Test"@en ;
+  rdfs:comment "Performance / load test; validates NFR performance characteristics."@en ;
+  rdfs:subClassOf tr:Test .
+
+# Non-artifact class: an interface (contract) between related bounded
+# contexts or microservices — the subject of integration testing.
+tr:Interface a owl:Class ;
+  rdfs:label "Interface"@en ;
+  rdfs:comment "Interface between related bounded contexts / microservices (API or event contract)."@en .
+
+# Non-artifact class: the agent workflow / pipeline (ordered stages) whose
+# correct following is verified by gates during agent work.
+tr:Pipeline a owl:Class ;
+  rdfs:label "Pipeline"@en ;
+  rdfs:comment "Agent workflow pipeline (e.g., plan → implement → verify); gates check adherence to it."@en .
+
+tr:Documentation a owl:Class ;
+  rdfs:label "Documentation (DOC)"@en ;
+  rdfs:comment "User / operator / developer documentation under docs/."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+# Vision anchors: key functions F1–F6 and business problems P1–P22 cited by
+# requirements, use cases and stories as their source.
+tr:BusinessFunction a owl:Class ;
+  rdfs:label "Business Function"@en ;
+  rdfs:comment "Key business function F1–F6 from specs/vision.md."@en .
+
+tr:BusinessProblem a owl:Class ;
+  rdfs:label "Business Problem"@en ;
+  rdfs:comment "Business problem P1–P22 from specs/vision.md."@en .
+
+# ────────────────────────────────────────────────────────────────────────────
+# 2. Object properties — artifact dependency graph
+# ────────────────────────────────────────────────────────────────────────────
+
+# Generic traceability link; transitive + reflexive closure spans the whole
+# chain and roots every artifact at the Vision (see section 4).
+tr:traceableTo a owl:ObjectProperty, owl:TransitiveProperty, owl:ReflexiveProperty ;
+  rdfs:label "traceable to"@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range tr:Artifact .
+
+# Upstream: child artifact is derived from its source.
+tr:derivesFrom a owl:ObjectProperty ;
+  rdfs:label "derives from"@en ;
+  rdfs:comment "Upstream dependency: UC derivesFrom Vision, FR derivesFrom UC, COMP derivesFrom ADR/FR."@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range tr:Artifact ;
+  rdfs:subPropertyOf tr:traceableTo ;
+  owl:inverseOf tr:isSourceOf .
+
+# Downstream: source artifact is the origin of derived artifacts.
+tr:isSourceOf a owl:ObjectProperty ;
+  rdfs:label "is source of"@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range tr:Artifact ;
+  rdfs:subPropertyOf tr:traceableTo .
+
+# Specialization of derivesFrom: detailing a source (UC → Vision, FR → UC, US → FR).
+tr:refines a owl:ObjectProperty ;
+  rdfs:label "refines"@en ;
+  rdfs:subPropertyOf tr:derivesFrom .
+
+# Code realizes a functional requirement in accordance with a governing ADR.
+tr:realizes a owl:ObjectProperty ;
+  rdfs:label "realizes"@en ;
+  rdfs:comment "Implementation artifact realizes an FR; the ADR dictates the how."@en ;
+  rdfs:subPropertyOf tr:derivesFrom .
+
+# Code conforms to the governing architecture decision when realizing FR.
+tr:conformsTo a owl:ObjectProperty ;
+  rdfs:label "conforms to"@en ;
+  rdfs:comment "A component implements its functionality in accordance with the governing ADR."@en ;
+  rdfs:domain tr:Component ;
+  rdfs:range tr:ArchitectureDecision ;
+  rdfs:subPropertyOf tr:traceableTo ;
+  owl:inverseOf tr:governs .
+
+# An ADR governs how components realize their FR.
+tr:governs a owl:ObjectProperty ;
+  rdfs:label "governs"@en ;
+  rdfs:comment "An architecture decision governs the implementation of components."@en ;
+  rdfs:subPropertyOf tr:traceableTo .
+
+# Verification: test validates a requirement, story or component (TEST → FR / US / COMP).
+tr:validates a owl:ObjectProperty ;
+  rdfs:label "validates"@en ;
+  rdfs:subPropertyOf tr:traceableTo ;
+  owl:inverseOf tr:isValidatedBy .
+
+# Inverse of validates: the artifact validated by a test.
+tr:isValidatedBy a owl:ObjectProperty ;
+  rdfs:label "is validated by"@en ;
+  rdfs:subPropertyOf tr:traceableTo .
+
+# A test covers an acceptance criterion of a requirement (TEST → FR).
+# Kept as a specialized subproperty of validates; used when the object is an
+# acceptance criterion rather than a whole artifact.
+tr:covers a owl:ObjectProperty ;
+  rdfs:label "covers"@en ;
+  rdfs:subPropertyOf tr:validates .
+
+# Documentation describes an implementation artifact or feature (DOC → COMP / US / FR).
+tr:documents a owl:ObjectProperty ;
+  rdfs:label "documents"@en ;
+  rdfs:subPropertyOf tr:traceableTo ;
+  owl:inverseOf tr:isDocumentedBy .
+
+# Inverse of documents: the artifact documented by a doc page.
+tr:isDocumentedBy a owl:ObjectProperty ;
+  rdfs:label "is documented by"@en ;
+  rdfs:subPropertyOf tr:traceableTo .
+
+# Generic cross-link (e.g., UC ↔ Glossary term, C4 ↔ Component); symmetric.
+tr:relatesTo a owl:ObjectProperty ;
+  rdfs:label "relates to"@en ;
+  rdfs:subPropertyOf tr:traceableTo ;
+  owl:inverseOf tr:relatesTo .
+
+# Structural containment: a UserStory is part of the UC interaction it describes.
+tr:partOf a owl:ObjectProperty ;
+  rdfs:label "part of"@en ;
+  rdfs:domain tr:UserStory ;
+  rdfs:range tr:UseCase ;
+  rdfs:subPropertyOf tr:traceableTo ;
+  owl:inverseOf tr:contains .
+
+# Inverse of partOf: a UC interaction contains its user stories.
+tr:contains a owl:ObjectProperty ;
+  rdfs:label "contains"@en ;
+  rdfs:domain tr:UseCase ;
+  rdfs:range tr:UserStory ;
+  rdfs:subPropertyOf tr:traceableTo .
+
+# An integration test verifies an interface between contexts / microservices.
+tr:checksInterface a owl:ObjectProperty ;
+  rdfs:label "checks interface"@en ;
+  rdfs:domain tr:IntegrationTest ;
+  rdfs:range tr:Interface .
+
+# A gate verifies that the pipeline was followed correctly during agent work.
+tr:checksPipeline a owl:ObjectProperty ;
+  rdfs:label "checks pipeline"@en ;
+  rdfs:domain tr:Gate ;
+  rdfs:range tr:Pipeline .
+
+# An artifact cites key function F1–F6 from vision.md.
+tr:hasFunction a owl:ObjectProperty ;
+  rdfs:label "has business function"@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range tr:BusinessFunction .
+
+# An artifact cites business problem P1–P22 from vision.md.
+tr:hasProblem a owl:ObjectProperty ;
+  rdfs:label "has business problem"@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range tr:BusinessProblem .
+
+# ────────────────────────────────────────────────────────────────────────────
+# 3. Datatype properties
+# ────────────────────────────────────────────────────────────────────────────
+
+tr:hasArtifactId a owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "has artifact ID"@en ;
+  rdfs:comment "Canonical semantic identifier: UC-..., REQ-..., US-..., ADR-..."@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range xsd:string .
+
+tr:hasFilePath a owl:DatatypeProperty ;
+  rdfs:label "has file path"@en ;
+  rdfs:comment "Repository-relative path of the artifact file."@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range xsd:string .
+
+tr:hasStatus a owl:DatatypeProperty ;
+  rdfs:label "has status"@en ;
+  rdfs:comment "Lifecycle status: draft | proposed | accepted | superseded | replaced."@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range xsd:string .
+
+tr:hasPriority a owl:DatatypeProperty ;
+  rdfs:label "has priority"@en ;
+  rdfs:comment "Priority: P0 | P1 | P2."@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range xsd:string .
+
+tr:hasTag a owl:DatatypeProperty ;
+  rdfs:label "has tag"@en ;
+  rdfs:comment "Gherkin / taxonomy tags: @US-*, @UC-*, @P*, @plan, ..."@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range xsd:string .
+
+tr:lastVerifiedAt a owl:DatatypeProperty ;
+  rdfs:label "last verified at"@en ;
+  rdfs:comment "Timestamp of the last traceability check / chain update."@en ;
+  rdfs:domain tr:Artifact ;
+  rdfs:range xsd:dateTime .
+
+# ────────────────────────────────────────────────────────────────────────────
+# 4. Integrity axioms (TBox constraints)
+# ────────────────────────────────────────────────────────────────────────────
+
+# Rootedness: every artifact must be traceable to the Vision (directly or
+# via the transitive closure). traceableTo is reflexive, so Vision itself
+# satisfies the constraint.
+tr:Artifact rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:traceableTo ; owl:someValuesFrom tr:Vision ] .
+
+# Every artifact has exactly one canonical ID.
+tr:Artifact rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:hasArtifactId ; owl:cardinality 1 ] .
+
+# Every use case must trace upstream to the vision.
+tr:UseCase rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:refines ; owl:someValuesFrom tr:Vision ] .
+
+# Every FR must trace upstream to at least one use case (FR is generated
+# based on UC) and is formalized from user stories.
+tr:FunctionalRequirement rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:refines ; owl:someValuesFrom tr:UseCase ] .
+
+# Requirements are formalized FROM user stories: FR derives from US.
+tr:FunctionalRequirement rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:derivesFrom ; owl:someValuesFrom tr:UserStory ] .
+
+# NFRs are traced upstream to the Vision (non-functional business constraints).
+tr:NonFunctionalRequirement rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:derivesFrom ; owl:someValuesFrom tr:Vision ] .
+
+# Every user story is part of the user interaction described by a use case;
+# US and UC are directly related (no intermediate Requirement link).
+tr:UserStory rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:partOf ; owl:someValuesFrom tr:UseCase ] .
+
+# Every ADR must trace upstream to a requirement (FR or NFR), or to the
+# Vision for BIZ-level decisions.
+tr:ArchitectureDecision rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:derivesFrom ;
+    owl:someValuesFrom [ owl:unionOf (tr:Requirement tr:Vision) ] ] .
+
+# Every component realizes a requirement (FR or NFR) in accordance with a
+# governing architecture decision.
+tr:Component rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:realizes ; owl:someValuesFrom tr:Requirement ] .
+
+tr:Component rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:conformsTo ; owl:someValuesFrom tr:ArchitectureDecision ] .
+
+# Unit tests validate functional requirements (FR).
+tr:UnitTest rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:validates ; owl:someValuesFrom tr:FunctionalRequirement ] .
+
+# Integration tests check interfaces between related bounded contexts /
+# microservices and relate to the components whose interfaces they verify.
+tr:IntegrationTest rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:checksInterface ; owl:someValuesFrom tr:Interface ] .
+
+tr:IntegrationTest rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:relatesTo ; owl:someValuesFrom tr:Component ] .
+
+# E2E tests are generated from user stories (US drives E2E generation).
+tr:E2ETest rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:derivesFrom ; owl:someValuesFrom tr:UserStory ] .
+
+# Gates check correct pipeline adherence during agent work and validate the
+# artifacts produced along the pipeline (compliance gate).
+tr:Gate rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:checksPipeline ; owl:someValuesFrom tr:Pipeline ] .
+
+tr:Gate rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:validates ; owl:someValuesFrom tr:Artifact ] .
+
+# Load tests validate NFR performance characteristics.
+tr:LoadTest rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:validates ; owl:someValuesFrom tr:NonFunctionalRequirement ] .
+
+# Every C4 diagram is derived from the architecture decisions it visualizes.
+tr:C4Diagram rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:derivesFrom ; owl:someValuesFrom tr:ArchitectureDecision ] .
+
+# Every documentation artifact must document at least one artifact.
+tr:Documentation rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:documents ; owl:minCardinality 1 ] .
+
+# The glossary anchors its terms to the Vision (domain terminology source).
+tr:Glossary rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:relatesTo ; owl:someValuesFrom tr:Vision ] .
+
+# ────────────────────────────────────────────────────────────────────────────
+# 5. Disjointness — an artifact has exactly one type
+# ────────────────────────────────────────────────────────────────────────────
+
+[] a owl:AllDisjointClasses ;
+  owl:members (
+    tr:Vision tr:Glossary tr:ArchitectureDecision tr:UseCase
+    tr:Requirement tr:UserStory tr:C4Diagram tr:Component
+    tr:Test tr:Documentation
+  ) .
+
+[] a owl:AllDisjointClasses ;
+  owl:members ( tr:FunctionalRequirement tr:NonFunctionalRequirement ) .
+
+[] a owl:AllDisjointClasses ;
+  owl:members ( tr:UnitTest tr:IntegrationTest tr:E2ETest tr:Gate tr:LoadTest ) .
+
+[] a owl:AllDisjointClasses ;
+  owl:members ( tr:E2EApiTest tr:E2EGuiTest ) .
+
+# ────────────────────────────────────────────────────────────────────────────
+# 6. ABox example (informative — commented out; instances are added when
+#    artifacts are created, e.g. by tooling or maintainers)
+# ────────────────────────────────────────────────────────────────────────────
+#
+# tr:uc-plan-compute-shortest-path a tr:UseCase ;
+#   tr:hasArtifactId "UC-plan.compute.shortest-path-to-goal" ;
+#   tr:hasFilePath "specs/use-cases/UC-plan.compute.shortest-path-to-goal.md" ;
+#   tr:hasPriority "P0" ;
+#   tr:refines tr:vision ;                 # upstream → specs/vision.md
+#   tr:hasFunction tr:function-F1 ;        # cites F1 (vision anchor)
+#   tr:isSourceOf tr:us-plan-compute-shortest-path .  # US ∈ взаимодействие UC
+#
+# tr:us-plan-compute-shortest-path a tr:UserStory ;
+#   tr:hasArtifactId "US-plan.compute.shortest-path" ;
+#   tr:partOf tr:uc-plan-compute-shortest-path ;       # US ∈ взаимодействие UC
+#   tr:isSourceOf tr:fr-plan-compute,                  # FR формализуется из US
+#                 tr:e2e-api-route-compute .           # US → генерация E2E
+#
+# tr:fr-plan-compute a tr:FunctionalRequirement ;
+#   tr:hasArtifactId "REQ-FR-plan.compute.shortest-path" ;
+#   tr:hasFilePath "specs/requirements/REQ-FR-plan.compute.shortest-path.md" ;
+#   tr:refines tr:uc-plan-compute-shortest-path ;      # FR генерируется на основе UC
+#   tr:derivesFrom tr:us-plan-compute-shortest-path ;  # FR формализуется из US
+#   tr:hasPriority "P0" .
+#
+# tr:e2e-api-route-compute a tr:E2EApiTest ;
+#   tr:hasArtifactId "E2E-api.compute.shortest-path" ;
+#   tr:derivesFrom tr:us-plan-compute-shortest-path .
+#
+# tr:adr-route-engine-design a tr:ArchitectureDecision ;
+#   tr:hasArtifactId "ADR-DES.DATA.route-engine-design" ;
+#   tr:derivesFrom tr:fr-plan-compute .                # ADR выводится из FR
+#
+# tr:comp-route-engine a tr:Component ;
+#   tr:hasArtifactId "COMP.route-engine" ;
+#   tr:realizes tr:fr-plan-compute ;                   # код реализует FR
+#   tr:conformsTo tr:adr-route-engine-design .         # в соответствии с ADR
+#
+# tr:gate-verify a tr:Gate ;
+#   tr:hasArtifactId "GATE.verify" ;
+#   tr:checksPipeline tr:pipeline-implement .     # гейт проверяет следование пайплайну
+#
+# tr:pipeline-implement a tr:Pipeline ;
+#   rdfs:label "plan → implement → verify"@en .
