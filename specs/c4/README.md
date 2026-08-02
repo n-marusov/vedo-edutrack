@@ -25,8 +25,8 @@
 | `context-system.md` | System Context: EduTrack и внешние системы |
 | `container-overview.md` | Container: общий обзор контейнеров |
 | `container-api-server.md` | Container: детальный вид API-сервера |
-| `component-route-engine.md` | Component: движок планирования маршрута |
-| `component-execution.md` | Component: модуль исполнения плана |
+| `component-api-server.md` | Component: бэкенд — компоненты API-сервера (модульный монолит) |
+| `component-web-app.md` | Component: фронтенд — компоненты веб-приложения (React SPA) |
 
 ## Формат описания
 
@@ -36,6 +36,21 @@
 - **Легенду** — описание узлов и связей
 - **Контекст** — для какого сценария построена диаграмма
 - **Связи с функциями** — ссылки на F1–F6 из `vision.md`
+
+## Уровень 3. Компоненты (мастер-индекс)
+
+Два документа уровня 3 покрывают оба контейнера клиент-серверного приложения (`REQ-NFR-infra.compliance.client-server-web-app`). Оба построены по кругам Clean Architecture (ADR-DES.INFRA.clean-architecture-adoption) и отражают модульный монолит из 10 bounded contexts (ADR-DES.INFRA.modular-monolith-approach).
+
+| Документ | Контейнер | Компоненты |
+|----------|-----------|------------|
+| [`component-api-server.md`](component-api-server.md) | API-сервер (Go / chi) | 8 компонентов инфраструктуры (HTTP-слой, AuthN/AuthZ, in-process шина, outbox, доступ к данным, клиент VEDO Hub, наблюдаемость, конфигурация) + 10 модулей-контекстов (3 core / 5 supporting / 2 generic) |
+| [`component-web-app.md`](component-web-app.md) | Веб-приложение (React SPA) | Domain (доменные модели) + Application (5 Zustand-сторов) + Interface Adapters (API-клиент, DTO-мапперы, view-модели) + Frameworks (UI-компоненты, граф-движки, роутер, i18n, a11y) |
+
+**Ключевые связи между компонентами контейнеров:**
+
+- Фронтенд → бэкенд: REST (контракт — OpenAPI-спека) + события SSE/WebSocket (`route.recalculated`, `module.mastered`, `plan.deviated`, `standard.risk_detected`).
+- Внутри бэкенда: HTTP-слой → модули; каскады через in-process шину; внешние события через outbox; `visualization` читает read-модели, а не ядро.
+- Оба конца разделяют доменный словарь: статусы, допущения (дельта ±15%) и типы событий — общие правила фронтенда и бэкенда.
 
 ## Специфика EduTrack
 
@@ -47,4 +62,6 @@
 
 - [Видение продукта](../vision.md)
 - [Архитектурные решения](../adr/README.md)
+- [Карта контекстов](../ddd/context-map.md) — bounded contexts ↔ модули
+- [Доменные события](../ddd/domain-events.md) — каскады и webhook-представления
 - [Глоссарий](../glossary.md)
