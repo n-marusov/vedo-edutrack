@@ -2053,6 +2053,48 @@ tr:adr-des-infra-modular-monolith-approach a tr:ArchitectureDecision ;
   tr:derivesFrom tr:nfr-api-performance-latency-p95, tr:nfr-ops-performance-scalability, tr:nfr-infra-compliance-community-enterprise-isolation, tr:nfr-infra-compliance-client-server-web-app, tr:nfr-process-dev-test-coverage, tr:nfr-ops-compliance-support-sla .
 
 
+# ── M0.1 refinement: C4 Level 1 System Context diagram ──
+
+tr:c4-context-system a tr:C4Diagram ;
+  tr:hasArtifactId "C4-context-system" ;
+  tr:hasFilePath "specs/c4/context-system.md" ;
+  tr:derivesFrom tr:adr-des-infra-modular-monolith-approach .
+
+tr:c4-container-overview a tr:C4Diagram ;
+  tr:hasArtifactId "C4-container-overview" ;
+  tr:hasFilePath "specs/c4/container-overview.md" ;
+  tr:derivesFrom tr:adr-des-infra-modular-monolith-approach .
+
+
+# ── M0.1 refinement: stack selection ADRs (language + framework) ──
+
+tr:adr-des-stack-language-vs-vs a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.STACK.language-vs-vs" ;
+  tr:hasFilePath "specs/adr/ADR-DES.STACK.language-vs-vs.md" ;
+  tr:derivesFrom tr:nfr-api-performance-latency-p95, tr:nfr-ops-performance-scalability, tr:nfr-process-dev-test-coverage, tr:nfr-ops-compliance-i18n-readiness, tr:nfr-ops-compliance-support-sla, tr:nfr-security-compliance-owasp-application-security, tr:nfr-infra-compliance-client-server-web-app, tr:nfr-infra-compliance-community-enterprise-isolation .
+
+tr:adr-des-stack-framework-vs-vs a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.STACK.framework-vs-vs" ;
+  tr:hasFilePath "specs/adr/ADR-DES.STACK.framework-vs-vs.md" ;
+  tr:derivesFrom tr:nfr-ops-compliance-user-documentation, tr:nfr-process-dev-test-coverage, tr:nfr-ops-compliance-i18n-readiness, tr:nfr-ui-compliance-wcag-level, tr:nfr-infra-compliance-client-server-web-app, tr:nfr-security-compliance-owasp-application-security .
+
+
+# ── M0.1 refinement: development tooling ADR (linters, formatters, pre-commit, full stack) ──
+
+tr:adr-impl-process-development-tooling a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-IMPL.PROCESS.development-tooling" ;
+  tr:hasFilePath "specs/adr/ADR-IMPL.PROCESS.development-tooling.md" ;
+  tr:derivesFrom tr:nfr-process-dev-test-coverage, tr:nfr-process-dev-engineering-gates, tr:nfr-process-dev-code-complexity, tr:nfr-infra-compliance-cicd-supply-chain-security, tr:nfr-ops-observability-log-level-config, tr:nfr-ops-observability-distributed-tracing, tr:nfr-ops-observability-golden-signals-dashboards, tr:nfr-ops-release-deployment-verification, tr:nfr-ops-release-canary-kill-switch, tr:nfr-security-compliance-owasp-application-security, tr:nfr-api-performance-latency-p95 .
+
+
+# ── M0.1 refinement: Clean Architecture adoption ADR (internal code structure) ──
+
+tr:adr-des-infra-clean-architecture-adoption a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.INFRA.clean-architecture-adoption" ;
+  tr:hasFilePath "specs/adr/ADR-DES.INFRA.clean-architecture-adoption.md" ;
+  tr:derivesFrom tr:nfr-process-dev-test-coverage, tr:nfr-process-dev-engineering-gates, tr:nfr-process-dev-code-complexity, tr:nfr-api-performance-latency-p95, tr:nfr-api-availability-hub-dependency-sla, tr:nfr-infra-compliance-client-server-web-app, tr:nfr-infra-compliance-community-enterprise-isolation, tr:nfr-security-compliance-owasp-application-security, tr:nfr-ui-compliance-wcag-level, tr:nfr-ops-compliance-i18n-readiness .
+
+
 # ── Iteration 9 refinements: FRs closing FR-layer gaps (F0 ontology port, F6.3 LMS) ──
 
 tr:fr-api-hub-read-ontology a tr:FunctionalRequirement ;
