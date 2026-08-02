@@ -1,0 +1,70 @@
+# Traefik dynamic configuration for VEDO EduTrack dev stack.
+#
+# Defines routers and services for the backend API and frontend SPA.
+# Blue-green deployment is configured via weighted services (post-MVP).
+#
+# See ADR-IMPL.PROCESS.development-tooling §8.
+
+http:
+  routers:
+    api:
+      rule: "Host(`api.edutrack.localhost`) || PathPrefix(`/api`)"
+      entryPoints: ["websecure"]
+      service: backend
+      middlewares:
+        - rate-limit
+        - security-headers
+
+    spa:
+      rule: "Host(`edutrack.localhost`)"
+      entryPoints: ["websecure"]
+      service: frontend
+      middlewares:
+        - security-headers
+
+  services:
+    backend:
+      loadBalancer:
+        servers:
+          - url: http://backend:8080
+
+    # Blue-green deployment (post-MVP):
+    # backend-blue:
+    #   loadBalancer:
+    #     servers:
+    #       - url: http://backend-blue:8080
+    # backend-green:
+    #   loadBalancer:
+    #     servers:
+    #       - url: http://backend-green:8080
+
+    frontend:
+      loadBalancer:
+        servers:
+          - url: http://frontend:5173
+
+  middlewares:
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1s
+
+    security-headers:
+      headers:
+        customFrameOptionsValue: DENY
+        contentTypeNosniff: true
+        browserXssFilter: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customResponseHeaders:
+          X-Content-Type-Options: "nosniff"
+        contentSecurityPolicy: |
+          default-src 'self';
+          script-src 'self' 'unsafe-inline';
+          style-src 'self' 'unsafe-inline';
+          img-src 'self' data:;
+          font-src 'self';
+          connect-src 'self' http://localhost:*;

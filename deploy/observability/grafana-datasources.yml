@@ -1,0 +1,44 @@
+# Grafana datasource provisioning for VEDO EduTrack dev stack.
+#
+# Auto-configures Prometheus (metrics), Loki (logs), and Tempo (traces)
+# datasources when Grafana starts — no manual setup required.
+#
+# See ADR-IMPL.PROCESS.development-tooling §9.
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: "15s"
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      derivedFields:
+        - datasourceUid: Tempo
+          matcherRegex: "trace_id=(\\w+)"
+          name: trace_id
+          url: "$${__value.raw}"
+
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: true
+    uid: Tempo
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: Loki
+        spanStartTimeShift: "1h"
+        spanEndTimeShift: "-1h"
+        filterByTraceID: true
+        filterBySpanID: true

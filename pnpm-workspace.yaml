@@ -8,5 +8,9 @@
 # Go-бэкенд в воркспейс НЕ входит: он управляется через go.mod (монорепо-структура, общий git-репозиторий).
 
 packages:
+  - "frontend"
   - "apps/*"
   - "tools/*"
+allowBuilds:
+  '@biomejs/biome': true
+  esbuild: true

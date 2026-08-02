@@ -1,0 +1,42 @@
+# Traefik static configuration for VEDO EduTrack dev stack.
+#
+# Defines entrypoints, providers, and the API dashboard.
+# Dynamic routing rules are in dynamic.yml.
+#
+# See ADR-IMPL.PROCESS.development-tooling §8 (Traefik reverse-proxy).
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: edutrack-net
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+api:
+  dashboard: true
+  insecure: true  # dev-only; production uses TLS + auth
+
+log:
+  level: INFO
+  format: json
+
+accessLog:
+  format: json
+
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addServicesLabels: true

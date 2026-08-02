@@ -1,0 +1,57 @@
+# OpenAPI 3.1 Specification — VEDO EduTrack API
+#
+# This is the single source of truth for the EduTrack REST API contract.
+# Server code is generated via oapi-codegen from this specification.
+# The frontend TypeScript client is also generated from this spec for type safety.
+#
+# See ADR-DES.API.communication-patterns (OpenAPI-first),
+# ADR-DES.STACK.framework-vs-vs (chi + oapi-codegen).
+#
+# TODO: Define full API contract (M0.3+).
+# The spec starts minimal — a health-check endpoint to validate the toolchain.
+
+openapi: "3.1.0"
+info:
+  title: VEDO EduTrack API
+  description: |
+    Educational trajectory service API.
+    EduTrack reads knowledge ontologies from VEDO Hub and provides
+    route planning, plan execution, gap diagnosis, and visualization.
+  version: "0.1.0"
+  contact:
+    name: VEDO EduTrack Team
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+  - url: https://api.edutrack.example.com/api/v1
+    description: Production server (placeholder)
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      summary: Health check
+      description: Returns service health status. Used by Docker healthcheck and load balancers.
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, down]
+          description: Health status of the service.
+        database:
+          type: string
+          enum: [connected, disconnected]
+          description: PostgreSQL connection status.

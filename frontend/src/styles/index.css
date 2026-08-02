@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* VEDO EduTrack design tokens (placeholder — populated later via Pencil design process).
+   See ADR-IMPL.PROCESS.development-tooling §11 (Pencil → production code). */
+
+@theme {
+  /* Primary palette */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-500: #3b82f6;
+  --color-primary-700: #1d4ed8;
+  --color-primary-900: #1e3a5f;
+
+  /* Neutral palette */
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-500: #6b7280;
+  --color-neutral-700: #374151;
+  --color-neutral-900: #111827;
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-warning: #ca8a04;
+  --color-danger: #dc2626;
+}

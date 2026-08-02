@@ -1,0 +1,59 @@
+# OpenTelemetry Collector configuration for VEDO EduTrack development stack.
+#
+# Receives OTLP from backend (Go SDK) and frontend (Web SDK),
+# exports to Prometheus (metrics), Loki (logs), and Tempo (traces).
+#
+# See ADR-IMPL.PROCESS.development-tooling §9.
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+  attributes:
+    actions:
+      # Redact PII from telemetry (152-ФЗ compliance).
+      # See REQ-NFR-security.compliance.pii-152-fz.
+      - key: user.email
+        action: delete
+      - key: user.phone
+        action: delete
+      - key: user.full_name
+        action: delete
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled:
+      exporter: false
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes, batch]
+      exporters: [otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes, batch]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes, batch]
+      exporters: [loki]
