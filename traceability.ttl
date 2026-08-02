@@ -1977,3 +1977,24 @@ tr:nfr-process-dev-developer-documentation a tr:NonFunctionalRequirement ;
   tr:hasFilePath "specs/requirements/REQ-NFR-process.dev.developer-documentation.md" ;
   tr:hasPriority "P1" ;
   tr:derivesFrom tr:vision .
+
+
+# ── Iteration 7 refinements: NFRs closing remaining Step-5 missed aspects (cells 1.2, 1.3, 3.3, 5.2) ──
+
+tr:nfr-data-compliance-data-residency a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-data.compliance.data-residency" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-data.compliance.data-residency.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-release-maintenance-windows a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.release.maintenance-windows" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.release.maintenance-windows.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-compliance-incident-communication a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.compliance.incident-communication" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.compliance.incident-communication.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
