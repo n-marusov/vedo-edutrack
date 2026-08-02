@@ -1,0 +1,2 @@
+# API-флоу E2E (Playwright request fixture: REST/OpenAPI, webhooks, SPARQL)
+# Структура: ADR-IMPL.PROCESS.repository-structure §5, стек: ADR-DES.STACK.e2e-testing-playwright-vs-cypress

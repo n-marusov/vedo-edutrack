@@ -1,0 +1,2 @@
+# Кросс-слойные интеграционные тесты (compose-стек: frontend ↔ backend ↔ PostgreSQL ↔ VEDO Hub)
+# Структура: ADR-IMPL.PROCESS.repository-structure §5
