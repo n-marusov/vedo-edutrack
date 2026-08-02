@@ -10,13 +10,14 @@ VEDO EduTrack is an educational trajectory service built on top of the VEDO Hub 
 
 > Stack selected 2026-08-02 (ADRs T3–T5); see `specs/adr/` and `.ai-factory/DESCRIPTION.md` for details.
 
-- **Backend:** Go + chi + oapi-codegen (OpenAPI-first), modular monolith, Clean Architecture
+- **Backend:** Go + chi + oapi-codegen (OpenAPI-first), modular monolith, Clean Architecture; единый бинарник `vedo-edutrack` с cobra-подкомандами (server / mcp / migrate / seed / ontology sync / route compute / plan get / gap diagnose / report) — `ADR-DES.API.cli-interface`
 - **Frontend:** React + TypeScript SPA (Vite), Zustand, Tailwind CSS v4, React Flow + Cytoscape.js
 - **Database:** PostgreSQL (learner/plan/progress data; knowledge graph lives in VEDO Hub)
 - **ORM/data access:** sqlc + pgx, Atlas migrations
 - **Auth:** JWT RS256/JWKS (jwx); Keycloak post-MVP (Enterprise SSO)
 - **Observability:** OTel (Go+Web) → Collector → Prometheus/Loki/Tempo + Grafana
 - **CI/CD:** GitHub Actions; Docker (distroless) + docker-compose + Traefik; K8s post-MVP
+- **Testing:** Playwright E2E (`tests/e2e/gui` + `tests/e2e/api`), Vitest + RTL (фронт), Go test + testify + testcontainers (бэкенд)
 - **External platform:** VEDO Hub (REST API + MCP server, SPARQL/Cypher endpoint)
 
 ## Project Structure
@@ -27,10 +28,25 @@ vedo-edutrack/
 ├── LICENSE                # Project license
 ├── .ai-factory.json       # AI Factory v2.15.0 manifest: installed skills, MCP flags
 ├── package.json           # pnpm workspace root: вспомогательный тулинг (валидация Mermaid, scripts/)
-├── pnpm-workspace.yaml    # pnpm workspace: корень + будущие apps/* (React SPA) и tools/*
+├── pnpm-workspace.yaml    # pnpm workspace: корень + apps/* (React SPA) и tools/*
 ├── .nvmrc                 # Закреплённая версия Node (24)
 ├── traceability.ttl       # OWL 2 DL traceability model (US → UC → FR → ADR/C4 → COMP → TEST)
+├── backend/               # Go-модуль (modular monolith, единый бинарник vedo-edutrack)
+│   ├── cmd/vedo-edutrack/ # Тонкий entry: cli.Execute() (composition root, wire)
+│   ├── internal/
+│   │   ├── cli/           # Cobra-дерево: server, mcp, migrate, seed, ontology sync, route compute,
+│   │   │                  #   plan get, gap diagnose, report (входной адаптер, ADR-DES.API.cli-interface)
+│   │   ├── modules/       # 10 bounded contexts (routeplanning, executionprogress, gapcoverage, …)
+│   │   ├── pkg/           # Общие утилиты (инфраструктурно-нейтральные)
+│   │   └── platform/      # Общие адаптеры: postgres, telemetry, config, logger, wire.go
+│   ├── migrations/        # Atlas: <timestamp>_<schema>_<desc>.sql
+│   ├── api/openapi/v1.yaml# OpenAPI-спека (источник истины)
+│   └── go.mod
+├── frontend/              # React SPA (Vite, pnpm-воркспейс apps/web)
+├── deploy/                # Инфраструктура и CI/CD: ci, keycloak, observability, postgres, seeds,
+│                          #   docker-compose.yml, traefik
 ├── scripts/               # Вспомогательные скрипты (validate-mermaid.mjs и др.)
+├── tests/                 # Системные тесты: e2e/gui + e2e/api (Playwright), integration (compose-стек)
 ├── specs/                 # Формализованные спецификации
 │   ├── vision.md          # Продуктовое видение (рус., авторитетный источник)
 │   ├── glossary.md        # Доменный глоссарий (единственный источник терминов)
@@ -59,7 +75,10 @@ vedo-edutrack/
 | `specs/requirements/REQ-NFR-security.compliance.permission-matrix.md` | Role-permission matrix (T8): archetype × functional area × permission level (CRUD) × scope |
 | `specs/requirements/REQ-NFR-api.compliance.ownership-boundary.md` | VEDO Hub ↔ EduTrack responsibility boundary (T10): data/computation/API/event/deployment ownership, ontology-port contract |
 | `specs/requirements/` | Formalized requirements: 60 FR + 54 NFR, each with measurable acceptance criteria |
-| `specs/adr/` | Architecture decision records (ADR-DES/IMPL.*): stack, storage, comm patterns, RBAC |
+| `specs/adr/` | Architecture decision records (ADR-DES/IMPL.*): stack, storage, comm patterns, RBAC, CLI interface |
+| `backend/cmd/vedo-edutrack/` | Единственный бинарник `vedo-edutrack`: тонкий entry (composition root, wire) → `cli.Execute()` |
+| `backend/internal/cli/` | Cobra-дерево команд (входной адаптер): server, mcp, migrate, seed, ontology sync, route compute, plan get, gap diagnose, report — `ADR-DES.API.cli-interface` |
+| `tests/` | System tests: `e2e/gui` (Playwright browser, M1–M10), `e2e/api` (Playwright API flows), `integration` (cross-layer, compose stack) |
 | `specs/ddd/` | DDD artifacts: context map, aggregates, domain events |
 | `specs/c4/` | C4 diagrams: System Context, Container, Component (Mermaid + legend) |
 | `traceability.ttl` | OWL 2 DL traceability model linking US → UC → FR → ADR/C4 → COMP → TEST |
@@ -75,7 +94,8 @@ vedo-edutrack/
 | Requirements | `specs/requirements/` | FR + NFR requirements with measurable acceptance criteria, README with conventions (Russian) |
 | Use cases | `specs/use-cases/` | 42 UC covering route building, execution, viz, auth, API integration (Russian) |
 | User stories | `specs/user-stories/` | 47 US in Gherkin with @UC/@FR tags (Russian) |
-| Architecture decisions | `specs/adr/` | ADR records: stack, storage, comm patterns, repo structure, RBAC (Russian) |
+| Architecture decisions | `specs/adr/` | ADR records: stack, storage, comm patterns, repo structure, RBAC, CLI interface (Russian) |
+| CLI interface | `specs/adr/ADR-DES.API.cli-interface.md` | Single binary with cobra subcommands; CLI as input adapter over Application layer; dev/support/testing tooling (Russian) |
 | Domain model | `specs/ddd/` | Context map, aggregates, domain events (Russian) |
 | RBAC matrix | `specs/requirements/REQ-NFR-security.compliance.*` | Role catalog + permission matrix + ops/admin separation (T8), Community/Enterprise differences (Russian) |
 | Responsibility boundary | `specs/requirements/REQ-NFR-api.compliance.*` | EduTrack vs VEDO Hub ownership (T10): data, computation, API, events, deployment, ontology-port contract (Russian) |

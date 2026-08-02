@@ -34,15 +34,16 @@ VEDO EduTrack is an educational route service built **on top of the VEDO Hub** o
 
 ## Tech Stack
 
-> **Status: выбран (ПРИНЯТО, 2026-08-02)** — зафиксирован в ADR T3–T5: `ADR-DES.STACK.language-vs-vs`, `ADR-DES.STACK.framework-vs-vs`, `ADR-DES.DATA.storage-strategy`, `ADR-DES.API.communication-patterns`, `ADR-IMPL.PROCESS.repository-structure`, `ADR-DES.SECURITY.rbac-model`, `ADR-IMPL.PROCESS.development-tooling`.
+> **Status: выбран (ПРИНЯТО, 2026-08-02)** — зафиксирован в ADR T3–T5: `ADR-DES.STACK.language-vs-vs`, `ADR-DES.STACK.framework-vs-vs`, `ADR-DES.DATA.storage-strategy`, `ADR-DES.API.communication-patterns`, `ADR-IMPL.PROCESS.repository-structure`, `ADR-DES.SECURITY.rbac-model`, `ADR-IMPL.PROCESS.development-tooling`. CLI-интерфейс: единый бинарник с cobra-подкомандами — `ADR-DES.API.cli-interface` (2026-08-03).
 
 - **Programming language:** Go (бэкенд) + TypeScript (фронтенд) — `ADR-DES.STACK.language-vs-vs`
 - **Framework:** chi + oapi-codegen (бэкенд, OpenAPI-first); React + TS (фронт, SPA) — `ADR-DES.STACK.framework-vs-vs`
 - **Database:** PostgreSQL (learner/plan/progress data; knowledge graph lives in VEDO Hub, queried via SPARQL API)
 - **Data access / migrations:** sqlc + Atlas (drift-детекция)
 - **DI / logging / i18n:** wire · zap + OTel · go-i18n
+- **CLI:** единый бинарник `vedo-edutrack` (cobra-подкоманды: server, mcp, migrate, seed, ontology sync, route compute, plan get, gap diagnose, report) — `ADR-DES.API.cli-interface`
 - **Auth:** JWT RS256/JWKS (jwx); Keycloak — пост-MVP (Enterprise SSO)
-- **Testing:** Go testing + testify · testcontainers-go · gremlins (spike) · Playwright · React Testing Library
+- **Testing:** Go testing + testify · testcontainers-go · gremlins (spike) · Playwright (`tests/e2e/gui` + `tests/e2e/api`) · React Testing Library · integration (`tests/integration`)
 - **Observability:** OTel (Go+Web) → Collector → Prometheus/Loki/Tempo + Grafana
 - **Infra:** Docker (distroless, Go embed) · docker-compose + Traefik (blue-green) · K8s — пост-MVP
 - **CI/CD:** GitHub Actions (lint → test → mutation → coverage → security → build → deploy → smoke)

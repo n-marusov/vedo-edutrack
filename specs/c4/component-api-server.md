@@ -130,7 +130,7 @@ C4Component
 | **Клиент VEDO Hub** | Адаптеры REST / MCP / SPARQL для ACL-чтения онтологии; circuit breaker по `REQ-NFR-api.availability.hub-dependency-sla` | HTTP/MCP/SPARQL-клиенты |
 | **Наблюдаемость** | Метрики, трейсы (OTLP), JSON-логи; sampling 100% ошибок + 10% успеха; PII-redaction (152-ФЗ) | `otel`, `zap` |
 | **Конфигурация и feature-флаги** | Разделение контуров Community/Enterprise конфигурацией; LLM-фичи выключаются без пересборки | env/config |
-| **Composition Root (DI)** | Сборка графа зависимостей на входе приложения (`cmd/server`): реализации адаптеров (sqlc-репозитории, шина, hub-клиент, auth) встраиваются в порты модулей; ручной DI скомпилирован в `wire_gen.go` | `wire` (compile-time) |
+| **Composition Root (DI)** | Сборка графа зависимостей на входе приложения (`cmd/vedo-edutrack`): реализации адаптеров (sqlc-репозитории, шина, hub-клиент, auth) встраиваются в порты модулей; ручной DI скомпилирован в `wire_gen.go`; CLI-команды (`internal/cli`) — входной адаптер на тех же use cases (`ADR-DES.API.cli-interface`) | `wire` (compile-time), `cobra` |
 
 ### Модули — bounded contexts (модули Clean Architecture)
 
@@ -224,7 +224,7 @@ C4Component
 - **Read-модели**: `visualization` не запрашивает ядро напрямую — читает материализованные проекции в PostgreSQL (CQRS-light).
 - **Маршрут — функция, не документ**: у `route-planning` нет хранилища; кэшируется только in-memory подграф (иммутабелен по `ontologyVersion`), поэтому Redis не нужен на MVP.
 - **Контуры Community/Enterprise**: различаются конфигурацией и изоляцией схем/tenant, не структурой компонентов.
-- **Composition Root на входе**: `wire` собирает граф — реализации адаптеров внедряются в порты модулей в одной точке (`cmd/server`); вне composition root модули не ссылаются на конкретные адаптеры (референс: best practice #8).
+- **Composition Root на входе**: `wire` собирает граф — реализации адаптеров внедряются в порты модулей в одной точке (`cmd/vedo-edutrack`); вне composition root модули не ссылаются на конкретные адаптеры (референс: best practice #8). CLI (`internal/cli`) и MCP — отдельные входные адаптеры на тот же Application-слой (`ADR-DES.API.cli-interface`).
 - **Все стрелки «модуль → адаптер» — поток управления с DIP**: исходная зависимость направлена от адаптера к порту модуля; нарушение Dependency Rule ловится архитектурными тестами в CI (`REQ-NFR-process.dev.engineering-gates`).
 
 ## Связи с функциями (vision.md)

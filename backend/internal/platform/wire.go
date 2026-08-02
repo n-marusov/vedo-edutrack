@@ -19,7 +19,7 @@ import (
 
 // InitPlatform initializes all platform-level adapters.
 //
-// Called once at startup from cmd/server/main.go (the composition root).
+// Called once at startup from cmd/vedo-edutrack/main.go (the composition root).
 // Returns an error if any platform component fails to initialize.
 func InitPlatform(ctx context.Context, serviceName string) error {
 	log.Println("[INFO] [platform.InitPlatform] initializing platform adapters")

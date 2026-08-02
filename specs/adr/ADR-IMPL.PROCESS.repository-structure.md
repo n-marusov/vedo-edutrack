@@ -33,7 +33,8 @@
 | `application/` | только `domain/`, stdlib | `adapters`, `platform`, другие модули |
 | `adapters/` | `domain/`, `application/ports`, `platform` | другие модули |
 | `platform/` | stdlib, внешние библиотеки | `modules/*` (никакой бизнес-логики) |
-| `cmd/server` (composition root) | всё (wire DI) | — |
+| `cli/` (входной адаптер CLI) | `modules/*` (wire-провайдеры), `platform` | другая логика, кроме вызова use cases через wire |
+| `cmd/vedo-edutrack` (composition root) | всё (wire DI) | — |
 
 **Запрещено (проверяется `archguard` в `make lint`):**
 - `domain` → `application` / `adapters` / `platform`
@@ -68,9 +69,13 @@ flowchart TD
         AD -->|"зависит"| D
     end
     P["platform — общая инфраструктура"]
-    CMD["cmd/server — composition root (wire)"]
+    CLI["cli — входной адаптер (cobra)"]
+    CMD["cmd/vedo-edutrack — composition root (wire)"]
     AD -->|"использует"| P
+    CLI -->|"wire-провайдеры модулей"| AD
+    CLI -->|"конфигурация"| P
     CMD -->|"wire DI"| AD
+    CMD -->|"wire DI"| CLI
     CMD -->|"конфигурация"| P
 ```
 
@@ -218,9 +223,22 @@ vedo-edutrack/
 ├── backend/                          # Go-модуль (бэкенд, modular monolith)
 │   ├── Dockerfile                    # Образ бэкенда (стратегия A/B — принцип 13)
 │   ├── cmd/
-│   │   └── server/
-│   │       └── main.go               # Composition root (wire), конфигурация, запуск
+│   │   └── vedo-edutrack/            # Единственный бинарник (cobra-дерево, ADR-DES.API.cli-interface)
+│   │       └── main.go               # Тонкий entry: cli.Execute() (composition root, wire)
 │   ├── internal/
+│   │   ├── cli/                      # CLI-команды (cobra, входной адаптер): server, mcp, migrate,
+│   │   │                             #   seed, ontology sync, route compute, plan get, gap diagnose, report
+│   │   │   ├── root.go               # Корень: version, completion, --config/--output
+│   │   │   ├── server.go             # Подкоманда server (HTTP + MCP-SSE + SPARQL + webhooks)
+│   │   │   ├── mcp.go                # Подкоманда mcp (stdio, F6.6)
+│   │   │   ├── migrate.go            # migrate up/down/validate (Atlas)
+│   │   │   ├── seed.go               # RBAC-каталог + демо-данные
+│   │   │   ├── ontology.go           # ontology sync (F0.2)
+│   │   │   ├── route.go              # route compute (--stub | из БД)
+│   │   │   ├── plan.go               # plan get
+│   │   │   ├── gap.go                # gap diagnose
+│   │   │   ├── report.go             # report attestation/coverage
+│   │   │   └── wire.go               # Per-command wire-функции (lazy)
 │   │   ├── modules/                  # 10 bounded contexts (структура — раздел 2)
 │   │   │   ├── routeplanning/        # core
 │   │   │   ├── executionprogress/    # core
@@ -243,7 +261,7 @@ vedo-edutrack/
 │   ├── api/
 │   │   └── openapi/
 │   │       └── v1.yaml               # OpenAPI-спека (источник истины)
-│   ├── tests/                        # E2E/интеграционные (testcontainers, кросс-модульные)
+│   ├── tests/                        # Интеграционные (Go, testcontainers, кросс-модульные)
 │   └── go.mod
 ├── tools/
 │   └── archguard/                    # go vet-анализатор границ (Dependency Rule)
@@ -253,6 +271,11 @@ vedo-edutrack/
 │   ├── design/                       # .pen-файлы (Pencil, дизайн-процесс)
 │   ├── package.json
 │   └── vite.config.ts
+├── tests/                            # Системные тесты (pnpm-воркспейс, TS/Playwright)
+│   ├── e2e/
+│   │   ├── gui/                      # Браузерные E2E (Playwright, M1–M10 Must-сценарии)
+│   │   └── api/                      # API-флоу (Playwright request fixture, REST/OpenAPI)
+│   └── integration/                  # Кросс-слойные интеграционные (compose-стек)
 ├── specs/                            # Формализованные артефакты (источник истины домена)
 │   ├── vision.md, glossary.md, ddd/, c4/, adr/, requirements/, user-stories/, use-cases/
 │   ├── requirements/REQ-NFR-security.compliance.*.md   # RBAC (role-catalog, permission-matrix, ops-admin-separation)
@@ -299,7 +322,21 @@ vedo-edutrack/
 | `adapters/eventbus/`, `transaction/` | Интеграционные | события/транзакции |
 | `frontend` domain/application | Vitest + RTL (без браузера) | ≥ 90% ядра фронта |
 | `frontend` adapters/ui | Компонентные (RTL) | — |
-| E2E | Playwright (10 Must-сценариев MVP) | кросс-слоёные |
+| `tests/e2e/gui/` | E2E GUI: Playwright, браузерные сценарии (M1–M10 Must) | 100% Must-критериев MVP |
+| `tests/e2e/api/` | E2E API: Playwright `request` fixture (REST/OpenAPI, webhooks, SPARQL) | API-контракты (дрейф = ошибка) |
+| `tests/integration/` | Интеграционные (TS, compose-стек): кросс-слойные флоу frontend ↔ backend ↔ Hub | кросс-слоёные |
+| `backend/tests/` | Интеграционные (Go, testcontainers): кросс-модульные | события/транзакции/БД |
+
+```
+tests/
+├── e2e/
+│   ├── gui/
+│   │   └── m1-route-compute.spec.ts       # M1–M10 Must-сценарии (Playwright, браузер)
+│   └── api/
+│       └── rest-contracts.spec.ts         # REST/OpenAPI, webhooks, SPARQL (request fixture)
+└── integration/
+    └── cross-layer-flows.spec.ts          # compose-стек: frontend ↔ backend ↔ Hub
+```
 
 ```
 backend/internal/modules/routeplanning/
@@ -321,7 +358,7 @@ backend/internal/modules/routeplanning/
 
 3. **Жёсткая структура модуля** (раздел 2): `domain/` (ядро, 0 зависимостей) → `application/` (`ports/` + `commands/` + `queries/` + `dtos/`) → `adapters/` (`handler/`, `repository/sqlc/`, `eventbus/`, `transaction/`) + `wire.go` + `module.go`. **Dependency Rule проверяется автоматически** (раздел 1).
 
-4. **Точка входа минимальна**: `cmd/server/main.go` — только composition root (wire), конфигурация, запуск. Вся бизнес-логика — в модулях.
+4. **Точка входа минимальна**: `cmd/vedo-edutrack/main.go` — тонкий entry (composition root, wire), вызывает `cli.Execute()`. Вся бизнес-логика — в модулях; дерево CLI-команд — `internal/cli/` (входной адаптер, `ADR-DES.API.cli-interface`), команды зовут use cases модулей через wire-провайдеры (per-command lazy wire).
 
 5. **`platform/` vs `modules/<m>/adapters/`** (границы инкапсуляции):
    - `internal/platform/` — **общие инфраструктурные адаптеры без бизнес-логики**: `postgres/` (пул, Atlas-драйвер), `telemetry/`, `config/`, `logger/`, `wire.go`. Никаких доменных репозиториев.
@@ -361,7 +398,8 @@ backend/internal/modules/routeplanning/
     up / down       # docker-compose up -d / down (профиль)
     dev             # compose + hot-reload (air / Vite dev)
     build           # backend (distroless) + frontend (Vite)
-    test            # unit + integration (testcontainers) + vitest
+    test            # unit + integration (testcontainers) + vitest + e2e (playwright)
+    test:e2e        # E2E: playwright test (tests/e2e/gui + tests/e2e/api)
     test-coverage   # Покрытие ядра ≥ 90% (coverage.html)
     lint            # golangci-lint + biome ci + depguard + archguard
     ci              # Полный CI-пайплайн локально
@@ -380,7 +418,8 @@ backend/internal/modules/routeplanning/
 |--------------|--------|--------------------|
 | **Полирепо (backend/, frontend/, specs/ отдельно)** | ❌ | Разрыв контрактов (OpenAPI-изменение требует кросс-репо PR), двойной CI, сложнее координация релизов; вайбкодинг-контекст не может целостно видеть продукт; монорепо — де-факто стандарт для модульного монолита |
 | **Монорепо без разделения backend/frontend (все в src/)** | ⚠️ | Смешение Go и TS ломает инструменты (go vet ./..., biome), размывает границы; разделение по технологии + воркспейс pnpm — чище |
-| **Всё в cmd/ (по одному binary на модуль)** | ❌ | Противоречит модульному монолиту (один процесс, один артефакт); cmd/server — единственная точка входа |
+| **Всё в cmd/ (по одному binary на модуль)** | ❌ | Противоречит модульному монолиту (один процесс, один артефакт); `cmd/vedo-edutrack` — единственная точка входа (cobra-дерево, `ADR-DES.API.cli-interface`) |
+| **Отдельный бинарник CLI (cmd/server + cmd/cli)** | ⚠️ | Чистое разделение ролей, но MCP stdio и без того требует spawnable-режим; два артефакта усложняют поставку (distroless, SBOM, on-prem единый артефакт). Отклонено в `ADR-DES.API.cli-interface` — один бинарник с подкомандами |
 | **Плоская структура (controllers/, services/, models/)** | ❌ | Нарушает границы bounded contexts и Clean Architecture; инварианты («маршрут — функция») размываются; невозможны арх-тесты границ |
 | **Структура по слоям внутри modules/ (общие domain/, application/ папки)** | ❌ | Делит контексты по слоям — межмодульные зависимости просачиваются через общие слои; модуль = контекст (инкапсуляция!) |
 | **Структура по типу (interface/, service/) внутри модуля** | ⚠️ | Устаревший Go-паттерн; приоритет — слои Clean Architecture; интерфейсы-порты — в `application/ports/` |
@@ -399,6 +438,7 @@ backend/internal/modules/routeplanning/
 - **Один контракт**: OpenAPI-спека генерирует код обоих концов; `make openapi-validate` в CI — дрейф = ошибка.
 - **Инкапсуляция схем**: репозитории модулей в модулях, `platform/` — только общая инфраструктура; schema-per-module не протекает.
 - **CQRS-light**: `commands/` (мутации) и `queries/` (read-модели) разделены — визуализация (F4) читает read-модели, не транзакционное ядро.
+- **CLI — третий входной адаптер**: `internal/cli/` вызывает те же use cases через wire (как HTTP и MCP) — поддержка/тесты без HTTP, без второго пути к данным (`ADR-DES.API.cli-interface`).
 - **Два режима поставки**: on-prem единый артефакт (Go embed) / SaaS раздельные образы — профили docker-compose.
 - **CI локально = CI в GitHub**: `make ci` зеркалирует пайплайн, `.github/workflows/` — тонкие entry-точки.
 - **Bus-factor ≥ 2**: структура детерминирована до файла, документируется в README/AGENTS.md и проверяется арх-тестами.
@@ -420,6 +460,7 @@ backend/internal/modules/routeplanning/
 - [ADR-DES.INFRA.clean-architecture-adoption](ADR-DES.INFRA.clean-architecture-adoption.md) — слои внутри модулей, зеркальный фронтенд
 - [ADR-DES.DATA.storage-strategy](ADR-DES.DATA.storage-strategy.md) — schema-per-module, миграции Atlas
 - [ADR-DES.API.communication-patterns](ADR-DES.API.communication-patterns.md) — OpenAPI-first, URL-версионирование
+- [ADR-DES.API.cli-interface](ADR-DES.API.cli-interface.md) — единый бинарник с cobra-подкомандами, `internal/cli/` как входной адаптер
 - [ADR-IMPL.PROCESS.development-tooling](ADR-IMPL.PROCESS.development-tooling.md) — Makefile, pnpm, pre-commit, CI/CD, sqlc/Atlas (§3), Docker (§8), wire (§4)
 - [Карта контекстов](../ddd/context-map.md) — T1: 10 bounded contexts
 - AGENTS.md — структурная карта репозитория для AI-агентов (обновляется при изменении структуры)

@@ -75,7 +75,8 @@ repos:
 
 | Слой | Выбор | Обоснование |
 |------|-------|-------------|
-| **DI** | `wire` (compile-time) | 10 модулей со статическим графом зависимостей: генерация DI на компиляции — быстрее сборки, проще дебаг, без runtime-магии (в отличие от uber-fx) |
+| **DI** | `wire` (compile-time) | 10 модулей со статическим графом зависимостей: генерация DI на компиляции — быстрее сборки, проще дебаг, без runtime-магии (в отличие от uber-fx); per-command lazy wire для CLI-команд (`ADR-DES.API.cli-interface`) |
+| **CLI** | `spf13/cobra` | Де-факто стандарт CLI для Go-монолитов (kubectl, docker, gh); единый бинарник `vedo-edutrack` с подкомандами (server, mcp, migrate, seed, ontology sync, route compute, plan get, gap diagnose, report) — `ADR-DES.API.cli-interface` |
 | **Логирование** | `zap` + `otelzapbridge` | Структурированные JSON-логи, `LOG_LEVEL`, `trace_id`/`span_id`/`request_id` (NFR log-level-config), связка с OTel |
 | **i18n (бэкенд)** | `go-i18n` + `golang.org/x/text` | Ошибки/уведомления/webhook; основная масса строк — на фронте (react-i18next) |
 
@@ -94,7 +95,7 @@ Unit (ядро F1/F2 ≥ 90%)     Go testing + testify
 Integration (≥ 70% API)     testcontainers-go (реальный PostgreSQL в CI)
 Контракты                   oapi-codegen + OpenAPI-проверки (дрейф = CI-ошибка)
 Мутационное (≤ 15% выжило)  gremlins / go-mutesting → SPIKE на M0.2
-E2E (10 Must-сценариев MVP) Playwright (React + API-флоу)
+E2E (10 Must-сценариев MVP) Playwright — tests/e2e/gui (React-флоу) + tests/e2e/api (API-флоу)
 Компонентные (фронт)        Vitest + React Testing Library (Domain/Application ≥ 90%, без браузера)
 ```
 
@@ -105,7 +106,7 @@ E2E (10 Must-сценариев MVP) Playwright (React + API-флоу)
 ```
 push/PR → lint (biome ci + golangci-lint + gofmt)
         → typecheck (tsc --noEmit)
-        → unit → integration (testcontainers) → mutation (spike)
+        → unit → integration (testcontainers) → e2e (playwright) → mutation (spike)
         → coverage-гейт (ядро ≥ 90%)
         → SAST/DAST + SBOM (syft) + сканер секретов (supply-chain NFR)
         → build (distroless) → push
@@ -164,12 +165,15 @@ PostgreSQL как data source для продуктовых метрик (NPS, �
 | `make up` / `make down` | `docker compose up -d` / `down` | Dev-окружение одной командой (backend + frontend + PostgreSQL + OTel-стек) |
 | `make dev` | compose + hot-reload | Режим разработки (air для Go, Vite dev для React) |
 | `make build` | сборка Go-бинарника + фронт | Продакшн-сборка (distroless-образ) |
-| `make test` | `go test ./...` + vitest | Все тесты (unit + integration + фронт) |
+| `make test` | `go test ./...` + vitest + playwright | Все тесты (unit + integration + фронт + e2e) |
+| `make test:e2e` | `playwright test` (tests/e2e/gui + tests/e2e/api) | E2E-сценарии (M1–M10 Must) |
 | `make lint` | `golangci-lint run` + `biome ci` | Линт обоих концов |
 | `make format` | `gofmt -l -w` + `biome check --write` | Форматирование |
-| `make migrate` / `make migrate-down` | `atlas migrate apply` / `revert` | Миграции БД |
+| `make migrate` / `make migrate-down` | `vedo-edutrack migrate up` / `down` (обёртка над Atlas через CLI, `ADR-DES.API.cli-interface`) | Миграции БД (drift = 0) |
 | `make hooks` | `pre-commit install` | Установка pre-commit хуков |
 | `make ci` | полный локальный CI-прогон (lint → test → coverage) | Воспроизведение CI локально |
+
+**CLI-обёртки:** инструментальные цели делегируют в единый бинарник `vedo-edutrack` (cobra-дерево, `ADR-DES.API.cli-interface`): `migrate` → `vedo-edutrack migrate`, сиды → `vedo-edutrack seed`, синк онтологии → `vedo-edutrack ontology sync`, отчёты → `vedo-edutrack report`. Makefile остаётся тонкой обёрткой; тулинг воспроизводим в контейнере (тот же образ).
 
 **Правила:** цели идемпотентны; `make ci` — зеркало GitHub Actions (одна команда для локальной проверки и CI); Makefile генерируется/поддерживается `/aif-build-automation`. Windows: GNU Make через Git Bash/WSL (см. альтернативу Taskfile ниже).
 

@@ -55,11 +55,13 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
 - [ ] **T1: Initialize Go module and backend directory tree**
 
-  Create the backend directory skeleton following ADR-IMPL.PROCESS.repository-structure.md (§2, §4):
+  Create the backend directory skeleton following ADR-IMPL.PROCESS.repository-structure.md (§2, §4) and ADR-DES.API.cli-interface.md:
   ```
   backend/
-  ├── cmd/server/main.go              # Wire composition root (empty func main, imports ready)
+  ├── cmd/vedo-edutrack/main.go        # Thin entry: cli.Execute() (composition root, wire)
   ├── internal/
+  │   ├── cli/                         # Cobra command tree (input adapter, ADR-DES.API.cli-interface)
+  │   │   └── cli.go                   # package cli placeholder (root/server/mcp/migrate/… in M0.3+)
   │   ├── modules/                    # 10 bounded contexts (empty module stubs)
   │   │   ├── routeplanning/           # core: domain/, application/, adapters/
   │   │   ├── executionprogress/       # core
@@ -84,6 +86,8 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   └── go.mod                           # module vedo-edutrack/backend
   ```
 
+  **Note:** binary is `vedo-edutrack` with cobra subcommands (server / mcp / migrate / seed / …) — renamed from `cmd/server` per ADR-DES.API.cli-interface.
+
   Each module directory gets a minimal Clean Architecture skeleton (ADR-DES.INFRA.clean-architecture-adoption):
   - `domain/` — package with empty `.go` file
   - `application/commands/` — package with empty `.go` file
@@ -92,7 +96,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
   `.gitkeep` files in empty directories where Go packages are not yet needed (migrations/, tests/).
 
-  **Source:** ADR-IMPL.PROCESS.repository-structure.md §2, §4; DDD context-map.md (10 contexts).
+  **Source:** ADR-IMPL.PROCESS.repository-structure.md §2, §4; ADR-DES.API.cli-interface.md; DDD context-map.md (10 contexts).
   **Logging:** INFO — log Go module initialization path and directory counts.
 
 - [ ] **T2: Initialize React + Vite frontend application**
@@ -185,7 +189,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   Create `frontend/Dockerfile` — Go embed approach for single-artifact deployment (ADR modular-monolith §7, §8; ADR development-tooling §8):
   - Build stage: `node:24-alpine` — `pnpm install`, `pnpm build` (vite build → static assets)
   - Embed stage: Go binary reads embedded `dist/` and serves via `embed.FS`
-  - The embed server is part of the backend binary (`backend/cmd/server/main.go` wires the SPA handler), so this Dockerfile is used for standalone frontend development only
+  - The embed server is part of the backend binary (`backend/cmd/vedo-edutrack/main.go` wires the SPA handler), so this Dockerfile is used for standalone frontend development only
   - Production: SPA assets are embedded in the Go binary — single artifact for on-prem Enterprise simplicity
 
   **Alternative valid approach:** Standalone SPA Dockerfile with nginx (variant B from ADR). For M0.2, implement both:
@@ -267,12 +271,12 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   | `up` | `docker compose -f deploy/docker-compose.yml up -d --wait` | Start dev environment |
   | `down` | `docker compose -f deploy/docker-compose.yml down --volumes` | Stop and clean up |
   | `dev` | `up` + `air` (Go hot-reload) in background | Development mode |
-  | `build` | `cd backend && go build -ldflags="-s -w" -o /dev/null ./cmd/server` + `cd frontend && pnpm build` | Production build check |
+  | `build` | `cd backend && go build -ldflags="-s -w" -o bin/vedo-edutrack ./cmd/vedo-edutrack` + `cd frontend && pnpm build` | Production build check (single binary with cobra CLI) |
   | `test` | `cd backend && go test ./... -count=1` + `cd frontend && pnpm test` | All tests |
   | `lint` | `cd backend && golangci-lint run ./...` + `cd frontend && pnpm biome ci .` | Lint both ends |
   | `format` | `cd backend && gofmt -l -w .` + `cd frontend && pnpm biome check --write .` | Auto-format |
-  | `migrate` | `cd backend && atlas migrate apply --dir migrations --url "$DATABASE_URL"` | Apply DB migrations |
-  | `migrate-down` | `cd backend && atlas migrate revert --dir migrations --url "$DATABASE_URL"` | Revert last migration |
+  | `migrate` | `cd backend && go run ./cmd/vedo-edutrack migrate up` (wraps Atlas, ADR-DES.API.cli-interface) | Apply DB migrations |
+  | `migrate-down` | `cd backend && go run ./cmd/vedo-edutrack migrate down` | Revert last migration |
   | `hooks` | `pre-commit install` | Install git hooks |
   | `ci` | `lint` → `test` → `build` (mirrors GitHub Actions) | Full local CI run |
   | `clean` | `down` + `rm -rf backend/bin/ frontend/dist/` | Full cleanup |
@@ -311,8 +315,8 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **`.air.toml`** (backend/):
   - Watch: `.go` files in `backend/`
   - Exclude: `tmp/`, `vendor/`, `_test.go`, `mocks/`
-  - Build command: `go build -o ./tmp/server ./cmd/server`
-  - Run command: `./tmp/server`
+  - Build command: `go build -o ./tmp/vedo-edutrack ./cmd/vedo-edutrack`
+  - Run command: `./tmp/vedo-edutrack server`
   - Log file: `tmp/air.log`
   - Full bin rebuild on change (modular monolith = single binary)
 
@@ -386,7 +390,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
   5. **`security`**:
      - SAST: `gosec ./...` (Go)
-     - SBOM: `syft backend/cmd/server -o spdx-json=backend-sbom.spdx.json`
+     - SBOM: `syft backend/cmd/vedo-edutrack -o spdx-json=backend-sbom.spdx.json`
      - Secret scan: `gitleaks detect --source . --verbose`
      - Dependency audit: `pnpm audit` (frontend)
 

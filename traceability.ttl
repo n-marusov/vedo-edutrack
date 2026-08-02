@@ -2100,6 +2100,14 @@ tr:adr-impl-process-development-tooling a tr:ArchitectureDecision ;
   tr:derivesFrom tr:nfr-process-dev-test-coverage, tr:nfr-process-dev-engineering-gates, tr:nfr-process-dev-code-complexity, tr:nfr-infra-compliance-cicd-supply-chain-security, tr:nfr-ops-observability-log-level-config, tr:nfr-ops-observability-distributed-tracing, tr:nfr-ops-observability-golden-signals-dashboards, tr:nfr-ops-release-deployment-verification, tr:nfr-ops-release-canary-kill-switch, tr:nfr-security-compliance-owasp-application-security, tr:nfr-api-performance-latency-p95 .
 
 
+# ── M0.1 refinement: E2E testing ADR (Playwright for E2E testing) ──
+
+tr:adr-des-stack-e2e-testing-playwright-vs-cypress a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.STACK.e2e-testing-playwright-vs-cypress" ;
+  tr:hasFilePath "specs/adr/ADR-DES.STACK.e2e-testing-playwright-vs-cypress.md" ;
+  tr:derivesFrom tr:nfr-process-dev-test-coverage, tr:nfr-process-dev-engineering-gates, tr:nfr-infra-compliance-client-server-web-app, tr:nfr-ui-compliance-wcag-level, tr:nfr-ops-compliance-i18n-readiness, tr:nfr-infra-compliance-cicd-supply-chain-security .
+
+
 # ── M0.1 refinement: Clean Architecture adoption ADR (internal code structure) ──
 
 tr:adr-des-infra-clean-architecture-adoption a tr:ArchitectureDecision ;
@@ -2192,4 +2200,12 @@ tr:nfr-api-compliance-ownership-boundary a tr:NonFunctionalRequirement ;
   tr:hasFilePath "specs/requirements/REQ-NFR-api.compliance.ownership-boundary.md" ;
   tr:hasPriority "P0" ;
   tr:derivesFrom tr:vision .
+
+
+# ── 2026-08-03: CLI interface ADR (single binary, cobra subcommands) ──
+
+tr:adr-des-api-cli-interface a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.API.cli-interface" ;
+  tr:hasFilePath "specs/adr/ADR-DES.API.cli-interface.md" ;
+  tr:derivesFrom tr:fr-api-mcp-server, tr:nfr-process-dev-test-coverage, tr:nfr-process-dev-engineering-gates, tr:nfr-security-compliance-ops-admin-separation, tr:nfr-ops-compliance-support-sla .
 
