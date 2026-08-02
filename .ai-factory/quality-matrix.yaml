@@ -1,0 +1,262 @@
+# ════════════════════════════════════════════════════════════════════════════
+# VEDO EduTrack — Quality Matrix Configuration
+# File: .ai-factory/quality-matrix.yaml · Used by M0.0 Phase 2 iteration loop
+#
+# Purpose: gap-detection configuration for the requirements baseline.
+# Each check defines expected artifact coverage derived from
+# specs/vision.md function decomposition (F0–F6) and the M0.0 plan
+# (.ai-factory/plans/m0-0-requirements-baseline.md).
+#
+# Gap severity: critical (MVP-blocking) / high / medium / low.
+# Exit criteria: 0 critical + 0 high gaps in MVP scope.
+# ════════════════════════════════════════════════════════════════════════════
+
+version: 1
+status: active
+owner: M0.0 Requirements Baseline
+
+# ────────────────────────────────────────────────────────────────────────────
+# 1. Per-domain coverage — expected artifact counts per L1 domain
+#    (derived from vision.md L1 decomposition and plan task candidate lists)
+# ────────────────────────────────────────────────────────────────────────────
+domains:
+  plan:
+    l1_domain: plan
+    vision_function: F1
+    expected:
+      uc: 10
+      fr: 13
+      us: 12
+  execute:
+    l1_domain: execute
+    vision_function: F2
+    expected:
+      uc: 9
+      fr: 11
+      us: 10
+  resource:
+    l1_domain: resource
+    vision_function: F3
+    expected:
+      uc: 4
+      fr: 8
+      us: 4
+  viz:
+    l1_domain: viz
+    vision_function: F4
+    expected:
+      uc: 7
+      fr: 8
+      us: 8
+  practice:
+    l1_domain: practice
+    vision_function: F5
+    expected:
+      uc: 3
+      fr: 4
+      us: 3
+  api:
+    l1_domain: api
+    vision_function: F6
+    expected:
+      uc: 7
+      fr: 9
+      us: 7
+  a11y:
+    l1_domain: a11y
+    vision_function: cross-cutting (WCAG 2.1 AA)
+    expected:
+      uc: 2
+      fr: 3
+      us: 3
+
+# ────────────────────────────────────────────────────────────────────────────
+# 2. Per-function coverage — maps each vision.md sub-function to the
+#    expected artifact types (UC/FR/US) that must cover it
+# ────────────────────────────────────────────────────────────────────────────
+function_coverage:
+  F0.1: { uc: UC-api.*, fr: REQ-FR-api.*, us: US-api.* }
+  F0.2: { uc: UC-api.*, fr: REQ-FR-api.*, us: US-api.* }
+  F0.3: { uc: UC-api.*, fr: REQ-FR-api.*, us: US-api.* }
+  F1.1: { uc: UC-plan.compute.*, fr: REQ-FR-plan.compute.*, us: US-plan.compute.* }
+  F1.2: { uc: UC-plan.trigger.*, fr: REQ-FR-plan.trigger.*, us: US-plan.trigger.* }
+  F1.3: { uc: UC-plan.horizon.*, fr: REQ-FR-plan.horizon.*, us: US-plan.horizon.* }
+  F1.4: { uc: UC-plan.resource.*, fr: REQ-FR-plan.resource.*, us: US-plan.resource.* }
+  F1.5: { uc: UC-plan.gap.*, fr: REQ-FR-plan.gap.*, us: US-plan.gap.* }
+  F1.6: { uc: UC-plan.recalculation.*, fr: REQ-FR-plan.recalculation.*, us: US-plan.compute.cascade-recalculate }
+  F1.7: { uc: UC-plan.compute.*, fr: REQ-FR-plan.compute.*, us: US-plan.compute.* }
+  F1.8: { uc: UC-plan.fixation.*, fr: REQ-FR-plan.fixation.*, us: US-plan.fixation.* }
+  F1.9: { uc: UC-plan.recalculation.*, fr: REQ-FR-plan.recalculation.*, us: US-plan.recalculation.* }
+  F1.10: { uc: UC-plan.schedule.*, fr: REQ-FR-plan.schedule.*, us: US-plan.schedule.* }
+  F1.11: { uc: UC-plan.constraint.*, fr: REQ-FR-plan.constraint.*, us: US-plan.constraint.* }
+  F1.12: { uc: UC-plan.constraint.*, fr: REQ-FR-plan.constraint.*, us: US-plan.constraint.* }
+  F2.1: { uc: UC-execute.gap.*, fr: REQ-FR-execute.gap.*, us: US-execute.gap.* }
+  F2.2: { uc: UC-execute.assessment.*, fr: REQ-FR-execute.assessment.*, us: US-execute.assessment.* }
+  F2.3: { uc: UC-execute.coverage.*, fr: REQ-FR-execute.coverage.*, us: US-execute.coverage.* }
+  F2.4: { uc: UC-execute.progress.*, fr: REQ-FR-execute.progress.*, us: US-execute.progress.* }
+  F2.5: { uc: UC-execute.forecast.*, fr: REQ-FR-execute.forecast.*, us: US-execute.forecast.* }
+  F2.6: { uc: UC-execute.alert.*, fr: REQ-FR-execute.alert.*, us: US-execute.alert.* }
+  F2.7: { uc: UC-execute.coverage.*, fr: REQ-FR-execute.coverage.*, us: US-execute.coverage.* }
+  F2.8: { uc: UC-execute.attestation.*, fr: REQ-FR-execute.attestation.*, us: US-execute.attestation.* }
+  F3.1: { uc: UC-resource.catalog.*, fr: REQ-FR-resource.catalog.*, us: US-resource.catalog.* }
+  F3.2: { uc: UC-resource.match.*, fr: REQ-FR-resource.match.*, us: US-resource.match.* }
+  F3.3: { uc: UC-resource.availability.*, fr: REQ-FR-resource.availability.*, us: US-resource.availability.* }
+  F3.4: { uc: UC-resource.budget.*, fr: REQ-FR-resource.budget.*, us: US-resource.budget.* }
+  F4.1: { uc: UC-viz.map.*, fr: REQ-FR-viz.map.*, us: US-viz.map.* }
+  F4.2: { uc: UC-viz.dashboard.learner-dashboard, fr: REQ-FR-viz.dashboard.*, us: US-viz.dashboard.learner }
+  F4.3: { uc: UC-viz.builder.construct-route-visually, fr: REQ-FR-viz.builder.*, us: US-viz.builder.* }
+  F4.4: { uc: UC-viz.dashboard.parent-hr-dashboard, fr: REQ-FR-viz.dashboard.*, us: US-viz.dashboard.parent-hr }
+  F4.5: { uc: UC-viz.dashboard.methodologist-dashboard, fr: REQ-FR-viz.dashboard.*, us: US-viz.dashboard.methodologist }
+  F4.6: { uc: UC-viz.map.view-gap-diagnostic-map, fr: REQ-FR-viz.map.*, us: US-viz.map.gap-diagnostic-view }
+  F4.7: { uc: UC-viz.panel.group-management-panel, fr: REQ-FR-viz.panel.*, us: US-viz.panel.group-management }
+  F5.1: { uc: UC-practice.stories.*, fr: REQ-FR-practice.stories.*, us: US-practice.stories.* }
+  F5.2: { uc: UC-practice.projects.*, fr: REQ-FR-practice.projects.*, us: US-practice.projects.* }
+  F5.3: { uc: UC-practice.stories.*, fr: REQ-FR-practice.stories.*, us: US-practice.stories.* }
+  F5.4: { uc: UC-practice.qualities.*, fr: REQ-FR-practice.qualities.*, us: US-practice.qualities.* }
+  F6.1: { uc: UC-api.rest.*, fr: REQ-FR-api.rest.*, us: US-api.rest.* }
+  F6.2: { uc: UC-api.sparql.*, fr: REQ-FR-api.sparql.*, us: US-api.sparql.* }
+  F6.3: { uc: UC-api.lms.*, fr: REQ-FR-api.lms.*, us: US-api.lms.* }
+  F6.4: { uc: UC-api.webhooks.*, fr: REQ-FR-api.webhooks.*, us: US-api.webhooks.* }
+  F6.5: { uc: UC-api.sso.*, fr: REQ-FR-api.sso.*, us: US-api.sso.* }
+  F6.6: { uc: UC-api.mcp.*, fr: REQ-FR-api.mcp.*, us: US-api.mcp.* }
+  F6.7: { uc: UC-api.rest.*, fr: REQ-FR-api.rest.*, us: US-api.rest.* }
+  a11y-wcag: { uc: UC-a11y.*, fr: REQ-FR-a11y.*, us: US-a11y.* }
+
+# ────────────────────────────────────────────────────────────────────────────
+# 3. Traceability completeness
+# ────────────────────────────────────────────────────────────────────────────
+traceability:
+  checks:
+    - id: us-has-uc-tag
+      rule: Every US file MUST have at least one @UC-* tag referencing an existing UC file
+      severity: critical
+    - id: fr-has-source-uc
+      rule: Every FR file MUST reference its source UC in the "Источник" field
+      severity: critical
+    - id: ttl-instances
+      rule: traceability.ttl MUST contain instances for all UC, FR, NFR, US artifacts
+      severity: critical
+    - id: ttl-us-to-uc
+      rule: traceability.ttl MUST link every US to its UC (tr:partOf)
+      severity: high
+    - id: ttl-uc-to-fr
+      rule: traceability.ttl MUST link every FR to its source UC (tr:refines)
+      severity: high
+    - id: ttl-orphans
+      rule: No broken orphans — artifacts unreferenced in the graph are documented; US without @UC tag is unacceptable; NFR without direct UC link is acceptable
+      severity: high
+
+# ────────────────────────────────────────────────────────────────────────────
+# 4. Priority distribution — P0/P1/P2 balance across domains
+# ────────────────────────────────────────────────────────────────────────────
+priority_distribution:
+  rule: Every domain MUST contain at least one P0 artifact; P0/P1/P2 mix must be balanced (no domain with only P2)
+  severity: medium
+  checks:
+    - id: domain-has-p0
+      rule: Each domain (plan, execute, resource, viz, practice, api, a11y) has >= 1 P0 artifact
+    - id: priority-mix
+      rule: No domain has more than 80% P2 artifacts
+
+# ────────────────────────────────────────────────────────────────────────────
+# 5. MVP scope coverage — all MVP items from vision.md 2.5 are covered
+# ────────────────────────────────────────────────────────────────────────────
+mvp_scope:
+  checks:
+    - id: mvp-route-compute
+      rule: MVP 'shortest path with strict links' covered by >= 1 US
+      severity: critical
+    - id: mvp-recompute-triggers
+      rule: MVP 'recompute on progress/goal change' covered by >= 1 US
+      severity: critical
+    - id: mvp-plan-fixation
+      rule: MVP 'plan fixation' covered by >= 1 US
+      severity: critical
+    - id: mvp-plan-vs-actual
+      rule: MVP 'plan-vs-actual' covered by >= 1 US
+      severity: critical
+    - id: mvp-readiness-forecast
+      rule: MVP 'binary readiness forecast' covered by >= 1 US
+      severity: critical
+    - id: mvp-gap-diagnosis
+      rule: MVP 'gap diagnosis' covered by >= 1 US
+      severity: critical
+    - id: mvp-fgos-coverage
+      rule: MVP 'FGOS coverage' covered by >= 1 US
+      severity: critical
+    - id: mvp-deficit-list
+      rule: MVP 'deficits' covered by >= 1 US
+      severity: critical
+    - id: mvp-attestation-report
+      rule: MVP 'attestation readiness report' covered by >= 1 US
+      severity: critical
+    - id: mvp-resource-catalog
+      rule: MVP 'resource catalog' covered by >= 1 US
+      severity: high
+    - id: mvp-knowledge-map
+      rule: MVP 'knowledge map' covered by >= 1 US
+      severity: critical
+    - id: mvp-gap-map
+      rule: MVP 'gap map' covered by >= 1 US
+      severity: critical
+    - id: mvp-group-panel
+      rule: MVP 'group panel' covered by >= 1 US
+      severity: high
+    - id: mvp-learner-dashboard
+      rule: MVP 'learner dashboard' covered by >= 1 US
+      severity: critical
+    - id: mvp-route-builder
+      rule: MVP 'route builder' covered by >= 1 US
+      severity: critical
+    - id: mvp-rest-api
+      rule: MVP 'REST API' covered by >= 1 US
+      severity: critical
+    - id: mvp-sparql
+      rule: MVP 'read-only SPARQL' covered by >= 1 US
+      severity: high
+    - id: mvp-webhooks
+      rule: MVP 'webhooks' covered by >= 1 US
+      severity: high
+    - id: mvp-stories
+      rule: MVP '50+ stories' covered by >= 1 US
+      severity: high
+    - id: mvp-project-ideas
+      rule: MVP '30+ project ideas' covered by >= 1 US
+      severity: high
+
+# ────────────────────────────────────────────────────────────────────────────
+# 6. NFR area coverage — all 5 NFR areas addressed
+# ────────────────────────────────────────────────────────────────────────────
+nfr_areas:
+  api:
+    nfr_ids: [REQ-NFR-api.performance.latency-p95, REQ-NFR-api.availability.webhook-idempotency]
+    severity: high
+  security:
+    nfr_ids: [REQ-NFR-security.compliance.role-based-access, REQ-NFR-security.compliance.pii-152-fz]
+    severity: critical
+  data:
+    nfr_ids: [REQ-NFR-data.availability.backup-rpo]
+    severity: high
+  infra:
+    nfr_ids: [REQ-NFR-infra.compliance.community-enterprise-isolation]
+    severity: high
+  ops:
+    nfr_ids: [REQ-NFR-ops.observability.log-level-config]
+    severity: medium
+  ui:
+    nfr_ids: [REQ-NFR-ui.compliance.wcag-level]
+    severity: high
+
+# ────────────────────────────────────────────────────────────────────────────
+# 7. Gap severity classification
+# ────────────────────────────────────────────────────────────────────────────
+gap_severity:
+  critical: "MVP-blocking — missing artifact in MVP scope, broken US->UC chain, missing FGOS/security NFR"
+  high: "Major gap — missing artifact for non-MVP function, missing FR for defined UC, traceability orphan"
+  medium: "Moderate gap — priority imbalance, under-specified alternative flow, missing recommended metadata"
+  low: "Cosmetic — wording, formatting, minor cross-reference"
+
+exit_criteria:
+  rule: "0 critical + 0 high gaps in MVP scope; medium/low gaps documented as debt for M0.1"
+  critical_gap_count: 0
+  high_gap_count: 0
