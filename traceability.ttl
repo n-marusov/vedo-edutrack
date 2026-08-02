@@ -1887,3 +1887,30 @@ tr:nfr-ops-compliance-support-sla a tr:NonFunctionalRequirement ;
   tr:hasFilePath "specs/requirements/REQ-NFR-ops.compliance.support-sla.md" ;
   tr:hasPriority "P2" ;
   tr:derivesFrom tr:vision .
+
+
+# ── Iteration 3 refinements: NFRs closing remaining Step-5 missed aspects (cells 1.2, 3.3, 3.4, 4.2) ──
+
+tr:nfr-ops-observability-user-feedback-collection a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.observability.user-feedback-collection" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.observability.user-feedback-collection.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-data-compliance-retention-policy a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-data.compliance.retention-policy" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-data.compliance.retention-policy.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-observability-distributed-tracing a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.observability.distributed-tracing" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.observability.distributed-tracing.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-data-availability-write-consistency a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-data.availability.write-consistency" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-data.availability.write-consistency.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
