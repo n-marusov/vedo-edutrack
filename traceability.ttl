@@ -1914,3 +1914,24 @@ tr:nfr-data-availability-write-consistency a tr:NonFunctionalRequirement ;
   tr:hasFilePath "specs/requirements/REQ-NFR-data.availability.write-consistency.md" ;
   tr:hasPriority "P1" ;
   tr:derivesFrom tr:vision .
+
+
+# ── Iteration 4 refinements: NFRs closing remaining Step-5 missed aspects (cells 1.4, 2.4, 3.3, 4.2, 4.4, 5.2) ──
+
+tr:nfr-ops-compliance-user-documentation a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.compliance.user-documentation" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.compliance.user-documentation.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-data-compliance-decommissioning-safety a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-data.compliance.decommissioning-safety" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-data.compliance.decommissioning-safety.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-observability-product-metrics a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.observability.product-metrics" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.observability.product-metrics.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
