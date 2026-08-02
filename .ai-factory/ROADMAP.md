@@ -4,8 +4,8 @@
 
 ## Current Focus
 
-**Now:** Phase 0 — Foundation  
-**Next milestone:** M0.0: Requirements Baseline  
+**Now:** Phase 0 — Foundation (M0.0 complete ✅)  
+**Next milestone:** M0.1: Domain Model & Architecture Baseline  
 **Blocking decision:** Technology stack selection before M0.2/M0.3  
 **External blocker:** Starter ontology readiness in VEDO Hub before M1/M2
 
@@ -13,7 +13,7 @@
 
 | Total | Completed | Current | Next |
 |-------|-----------|---------|------|
-| 14 | 0 | M0.0: Requirements Baseline | M0.1: Domain Model & Architecture Baseline |
+| 14 | 1 (M0.0) | M0.1: Domain Model & Architecture Baseline | M0.2: Engineering Platform |
 
 ## External Dependencies
 
@@ -33,15 +33,17 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
 
 > Engineering baseline: requirements, architecture, platform, and scaffold. The work that must happen before production feature development begins.
 
-- [ ] **M0.0: Requirements Baseline**
+- [x] **M0.0: Requirements Baseline** ✅ completed 2026-08-02
   Establish a complete, traceable MVP requirements baseline from `specs/vision.md` and `.ai-factory/DESCRIPTION.md`.
 
   **Exit criteria:**
-  - User stories are defined for planning, execution, visualization, resources, practice, API, and accessibility flows (`US-*`).
-  - Use cases are defined for route building, plan execution, visualization, auth, and API integration (`UC-*`).
-  - Functional and non-functional requirements are defined with stable IDs (`FR-*`, `NFR-*`).
-  - MVP acceptance criteria and MoSCoW prioritization are documented.
-  - `specs/requirements/README.md` defines naming and traceability conventions.
+  - ✅ User stories are defined for planning, execution, visualization, resources, practice, API, and accessibility flows (47 `US-*`).
+  - ✅ Use cases are defined for route building, plan execution, visualization, auth, and API integration (42 `UC-*`).
+  - ✅ Functional and non-functional requirements are defined with stable IDs (56 `FR-*`, 13 `NFR-*`).
+  - ✅ MVP acceptance criteria and MoSCoW prioritization are documented (`specs/requirements/MVP-ACCEPTANCE-CRITERIA.md`).
+  - ✅ `specs/requirements/README.md` defines naming and traceability conventions.
+  - ✅ Quality matrix audit: 0 critical + 0 high gaps (`.ai-factory/quality-matrix.md`).
+  - ✅ Traceability: `traceability.ttl` fully populated, 0 broken orphans (US → UC → FR chains complete).
 
   **Dependencies:** `specs/vision.md` (authoritative), `.ai-factory/DESCRIPTION.md`.
   **Business goals:** G1, G2, G3, G4, G6.

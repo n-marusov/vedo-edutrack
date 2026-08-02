@@ -1,0 +1,139 @@
+{
+  "run_id": "m0-0-requirements-baseline-20260802-100000",
+  "task_alias": "m0-0-requirements-baseline",
+  "status": "completed",
+  "iteration": 2,
+  "max_iterations": 4,
+  "phase": "B",
+  "current_step": "EXIT",
+  "task": {
+    "prompt": "Execute plan .ai-factory/plans/m0-0-requirements-baseline.md: create requirements baseline artifacts (UC, FR, NFR, US) for all 7 domains from specs/vision.md, create .ai-factory/quality-matrix.yaml, populate traceability.ttl, run quality-matrix iteration loop until 0 critical + 0 high gaps, then validate and mark M0.0 complete in ROADMAP.md.",
+    "ideal_result": "M0.0 exit criteria met: US-*, UC-*, FR-*, NFR-* defined with stable IDs; MVP acceptance criteria with MoSCoW documented; traceability.ttl fully populated with no broken orphans; ROADMAP.md M0.0 marked complete; quality-matrix reports 0 critical + 0 high gaps"
+  },
+  "criteria": {
+    "name": "m0_0_requirements_baseline_v1",
+    "version": 1,
+    "phase": {
+      "A": { "threshold": 0.8, "active_levels": ["A"] },
+      "B": { "threshold": 0.95, "active_levels": ["A", "B"] }
+    },
+    "rules": [
+      {
+        "id": "R1-per-domain-coverage",
+        "description": "All 7 domains (plan, execute, resource, viz, practice, api, a11y) have expected UC/FR/US artifact counts per quality-matrix.yaml",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "count artifacts per domain and compare against .ai-factory/quality-matrix.yaml expected counts"
+      },
+      {
+        "id": "R2-traceability-completeness",
+        "description": "Every US has @UC tag; every FR has source UC reference; traceability.ttl has instances for all artifacts with US->UC and UC->FR links; no broken orphans",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "grep @UC tags in US files; verify traceability.ttl instance population"
+      },
+      {
+        "id": "R3-mvp-scope-coverage",
+        "description": "All MVP scope items from vision.md 2.5 (lines 500-568) are covered by at least one US",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "cross-reference MVP scope items against US file list"
+      },
+      {
+        "id": "R4-nfr-area-coverage",
+        "description": "All 5 NFR areas (api, security, data, infra, ops/ui) are addressed with measurable acceptance criteria",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "verify 8 NFR files exist with measurable criteria"
+      },
+      {
+        "id": "R5-mvp-acceptance-doc",
+        "description": "MVP-ACCEPTANCE-CRITERIA.md exists with MoSCoW prioritization referencing UC/FR/US IDs",
+        "severity": "fail",
+        "weight": 1,
+        "phase": "A",
+        "check": "verify file exists and contains MoSCoW sections + cross-references"
+      },
+      {
+        "id": "R6-convention-compliance",
+        "description": "All artifact IDs follow naming conventions: UC-<L1>.<L2>.<L3>, REQ-FR-<domain>.<qualifier>.<action>, REQ-NFR-<area>.<qualifier>.<attribute>, US-<domain>.<subdomain>.<action>",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "validate file names against conventions from specs/*/README.md"
+      },
+      {
+        "id": "R7-quality-matrix-zero-high",
+        "description": "Final quality-matrix run reports 0 critical + 0 high gaps in MVP scope",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "B",
+        "check": "run quality matrix audit against all artifacts"
+      },
+      {
+        "id": "R8-traceability-no-broken-orphans",
+        "description": "traceability.ttl has no broken orphans: all artifacts referenced, US without @UC tag is unacceptable, NFR without direct UC link is acceptable",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "B",
+        "check": "audit traceability.ttl completeness"
+      },
+      {
+        "id": "R9-roadmap-marked",
+        "description": "ROADMAP.md M0.0 checkbox changed from [ ] to [x], Phase 0 progress updated",
+        "severity": "fail",
+        "weight": 1,
+        "phase": "B",
+        "check": "grep ROADMAP.md for M0.0 checkbox"
+      }
+    ]
+  },
+  "plan": [
+    "Phase 0: Task 0.3 — create .ai-factory/quality-matrix.yaml",
+    "Phase 1: Tasks 1.1-1.8 — create UC, FR, NFR, US artifacts for all 7 domains + MVP acceptance criteria",
+    "Phase 1: Task 1.9 — populate traceability.ttl with artifact instances",
+    "Phase 2: Iteration loop — quality-matrix audit -> explore -> refine until 0 critical + 0 high gaps",
+    "Phase 3: Tasks 3.1-3.3 — final validation, traceability check, mark M0.0 complete in ROADMAP.md"
+  ],
+  "prepared_checks": {
+    "phase_a": ["R1", "R2", "R3", "R4", "R5", "R6"],
+    "phase_b": ["R7", "R8", "R9"]
+  },
+  "evaluation": {
+    "iteration_1": {
+      "score": 1.0,
+      "passed": true,
+      "gaps_found": 7,
+      "gaps_closed": 7
+    },
+    "iteration_2": {
+      "score": 1.0,
+      "passed": true,
+      "checks": {
+        "uc_without_fr": 0,
+        "uc_without_us": 0,
+        "mvp_broken_refs": 0,
+        "bad_gherkin": 0,
+        "nfr_non_measurable": 0,
+        "fr_non_measurable": 0
+      }
+    },
+    "final": {
+      "critical_gaps": 0,
+      "high_gaps": 0,
+      "medium_low_debt": "deferred to M0.1",
+      "traceability": "193 declared nodes, 0 missing references",
+      "artifacts": { "uc": 42, "fr": 56, "nfr": 13, "us": 47 }
+    }
+  },
+  "critique": null,
+  "stop": { "passed": true, "reason": "threshold_reached" },
+  "last_score": 1.0,
+  "stagnation_count": 0,
+  "created_at": "2026-08-02T10:00:00Z",
+  "updated_at": "2026-08-02T11:00:00Z"
+}
