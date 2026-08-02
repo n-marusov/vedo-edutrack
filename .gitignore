@@ -1,0 +1,36 @@
+# ===== Node / pnpm (вспомогательный тулинг, воркспейс) =====
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+
+# ===== Временные вспомогательные файлы (agent tooling) =====
+.tmp-*
+.tmp-*/
+.playwright-mcp/
+
+# ===== Сборка / артефакты =====
+dist/
+build/
+out/
+coverage/
+.vite/
+
+# ===== Логи =====
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# ===== Секреты и окружение =====
+.env
+.env.*
+!.env.example
+
+# ===== ОС =====
+.DS_Store
+Thumbs.db
+
+# ===== Go (будущий бэкенд) =====
+/bin/
+*.exe
+*.test
+coverage.out

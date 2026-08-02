@@ -1,0 +1,21 @@
+{
+  "name": "vedo-edutrack",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VEDO EduTrack — пакет для вспомогательных задач (валидация, генерация). Корень pnpm-workspace: frontend (apps/*) и tools/* живут здесь как пакеты.",
+  "type": "module",
+  "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "validate:mermaid": "node scripts/validate-mermaid.mjs",
+    "validate:mermaid:all": "node scripts/validate-mermaid.mjs specs/**/*.md",
+    "clean": "pnpm prune"
+  },
+  "devDependencies": {
+    "glob": "^11.0.0",
+    "jsdom": "^24.1.0",
+    "mermaid": "^10.9.1"
+  }
+}

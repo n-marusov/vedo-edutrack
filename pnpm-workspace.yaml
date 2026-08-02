@@ -1,0 +1,12 @@
+# pnpm workspace — VEDO EduTrack
+#
+# Корень воркспейса = вспомогательный тулинг проекта (см. package.json):
+#   - валидация Mermaid-диаграмм (scripts/validate-mermaid.mjs)
+#   - будущие вспомогательные утилиты (tools/*)
+#   - будущий фронтенд React SPA (apps/*, Vite + pnpm — см. ADR-IMPL.PROCESS.development-tooling §11)
+#
+# Go-бэкенд в воркспейс НЕ входит: он управляется через go.mod (монорепо-структура, общий git-репозиторий).
+
+packages:
+  - "apps/*"
+  - "tools/*"
