@@ -2027,6 +2027,15 @@ tr:nfr-ops-compliance-user-competency a tr:NonFunctionalRequirement ;
   tr:derivesFrom tr:vision .
 
 
+# ── Iteration 10 refinements: NFR closing i18n-readiness (cell 2.2 localization) ──
+
+tr:nfr-ops-compliance-i18n-readiness a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.compliance.i18n-readiness" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.compliance.i18n-readiness.md" ;
+  tr:hasPriority "P2" ;
+  tr:derivesFrom tr:vision .
+
+
 # ── Iteration 9 refinements: FRs closing FR-layer gaps (F0 ontology port, F6.3 LMS) ──
 
 tr:fr-api-hub-read-ontology a tr:FunctionalRequirement ;
