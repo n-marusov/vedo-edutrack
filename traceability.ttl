@@ -1998,3 +1998,30 @@ tr:nfr-ops-compliance-incident-communication a tr:NonFunctionalRequirement ;
   tr:hasFilePath "specs/requirements/REQ-NFR-ops.compliance.incident-communication.md" ;
   tr:hasPriority "P1" ;
   tr:derivesFrom tr:vision .
+
+
+# ── Iteration 8 refinements: NFRs deepening yellow cells (1.1, 2.1, 2.3, 5.2) ──
+
+tr:nfr-infra-compliance-dev-regulatory-constraints a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-infra.compliance.dev-regulatory-constraints" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-infra.compliance.dev-regulatory-constraints.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-process-dev-code-complexity a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-process.dev.code-complexity" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-process.dev.code-complexity.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-ergonomics-admin-console a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.ergonomics.admin-console" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.ergonomics.admin-console.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-compliance-user-competency a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.compliance.user-competency" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.compliance.user-competency.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
