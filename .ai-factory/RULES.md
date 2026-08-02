@@ -34,3 +34,4 @@
 - Stack is TBD: STACK/IMPL ADRs are deferred until the stack is chosen; stack-independent invariants (boundaries, data model, API contract) are decided at DES level.
 - Use the established domain terms from `specs/glossary.md` (Route, Trajectory, Mastery, Gap, Checkpoint, Coverage, etc.) consistently.
 - Any change to an artifact requires a traceability pass in `traceability.ttl`: verify and update the entire affected chain, both upstream (back to `specs/vision.md`) and downstream (to code, tests, and documentation).
+- Every implementation plan must include a `## Progress` section with checkboxes for each task, grouped by phase, placed between `## Roadmap Linkage` and the `## Tasks` section; this serves as a quick progress overview independent of per-task checkboxes in the task body.
