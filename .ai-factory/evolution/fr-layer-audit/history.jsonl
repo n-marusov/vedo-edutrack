@@ -1,0 +1,4 @@
+{"ts":"2026-08-02T18:00:00Z","run_id":"fr-layer-audit-20260802-180000","iteration":1,"phase":"A","step":"SETUP","event":"run_started","status":"ok","payload":{"task_alias":"fr-layer-audit","prompt":"FR layer audit: close F0 ontology port + F6.3 LMS FR gaps","criteria":"drafted for FR-layer audit, max_iterations=4"}}
+{"ts":"2026-08-02T18:06:00Z","run_id":"fr-layer-audit-20260802-180000","iteration":1,"phase":"A","step":"EVALUATE","event":"evaluation_done","status":"ok","payload":{"score":1.0,"passed":true}}
+{"ts":"2026-08-02T18:06:00Z","run_id":"fr-layer-audit-20260802-180000","iteration":1,"phase":"B","step":"EVALUATE","event":"evaluation_done","status":"ok","payload":{"score":0.95,"passed":true,"pending":"b.process.commit"}}
+{"ts":"2026-08-02T18:08:00Z","run_id":"fr-layer-audit-20260802-180000","iteration":1,"phase":"B","step":"EXIT","event":"stopped","status":"ok","payload":{"reason":"threshold_reached","score":0.95,"commit":"2975ae3"}}

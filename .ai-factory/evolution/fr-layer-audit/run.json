@@ -1,0 +1,143 @@
+{
+  "run_id": "fr-layer-audit-20260802-180000",
+  "task_alias": "fr-layer-audit",
+  "status": "completed",
+  "iteration": 1,
+  "max_iterations": 4,
+  "phase": "B",
+  "current_step": "EXIT",
+  "task": {
+    "prompt": "Audit the FR layer (functional requirements) for completeness against vision F0-F6 and MVP scope. NFR layer is complete (47 NFRs, matrix 20/20 green). Analysis found: F0 (ontology port) has NO FR files (F0.1 read, F0.2 copy subgraph, F0.3 subscribe updates) despite being the foundation ('без F0 сервис не функционирует'); LMS connectors (F6.3) have no FR. Produce FR specs for the gaps, update traceability.ttl, commit. Template: Анализ лакун -> Ответ -> Требования -> Коммит.",
+    "ideal_result": "FR layer gaps closed: F0 ontology port FRs created (read/copy-subgraph/subscribe-updates), LMS connector FR created, all following REQ-FR-<domain>.<qualifier>.<action> conventions with measurable acceptance criteria, traceability.ttl updated, changes committed"
+  },
+  "criteria": {
+    "name": "fr_layer_audit_v1",
+    "version": 1,
+    "phase": {
+      "A": { "threshold": 0.8, "active_levels": ["A"] },
+      "B": { "threshold": 0.95, "active_levels": ["A", "B"] }
+    },
+    "rules": [
+      {
+        "id": "a.correctness.domain-coverage",
+        "description": "All vision domains F0-F6 have FR coverage; F0 ontology port has at least read/copy-subgraph FRs",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify FR files exist for F0.1/F0.2/F0.3 (port ontology) and F6.3 (LMS)"
+      },
+      {
+        "id": "a.correctness.measurability",
+        "description": "Every FR has measurable acceptance criteria (numeric values, dichotomies, or deterministic verification algorithms)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Inspect each new REQ-FR-*.md: acceptance criteria must contain numbers, ranges, or binary checks"
+      },
+      {
+        "id": "a.completeness.conventions",
+        "description": "All FR IDs follow naming conventions REQ-FR-<domain>.<qualifier>.<action>; mandatory fields present (Приоритет, Ключевая функция, Источник, Описание, Критерии приёмки)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Validate new FR file names against specs/requirements/README.md conventions; verify mandatory fields"
+      },
+      {
+        "id": "a.completeness.traceability",
+        "description": "traceability.ttl has instances for all new FRs (tr:fr-<domain>-<qualifier>-<action>) with hasArtifactId, hasFilePath, hasPriority, derivesFrom",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify traceability.ttl contains an instance for each new FR file"
+      },
+      {
+        "id": "a.correctness.vision-trace",
+        "description": "New FRs trace to vision F-codes (F0.1, F0.2, F0.3, F6.3) in Источник field",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "Verify each new FR Источник cites vision function code"
+      },
+      {
+        "id": "b.correctness.mvp-scope",
+        "description": "MVP scope items from vision 2.5 remain covered by FRs (no regressions); F0.1/F0.2 are MVP (F0.3 and LMS deferred to Phase 2 with explicit notes)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "B",
+        "check": "Verify MVP Must-have criteria M1-M10 still have FR references"
+      },
+      {
+        "id": "b.completeness.cross-refs",
+        "description": "New FRs cross-reference related existing FRs/NFRs (e.g., F0 FRs reference hub-dependency-sla NFR)",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "B",
+        "check": "Verify new FRs reference related requirements"
+      },
+      {
+        "id": "b.quality.grounded-sources",
+        "description": "Every FR cites its vision source and UC where applicable",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "B",
+        "check": "Verify each FR Источник field contains vision reference"
+      },
+      {
+        "id": "b.process.commit",
+        "description": "All changes staged and committed with a conventional commit message",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "B",
+        "check": "Run git status to verify clean working tree; verify last commit message follows conventional commits"
+      }
+    ]
+  },
+  "plan": [
+    "Audit FR layer: 56 FR by domain, F0 has 0 FR (critical gap), F6.3 LMS has 0 FR",
+    "Create FR for F0.1 read-ontology, F0.2 copy-subgraph, F0.3 subscribe-updates, F6.3 lms-connectors",
+    "Update traceability.ttl with new FR instances",
+    "Evaluate against Phase A rules, then Phase B, then commit"
+  ],
+  "prepared_checks": {
+    "phase_a": [
+      { "rule_id": "a.correctness.domain-coverage", "type": "content", "check": "FR files exist for F0.1/F0.2/F0.3 and F6.3" },
+      { "rule_id": "a.correctness.measurability", "type": "content", "check": "4 new REQ-FR files have measurable acceptance criteria" },
+      { "rule_id": "a.completeness.conventions", "type": "content", "check": "4 new file names match REQ-FR-<domain>.<qualifier>.<action>; mandatory fields present" },
+      { "rule_id": "a.completeness.traceability", "type": "content", "check": "traceability.ttl has 4 new FR instances with hasArtifactId/hasFilePath/hasPriority/derivesFrom" },
+      { "rule_id": "a.correctness.vision-trace", "type": "content", "check": "each new FR cites vision F-code in Источник" }
+    ]
+  },
+  "evaluation": {
+    "iteration_1_phase_a": {
+      "score": 1.0,
+      "passed": true,
+      "failed": [],
+      "warnings": [],
+      "rule_results": [
+        { "id": "a.correctness.domain-coverage", "verdict": "pass", "details": "F0.1/F0.2/F0.3 + F6.3 FRs created" },
+        { "id": "a.correctness.measurability", "verdict": "pass" },
+        { "id": "a.completeness.conventions", "verdict": "pass" },
+        { "id": "a.completeness.traceability", "verdict": "pass" },
+        { "id": "a.correctness.vision-trace", "verdict": "pass" }
+      ]
+    },
+    "iteration_1_phase_b": {
+      "score": 0.95,
+      "passed": true,
+      "failed": [],
+      "warnings": [],
+      "rule_results": [
+        { "id": "b.correctness.mvp-scope", "verdict": "pass", "details": "F0.1/F0.2 marked P0/MVP; F0.3 and LMS explicitly noted as Phase 2; M1-M10 references intact" },
+        { "id": "b.completeness.cross-refs", "verdict": "pass", "details": "read-ontology refs hub-dependency-sla+shortest-path; copy-subgraph refs read-ontology+shortest-path; subscribe-updates refs webhooks+idempotency+cascade; lms-connectors refs compute-route+plan-vs-actual+idempotency" },
+        { "id": "b.quality.grounded-sources", "verdict": "pass" },
+        { "id": "b.process.commit", "verdict": "pass", "details": "Commit 2975ae3: feat(specs): add FRs for F0 ontology port and LMS connectors" }
+      ]
+    }
+  },
+  "critique": null,
+  "stop": { "passed": true, "reason": "threshold_reached" },
+  "last_score": 0.95,
+  "stagnation_count": 0,
+  "created_at": "2026-08-02T18:00:00Z",
+  "updated_at": "2026-08-02T18:08:00Z"
+}
