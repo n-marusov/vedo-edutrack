@@ -67,7 +67,7 @@ repos:
 
 | Решение | Выбор | Обоснование |
 |---------|-------|-------------|
-| **Доступ к данным** | `sqlc` | SQL → типизированный Go-код; явный, без магии ORM; чистые границы для гексагональных модулей; SQL — AI-дружелюбен. (Spike M0.2: sqlc vs Ent vs GORM) |
+| **Доступ к данным** | `sqlc` | SQL → типизированный Go-код; явный, без магии ORM; чистые границы для модулей Clean Architecture; SQL — AI-дружелюбен. (Spike M0.2: sqlc vs Ent vs GORM) |
 | **Миграции** | `Atlas` | Декларативные миграции + **детекция дрейфа схемы** (drift = 0 — NFR deployment-verification); обратимость (откат ≤ 15 мин) |
 | **Политика миграций** | Expand → deploy → contract | Custom migration linter: запрет DROP COLUMN/TABLE без 2-этапного deprecated-периода; `pg_dump`-бэкап перед миграцией в CI |
 

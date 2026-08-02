@@ -280,7 +280,7 @@
 ### Ядро сервиса (Service Core)
 `serviceCore`
 
-Слой предметной области: агрегаты (`Learner`, `LearningPlan`, `Account`), доменные сервисы (`TrajectoryService`, `GapDiagnosisService`, `CoverageService`, `ForecastService`, `PlanService`), доменные события и порты. Не зависит от инфраструктуры (гексагональная архитектура).
+Слой предметной области: агрегаты (`Learner`, `LearningPlan`, `Account`), доменные сервисы (`TrajectoryService`, `GapDiagnosisService`, `CoverageService`, `ForecastService`, `PlanService`), доменные события и порты. Не зависит от инфраструктуры (чистая архитектура, Clean Architecture).
 
 ### VEDO Hub (платформа онтологий)
 `vedoHub`
