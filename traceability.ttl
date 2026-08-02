@@ -1956,3 +1956,24 @@ tr:nfr-data-availability-migration-rollback a tr:NonFunctionalRequirement ;
   tr:hasFilePath "specs/requirements/REQ-NFR-data.availability.migration-rollback.md" ;
   tr:hasPriority "P1" ;
   tr:derivesFrom tr:vision .
+
+
+# ── Iteration 6 refinements: NFRs closing remaining Step-5 missed aspects (cells 2.1, 3.2, 4.4, 5.3) ──
+
+tr:nfr-ops-performance-scalability a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.performance.scalability" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.performance.scalability.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-data-compliance-archive-security a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-data.compliance.archive-security" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-data.compliance.archive-security.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-process-dev-developer-documentation a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-process.dev.developer-documentation" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-process.dev.developer-documentation.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
