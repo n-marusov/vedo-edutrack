@@ -1800,3 +1800,90 @@ tr:nfr-infra-compliance-cicd-supply-chain-security a tr:NonFunctionalRequirement
   tr:hasFilePath "specs/requirements/REQ-NFR-infra.compliance.cicd-supply-chain-security.md" ;
   tr:hasPriority "P0" ;
   tr:derivesFrom tr:vision .
+
+
+# ── Iteration 2 refinements: NFRs closing quality-matrix gaps (cells 1.1-1.4, 2.1, 2.3, 2.4, 3.1, 3.3, 3.4, 4.1, 4.3, 4.4, 5.1-5.4) ──
+
+tr:nfr-ops-observability-golden-signals-dashboards a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.observability.golden-signals-dashboards" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.observability.golden-signals-dashboards.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-observability-alerting-escalation a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.observability.alerting-escalation" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.observability.alerting-escalation.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-process-dev-engineering-gates a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-process.dev.engineering-gates" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-process.dev.engineering-gates.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-release-deployment-verification a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.release.deployment-verification" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.release.deployment-verification.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-data-availability-backup-validity a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-data.availability.backup-validity" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-data.availability.backup-validity.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-access-production-control a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.access.production-control" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.access.production-control.md" ;
+  tr:hasPriority "P0" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-process-dev-test-coverage a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-process.dev.test-coverage" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-process.dev.test-coverage.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-release-canary-kill-switch a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.release.canary-kill-switch" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.release.canary-kill-switch.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-infra-compliance-oss-licensing a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-infra.compliance.oss-licensing" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-infra.compliance.oss-licensing.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-release-change-management a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.release.change-management" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.release.change-management.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-data-compliance-service-decommissioning a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-data.compliance.service-decommissioning" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-data.compliance.service-decommissioning.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-data-compliance-pii-processor-registry a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-data.compliance.pii-processor-registry" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-data.compliance.pii-processor-registry.md" ;
+  tr:hasPriority "P1" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-infra-availability-multi-az-geo-dr a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-infra.availability.multi-az-geo-dr" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-infra.availability.multi-az-geo-dr.md" ;
+  tr:hasPriority "P2" ;
+  tr:derivesFrom tr:vision .
+
+tr:nfr-ops-compliance-support-sla a tr:NonFunctionalRequirement ;
+  tr:hasArtifactId "REQ-NFR-ops.compliance.support-sla" ;
+  tr:hasFilePath "specs/requirements/REQ-NFR-ops.compliance.support-sla.md" ;
+  tr:hasPriority "P2" ;
+  tr:derivesFrom tr:vision .
