@@ -95,7 +95,7 @@ Integration (≥ 70% API)     testcontainers-go (реальный PostgreSQL в 
 Контракты                   oapi-codegen + OpenAPI-проверки (дрейф = CI-ошибка)
 Мутационное (≤ 15% выжило)  gremlins / go-mutesting → SPIKE на M0.2
 E2E (10 Must-сценариев MVP) Playwright (React + API-флоу)
-Компонентные (фронт)        React Testing Library
+Компонентные (фронт)        Vitest + React Testing Library (Domain/Application ≥ 90%, без браузера)
 ```
 
 ## 7. CI/CD
