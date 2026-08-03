@@ -2,6 +2,7 @@
 
 Branch: none (create_branches: false)
 Created: 2026-08-03
+Updated: 2026-08-03 (actualized after implementation + /aif-roadmap check)
 
 ## Settings
 - Testing: yes
@@ -19,13 +20,28 @@ Source: .ai-factory/RESEARCH.md (Active Summary)
 M2 requirements are fully specified in the formal requirement corpus (`specs/requirements/REQ-FR-execute.*.md`,
 `REQ-FR-viz.*.md`, `REQ-FR-practice.*.md`) and MVP acceptance criteria.
 
+## Progress (actualized 2026-08-03)
+
+> M2 code-level implementation is complete (16/16 tasks below). The roadmap check
+> (`/aif-roadmap check`) shows the milestone itself remains **In Progress** because
+> three exit criteria are NOT yet met. Those gaps are captured as Phase 7 tasks.
+
+- [x] Phase 1 — Backend Foundation (F2): migrations, domain, repositories, services
+- [x] Phase 2 — Backend Gap & Coverage (F2): diagnosis, coverage, deficit list, API
+- [x] Phase 3 — Backend Practice Life & CLI (F5): domain, app, adapters, CLI
+- [x] Phase 4 — Frontend Visualization (F4): knowledge map, learner/parent/methodologist dashboards
+- [x] Phase 5 — Frontend VIZ + Practice Life (F5): gap map, group panel, stories/projects UI
+- [x] Phase 6 — Tests: Go unit + contract, Vitest component tests
+- [ ] Phase 7 — M2 completion gaps: launch content (50 stories / 30 projects), demo flow, page/route wiring
+
 ## Commit Plan
-- **Commit 1** (after tasks 1-3): `feat(backend): add execution-progress and gap-coverage domain model, migrations, and plan-vs-actual service`
-- **Commit 2** (after tasks 4-6): `feat(backend): implement gap diagnosis, FGOS coverage, and F2 REST API endpoints`
-- **Commit 3** (after tasks 7-8): `feat(backend): add practice-life domain layer and CLI commands`
-- **Commit 4** (after tasks 9-11): `feat(frontend): implement knowledge map visualization and dashboards`
-- **Commit 5** (after tasks 12-14): `feat(frontend): add practice-life UI and group management panel`
-- **Commit 6** (after tasks 15-16): `test: integration tests and component tests for M2 features`
+- **Commit 1** (tasks 1-3): `feat(backend): add execution-progress and gap-coverage domain model, migrations, and plan-vs-actual service` ✅ `e1c7d3b` (partial) / `8df1e81` (fix)
+- **Commit 2** (tasks 4-6): `feat(backend): implement gap diagnosis, FGOS coverage, and F2 REST API endpoints` ✅ `e1c7d3b` / `015e0ca`
+- **Commit 3** (tasks 7-8): `feat(backend): add practice-life domain layer and CLI commands` ✅ `e1c7d3b` / `015e0ca`
+- **Commit 4** (tasks 9-11): `feat(frontend): implement knowledge map visualization and dashboards` ✅ `e1c7d3b` / `015e0ca`
+- **Commit 5** (tasks 12-14): `feat(frontend): add practice-life UI and group management panel` ✅ `e1c7d3b` / `015e0ca`
+- **Commit 6** (tasks 15-16): `test: integration tests and component tests for M2 features` ✅ `e1c7d3b` / `015e0ca`
+- **Commit 7** (Phase 7): `feat(m2): add launch content, demo flow, and page wiring` ⏳ pending
 
 ## Tasks
 
@@ -35,12 +51,7 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Deliverable:** PostgreSQL schema migrations for execution progress data (mastery records, plan snapshots, deviations, forecasts) plus gap/coverage data (gap diagnoses, FGOS coverage snapshots). Go domain types (value objects, aggregates, domain service interfaces) for both `executionprogress` and `gapcoverage` modules.
 
-  **Files to create/modify:**
-  - `backend/migrations/<timestamp>_execution_progress.sql` — new migration: `mastery_records`, `plan_snapshots`, `deviations`, `forecasts`, `coverage_reports`, `gap_diagnoses`, `deficit_lists` tables
-  - `backend/internal/modules/executionprogress/domain/types.go` — VOs: `MasteryRecord` (module_id, level, timestamp, source), `Deviation` (step_id, days, reason), `Forecast` (status, expected_end, risks)
-  - `backend/internal/modules/executionprogress/domain/services.go` — interfaces: `TrajectoryService`, `PlanVsActualService`, `ForecastService`, `DeviationAlertService`
-  - `backend/internal/modules/gapcoverage/domain/types.go` — VOs: `GapDiagnosis` (root_module, cascade_modules, impact), `CoverageReport` (framework, percentage, deficits), `AttestationReport` (verdict, coverage_by_domain, critical_path)
-  - `backend/internal/modules/gapcoverage/domain/services.go` — interfaces: `GapDiagnosisService`, `CoverageService`, `DeficitService`, `AttestationReadinessService`
+  **Actual state:** DONE (M1) — migrations `000003_executionprogress_init.sql`, `000004_gapcoverage_init.sql`; domain types in `executionprogress/domain/*.go`, `gapcoverage/domain/*.go`.
 
   **Logging requirements:**
   - INFO: migration applied, domain types initialized
@@ -52,12 +63,7 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Deliverable:** SQLC-generated Go code for all CRUD operations on execution progress and gap/coverage tables. Repository implementations implementing domain interfaces.
 
-  **Files to create/modify:**
-  - `backend/internal/modules/executionprogress/adapters/repository/sqlc/` — sqlc config + queries: insert/get mastery_records, insert/get deviations, upsert forecasts, list plans
-  - `backend/internal/modules/executionprogress/adapters/repository/postgres.go` — repository adapter implementing domain `Repository` interfaces
-  - `backend/internal/modules/gapcoverage/adapters/repository/sqlc/` — sqlc config + queries: insert/get gap_diagnoses, upsert coverage_reports, upsert deficit_lists, insert/get attestation_reports
-  - `backend/internal/modules/gapcoverage/adapters/repository/postgres.go` — repository adapter
-  - Update `backend/internal/platform/postgres/` — add migration runner (if not exists)
+  **Actual state:** DONE (M1) — `adapters/repository/sqlc/models.go`, `executionprogress_repository.go`, `gapcoverage_repository.go`.
 
   **Logging requirements:**
   - INFO: repository connection established, query execution (timing)
@@ -66,26 +72,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 1 (migrations must be applied first).
 
-- [x] **Task 3: Plan-vs-actual comparison and binary readiness forecast application services** ✅ Domain done, forecast/alert services added
+- [x] **Task 3: Plan-vs-actual comparison and binary readiness forecast application services** ✅
 
   **Deliverable:** Application services that compare fixed plan snapshots against actual mastery records, compute deviations, and produce binary readiness forecasts (on-track / not-on-track).
 
-  **Done:** `progress.go` domain + `progress_service.go` app (M1). Added `forecast_service.go` and `deviation_alert_service.go` for M2 gaps.
-
-  **Deliverable:** Application services that compare fixed plan snapshots against actual mastery records, compute deviations, and produce binary readiness forecasts (on-track / not-on-track).
-
-  **Files to create/modify:**
-  - `backend/internal/modules/executionprogress/application/trajectory_service.go` — `RecordMastery(ctx, learnerID, moduleID, level)` — writes mastery record, fires `ModuleMastered` event
-  - `backend/internal/modules/executionprogress/application/plan_vs_actual_service.go` — `Compare(ctx, learnerID, planID)` — iterates plan steps, matches against mastery records, computes deviation in days, assigns reason from enum {acceleration, more_practice, pause, volume_change, unspecified}
-  - `backend/internal/modules/executionprogress/application/forecast_service.go` — `ForecastReadiness(ctx, learnerID, checkpointDate)` — computes remaining modules / current pace → status (on-track / not-on-track), expected completion date
-  - `backend/internal/modules/executionprogress/application/deviation_alert_service.go` — evaluates `PlanDeviationDetected` events, decides whether to publish alert based on configured threshold (N days)
-  - `backend/internal/modules/executionprogress/application/events.go` — domain event types: `ModuleMastered`, `PlanDeviationDetected`
-
-  **Acceptance criteria (from specs):**
-  - Deviation reason assignment: "unspecified" ≤ 5% of cases
-  - `PlanDeviationDetected` ONLY when deviation exceeds ±15% or N-day threshold
-  - Forecast accuracy ≥ 85% on ≥ 100 completed plans
-  - Report refresh ≤ 5 s after `module.mastered`
+  **Actual state:** DONE — `progress.go` + `progress_service.go` (M1, Compare); `forecast_service.go` (ForecastService + ProgressRepository interface) and `deviation_alert_service.go` (threshold evaluation, dynamic SetThreshold) added in M2. Tests: `forecast_service_test.go`, `deviation_alert_service_test.go`.
 
   **Logging requirements:**
   - INFO: each mastery recorded (learner, module, level), deviation computed (plan_id, step, days), forecast result (learner, status, expected_end)
@@ -94,34 +85,15 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 2 (repositories must exist).
 
-<!-- Commit checkpoint: tasks 1-3 -->
+<!-- Commit checkpoint: tasks 1-3 ✅ -->
 
 ### Phase 2: Backend Gap Diagnosis & Coverage (F2)
 
-- [x] **Task 4: Gap diagnosis — root-cause analysis with cascade impact** ✅ M1 domain done
-
-  **Deliverable:** Algorithm that, given a lagging module, climbs `hasStrictPrerequisite` edges up the graph from the ontology-port subgraph cache to find the first unmastered module (root cause).
-
-  **Done:** `domain/gap.go` (Graph, Module, Link, Mastery, DiagnoseRootCause), `application/gap_service.go` (GapService.Diagnose). Core algorithm and ranking already implemented. Cascade impact computation and multi-subject ranking are TODO for M2 depth.
+- [x] **Task 4: Gap diagnosis — root-cause analysis with cascade impact** ⚠️ PARTIAL (depth)
 
   **Deliverable:** Algorithm that, given a lagging module, climbs `hasStrictPrerequisite` edges up the graph from the ontology-port subgraph cache to find the first unmastered module (root cause). Ranks root gaps by cascade impact (N blocked modules across M subjects).
 
-  **Files to create/modify:**
-  - `backend/internal/modules/gapcoverage/application/gap_diagnosis_service.go` — `DiagnoseRootCause(ctx, learnerID, lagModuleID)`:
-    1. Get learner's mastered module set from execution-progress
-    2. Walk `hasStrictPrerequisite` graph upward from lag module
-    3. Return first unmastered node per chain (root gap)
-    4. Compute cascade: for each root, count descendant modules + subjects blocked
-    5. Rank by cascade impact descending
-    6. Fallback: if all prerequisites mastered → return "pacing/load issue" (no false gaps)
-  - `backend/internal/modules/gapcoverage/application/cascade_impact_service.go` — `ComputeCascadeImpact(ctx, rootModuleID)` — breadth-first traversal from root, count blocked modules per subject
-
-  **Acceptance criteria:**
-  - 100% of strict-prerequisite chains analyzed; root = first unmastered
-  - Multiple chains → multiple gaps, ranked by cascade impact (verified on ≥ 10 scenarios)
-  - Reference scenario: «концентрация растворов» → root «проценты» (70%) → blocks chemistry, biology, social studies
-  - Execution ≤ 2 s on graph up to 1000 modules
-  - No false gaps when all prerequisites are mastered
+  **Actual state:** Core DONE — `domain/gap.go` (DiagnoseRootCause walks strict-prerequisite chains, ranks roots, returns pacing-issue fallback), `application/gap_service.go` (GapService.Diagnose). **Gap for M2 depth:** dedicated cascade-impact computation across subjects (`cascade_impact_service.go`) and multi-subject ranking verification are not implemented as separate services — current `BlockedModules` count is per-chain only.
 
   **Logging requirements:**
   - INFO: diagnosis started (learner, lag_module), diagnosis result (root_modules[], cascade_impact)
@@ -130,39 +102,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 2 (gapcoverage repo, execution-progress repo for mastery data), ontology-port subgraph cache (M1).
 
-- [x] **Task 5: FGOS coverage, deficit list, and attestation readiness report** ✅ M1 domain done
+- [x] **Task 5: FGOS coverage, deficit list, and attestation readiness report** ⚠️ PARTIAL (depth)
 
   **Deliverable:** Live FGOS coverage computation, prioritized deficit list, and attestation readiness report generation.
 
-  **Done:** `domain/coverage.go` (ComputeCoverage, Deficit), `domain/report.go` (AttestationReport, BuildAttestationReport), `application/coverage_service.go` (Coverage, Attestation). Deficit prioritization (strict > essential > optional) and attestation critical path are TODO for M2 depth.
-
-  **Deliverable:** Live FGOS coverage computation, prioritized deficit list, and attestation readiness report generation.
-
-  **Files to create/modify:**
-  - `backend/internal/modules/gapcoverage/application/coverage_service.go` — `ComputeCoverage(ctx, learnerID, framework)`:
-    1. Get mastered modules from execution-progress
-    2. Get module→requirement bindings from ontology-port
-    3. Compute `coverage = covered_requirements / total_requirements`
-    4. Modules below mastery threshold → not counted
-    5. Modules without framework binding → audit log, not counted
-  - `backend/internal/modules/gapcoverage/application/deficit_service.go` — `ListDeficits(ctx, learnerID, framework)`:
-    1. Identify uncovered requirements
-    2. Prioritize: strict-prerequisite > essential-core > optional
-    3. Within group: by cascade impact
-    4. N weeks before attestation → boost attestation-domain deficits
-    5. Deficit outside current route → "requires route expansion" flag
-  - `backend/internal/modules/gapcoverage/application/attestation_service.go` — `GenerateAttestationReport(ctx, learnerID, attestationDomain)`:
-    1. Aggregate coverage, deficits, forecast
-    2. Compute critical path to target coverage
-    3. Verdict: готов (ready) / под риском (at risk) / не готов (not ready)
-    4. "Ready" ONLY when 100% coverage in attestation domains
-
-  **Acceptance criteria:**
-  - Coverage matches reference on ≥ 10 contexts (0 deviation)
-  - Coverage refresh ≤ 5 s after `ModuleMastered`
-  - Deficit list completeness: deficits ∪ covered = full framework set
-  - Attestation report generation ≤ 1 s (single learner), ≤ 5 s (school up to 80 learners)
-  - "Ready" only at 100% attestation domain coverage
+  **Actual state:** Core DONE — `domain/coverage.go` (ComputeCoverage, Deficit), `domain/report.go` (BuildAttestationReport), `application/coverage_service.go` (Coverage, Attestation). `GetDeficitList` handler applies strict>essential>optional priority inline (M2). **Gap for M2 depth:** domain-level deficit prioritization service and attestation critical-path computation are not implemented as reusable services.
 
   **Logging requirements:**
   - INFO: coverage computed (learner, framework, percentage, timestamp), deficit list generated (count, top_priority), attestation report generated (learner, verdict, domains[])
@@ -175,23 +119,7 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Deliverable:** Updated OpenAPI v1.yaml with F2 REST endpoints and generated/oapi-codegen HTTP handlers wired into the chi router.
 
-  **Done:** Added 8 new endpoints to `backend/api/openapi/v1.yaml` (progress, forecast, module-mastered, deficit-list, module stories/projects, recommended stories/projects) + 10 new schemas (ProgressResponse, ForecastResponse, MasteryRecordRequest/Response, DeficitListResponse, PrioritizedDeficit, StoryResponse, ProjectIdeaResponse). Regenerated via `make gen`. Added 8 handler methods to `backend/internal/api/handler.go` (GetDeficitList, GetLearnerProgress, GetLearnerForecast, RecordModuleMastered, GetModuleStories, GetModuleProjects, GetRecommendedStories, GetRecommendedProjects). Added `Practice`, `Progress`, `Forecast` services + `inMemoryProgressRepo` fixture to StubHandler. Go build + tests pass.
-
-  **Deliverable:** Updated OpenAPI v1.yaml with F2 REST endpoints and generated/oapi-codegen HTTP handlers wired into the chi router.
-
-  **Files to create/modify:**
-  - `backend/api/openapi/v1.yaml` — add new paths:
-    - `GET /learners/{learner_id}/progress` — plan-vs-actual report (Task 3)
-    - `GET /learners/{learner_id}/forecast` — binary readiness forecast (Task 3)
-    - `POST /learners/{learner_id}/module-mastered` — record mastery (Task 3)
-    - `GET /learners/{learner_id}/gaps/{module_id}` — gap diagnosis (Task 4) — update existing stub
-    - `GET /learners/{learner_id}/coverage/fgos` — coverage report (Task 5) — update existing stub
-    - `GET /learners/{learner_id}/coverage/deficits` — deficit list (Task 5)
-    - `GET /learners/{learner_id}/attestation` — attestation readiness (Task 5)
-  - Add schemas: `ProgressResponse`, `ForecastResponse`, `MasteryRecordRequest`, `GapDiagnosisResponse` (extend existing), `CoverageResponse` (extend existing), `DeficitListResponse`, `AttestationReportResponse`
-  - `backend/internal/modules/executionprogress/adapters/handler/http.go` — HTTP handlers delegating to application services
-  - `backend/internal/modules/gapcoverage/adapters/handler/http.go` — HTTP handlers
-  - Update `backend/internal/cli/server_http.go` — register new routes with role-based guards (learner/parent/methodologist)
+  **Actual state:** DONE — 8 new endpoints added to `backend/api/openapi/v1.yaml` (progress, forecast, module-mastered, deficit-list, module stories/projects, recommended stories/projects) + 10 schemas; regenerated via `make gen`; 8 handler methods in `backend/internal/api/handler.go`; `Practice`, `Progress`, `Forecast` services + `inMemoryProgressRepo` wired into StubHandler. Security hardening applied in `8df1e81` (stable error messages, input validation). Contract tests pass (11/11).
 
   **Logging requirements:**
   - INFO: each endpoint hit (method, path, status, duration_ms)
@@ -199,7 +127,7 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Tasks 3 (execution services), 4 (gap diagnosis), 5 (coverage/attestation).
 
-<!-- Commit checkpoint: tasks 4-6 -->
+<!-- Commit checkpoint: tasks 4-6 ✅ -->
 
 ### Phase 3: Backend Practice Life & CLI (F5 + CLI)
 
@@ -207,32 +135,7 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Deliverable:** Backend for F5: story catalog and project-idea catalog (read-only projections from ontology-port), recommendation engine triggered by `ModuleMastered` events.
 
-  **Done:** `domain/practicelife.go` (Story, ProjectIdea, StoryCatalog, ProjectIdeaCatalog with indexing and eligibility), `application/practice_life_service.go` (PracticeLifeService with StoriesForModule, ProjectsForModule, RecommendStories, SuggestProjects), `adapters/adapters.go` (HTTP handler with chi routes).
-
-  **Pending:** Server wiring (add practice-life routes to server_http.go or handler.go) and OpenAPI spec expansion.
-
-  **Deliverable:** Backend for F5: story catalog and project-idea catalog (read-only projections from ontology-port), recommendation engine triggered by `ModuleMastered` events.
-
-  **Files to create/modify:**
-  - `backend/internal/modules/practicelife/domain/types.go` — VOs: `Story` (title, text, linked_modules[], real_world_section), `ProjectIdea` (title, modules[], difficulty, expected_outcome)
-  - `backend/internal/modules/practicelife/domain/services.go` — interfaces: `StoryRecommendationService`, `ProjectIdeaService`, `QualityService` (deferred)
-  - `backend/internal/modules/practicelife/application/story_service.go` — `RecommendStoriesForModule(ctx, moduleID)` — finds stories linked via `appliesTo`/`enriches` from ontology-port cache, returns top-N
-  - `backend/internal/modules/practicelife/application/project_service.go` — `SuggestProjects(ctx, learnerID)` — finds project ideas where ≥ 80% required modules are mastered/available
-  - `backend/internal/modules/practicelife/adapters/repository/postgres.go` — read-only cache of stories/project ideas from ontology sync
-  - `backend/internal/modules/practicelife/adapters/handler/http.go` — HTTP handlers:
-    - `GET /modules/{module_id}/stories` — stories for a module
-    - `GET /modules/{module_id}/projects` — project ideas for a module
-    - `GET /learners/{learner_id}/recommended-stories` — recommendations at mastery
-    - `GET /learners/{learner_id}/recommended-projects` — project suggestions
-  - `backend/api/openapi/v1.yaml` — add practice-life paths and schemas (StoryResponse, ProjectIdeaResponse, RecommendationResponse)
-
-  **Acceptance criteria:**
-  - Story recommendation only via `appliesTo`/`enriches` links (100%)
-  - Cross-subject stories (1-3 topics) supported and displayed
-  - Real-world application section mandatory in each story
-  - Project ideas require modules from ≥ 2 subjects
-  - Project suggestion only when ≥ 80% modules are accessible
-  - Recommendation display ≤ 1 s after module mastery
+  **Actual state:** DONE — `domain/practicelife.go` (Story, ProjectIdea, StoryCatalog, ProjectIdeaCatalog with module indexing + 80% eligibility gate), `application/practice_life_service.go` (StoriesForModule, ProjectsForModule, RecommendStories with dedup, SuggestProjects), `adapters/adapters.go` (chi HTTP handler). Endpoints wired into the OpenAPI spec (Task 6). Tests: `practice_life_service_test.go`. **Note:** story/project content is in-memory fixtures (3 stories, 2 projects) — real content volume is a Phase 7 gap.
 
   **Logging requirements:**
   - INFO: story recommendation (module, count), project suggestion (learner, eligible_count)
@@ -243,17 +146,9 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
 - [x] **Task 8: CLI commands: plan get, gap diagnose, report (finalize stubs)** ✅ M1
 
-  **Deliverable:** Wire existing CLI stubs (`plan get`, `gap diagnose`, `report`) to the real application services.
-
-  **Done (M1):** `plan_get.go` uses `planrepo.NewPlanRepository(pool)` (DB-backed); `gap_diagnose.go` uses `gapapp.NewGapService`; `report.go` uses `gapapp.NewCoverageService`. All support table/json output.
-
   **Deliverable:** Wire existing CLI stubs (`plan get`, `gap diagnose`, `report`) to the real application services. These serve as dev/support/testing tooling per ADR-DES.API.cli-interface.
 
-  **Files to modify:**
-  - `backend/internal/cli/plan_get.go` — wire `PlanVsActualService.Compare()` for a given learner+plan, output as table/JSON
-  - `backend/internal/cli/gap_diagnose.go` — wire `GapDiagnosisService.DiagnoseRootCause()` for a given learner+module, output diagnosis with chains
-  - `backend/internal/cli/report.go` — wire `AttestationReadinessService.GenerateAttestationReport()` for a given learner+domain, output report sections
-  - `backend/internal/cli/cli.go` — ensure all commands are registered and have --learner, --output flags
+  **Actual state:** DONE (M1) — `plan_get.go` uses `planrepo.NewPlanRepository(pool)` (DB-backed); `gap_diagnose.go` uses `gapapp.NewGapService`; `report.go` uses `gapapp.NewCoverageService`. All support table/json output.
 
   **Logging requirements:**
   - INFO: CLI command invoked (command, args)
@@ -261,42 +156,15 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Tasks 3, 4, 5 (application services must be operational).
 
-<!-- Commit checkpoint: tasks 7-8 -->
+<!-- Commit checkpoint: tasks 7-8 ✅ -->
 
 ### Phase 4: Frontend Visualization (F4)
 
 - [x] **Task 9: Knowledge map component with progress colors and mode switching** ✅
 
-  **Deliverable:** React component rendering a 2D knowledge graph with color-coded nodes.
-
-  **Done:**
-  - `KnowledgeMap.tsx` — React Flow graph with progress colors, critical-path/exploration modes
-  - `KnowledgeNode.tsx` — custom node with status-based color coding
-  - `Legend.tsx` — 5-status color legend
-  - `types.ts` — ModuleStatus, GraphNode, GraphEdge, GraphMode
-  - `api.ts` — fetchGraphData, fetchProgress
-  - Installed `@xyflow/react` dependency
-
   **Deliverable:** React component rendering a 2D knowledge graph with color-coded nodes (mastered=green, in-progress=yellow, available=blue, blocked=gray, unclosed-prereq=red) and two viewing modes (critical path / exploration).
 
-  **Files to create/modify:**
-  - `frontend/src/features/visualization/KnowledgeMap.tsx` — main component using React Flow for 2D graph rendering:
-    - Props: `nodes: GraphNode[]`, `edges: GraphEdge[]`, `progress: Record<string, ModuleStatus>`
-    - Color mapping: mastered=green, in-progress=yellow, available=blue, blocked=gray, unclosed-prereq=red
-    - Cascade arrows: red edges from root gaps to blocked descendants
-    - Legend component (fixed position overlay)
-  - `frontend/src/features/visualization/hooks/useGraphData.ts` — fetches graph data and progress from API, computes color states
-  - `frontend/src/features/visualization/hooks/useModeSwitch.ts` — critical path mode (strict + essential edges only) vs exploration (all edges)
-  - `frontend/src/features/visualization/api.ts` — API calls: GET /learners/{id}/progress, GET /ontology/concepts
-  - `frontend/src/features/visualization/index.ts` — barrel exports
-
-  **Acceptance criteria:**
-  - Each node has exactly 1 status color from 5
-  - Unclosed-prereq (red) only when prerequisite is not mastered
-  - Recolor on prerequisite mastery within ≤ 1 s
-  - Cascade arrows = graph edges (100% accuracy)
-  - Mode switch ≤ 500 ms (up to 500 nodes); progress/colors preserved
-  - Legend visible on map
+  **Actual state:** DONE — `KnowledgeMap.tsx` (React Flow, mode switching, stats badges), `KnowledgeNode.tsx` (status color-coding), `Legend.tsx` (5-status legend), `types.ts`, `api.ts` (`fetchProgress`, `toStatusMap`, `buildGraph` from ontology-port). `@xyflow/react` installed. **Note:** component is props-driven; data wiring to live endpoints is a Phase 7 item.
 
   **Logging requirements (frontend):**
   - INFO: graph data fetched (node_count, edge_count), mode switched (from, to)
@@ -304,34 +172,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 6 (F2 REST endpoints must be live), ontology-port API (M1).
 
-- [x] **Task 10: Learner dashboard** ✅
-
-  **Deliverable:** Dashboard page with 6 mandatory widgets.
-
-  **Done:** `LearnerDashboard.tsx` — grid layout with current position, three horizons, plan-vs-actual, subject progress, FGOS coverage, recommendations widgets. Uses shared Card/Badge components.
+- [x] **Task 10: Learner dashboard** ✅ (component) / ⏳ page wiring pending
 
   **Deliverable:** Dashboard page with 6 mandatory widgets: current position, 3 horizons, plan-vs-actual, subject progress, FGOS coverage, recommended stories/projects.
 
-  **Files to create/modify:**
-  - `frontend/src/features/visualization/LearnerDashboard.tsx` — grid layout with 6 widgets:
-    1. Current position (module + color status from F4.1 mapping)
-    2. Three horizons (far/mid/near from route-planning)
-    3. Plan-vs-actual deviation (plan date vs actual date, color-coded)
-    4. Progress by subject (bar chart or summary cards)
-    5. FGOS coverage % (progress bar, 1% precision)
-    6. Recommended stories/projects (linked to practice-life feature)
-  - `frontend/src/features/visualization/hooks/useLearnerDashboard.ts` — fetches all dashboard data
-  - `frontend/src/features/visualization/WidgetCard.tsx` — shared widget container component
-  - `frontend/src/features/visualization/SubjectProgress.tsx` — subject-by-subject progress display
-  - `frontend/src/pages/LearnerDashboardPage.tsx` — page component wiring dashboard + auth guards
-  - Update `frontend/src/routes.tsx` — add `/dashboard/learner` route (lazy-loaded, ProtectedRoute)
-
-  **Acceptance criteria:**
-  - All 6 widgets present; any missing = defect
-  - Plan-vs-actual deviation accuracy 100%
-  - FGOS coverage precision to 1%
-  - Dashboard refresh ≤ 1 s after progress update
-  - Last-updated timestamp displayed
+  **Actual state:** Component DONE — `LearnerDashboard.tsx` (6 widgets, props-driven, tests pass). **Pending:** `LearnerDashboardPage.tsx` page + `/dashboard/learner` route (Phase 7).
 
   **Logging requirements (frontend):**
   - INFO: dashboard mounted (learner_id), data refresh (elapsed_ms)
@@ -339,31 +184,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 6 (F2 REST endpoints), Task 9 (knowledge map colors reused), Task 7 (stories/projects API).
 
-- [x] **Task 11: Parent/HR and methodologist dashboards** ✅
-
-  **Deliverable:** Parent/HR dashboard (5 widgets) and methodologist dashboard (school aggregation).
-
-  **Done:**
-  - `ParentDashboard.tsx` — child switcher (2+ children), FGOS coverage, forecast, deviation highlight (lag > 10% = signal), recommendations; embeds LearnerDashboard for detail
-  - `MethodologistDashboard.tsx` — school coverage (weighted), coverage by class, top lagging topics, ontology contribution
-  - Barrel exports updated
+- [x] **Task 11: Parent/HR and methodologist dashboards** ✅ (component) / ⏳ page wiring pending
 
   **Deliverable:** Parent/HR dashboard (5 widgets: progress, FGOS coverage, deviations with color highlights, forecast to checkpoint, recommendations) and methodologist dashboard (FGOS coverage by class/school, top lagging topics, ontology contribution).
 
-  **Files to create/modify:**
-  - `frontend/src/features/visualization/ParentDashboard.tsx` — 5 mandatory widgets with deviation magnitude + color (lag > 10% = signal)
-  - `frontend/src/features/visualization/hooks/useParentDashboard.ts` — fetches child data (supports 2+ children switching)
-  - `frontend/src/features/visualization/MethodologistDashboard.tsx` — school-level aggregation: coverage by class, top lagging topics, ontology contribution
-  - `frontend/src/features/visualization/hooks/useMethodologistDashboard.ts`
-  - `frontend/src/pages/ParentDashboardPage.tsx` — page with role guard (parent)
-  - `frontend/src/pages/MethodologistDashboardPage.tsx` — page with role guard (methodologist)
-  - Update `frontend/src/routes.tsx` — add `/dashboard/parent`, `/dashboard/methodologist`
-
-  **Acceptance criteria:**
-  - Parent dashboard: all 5 widgets; deviation numbers + color highlights
-  - Methodologist dashboard: coverage aggregated by class/school (precision 1%); role scope: own school/classes only
-  - Data refresh ≤ 1 s
-  - Forecast matches reference calculation
+  **Actual state:** Components DONE — `ParentDashboard.tsx` (child switcher 2+, 4 summary cards, embeds LearnerDashboard), `MethodologistDashboard.tsx` (school coverage, coverage by class, top lagging topics, ontology contribution). **Pending:** `ParentDashboardPage.tsx`, `MethodologistDashboardPage.tsx` + routes (Phase 7).
 
   **Logging requirements (frontend):**
   - INFO: dashboard mounted (role, scope), data refresh
@@ -371,39 +196,15 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 6 (F2 endpoints), Task 10 (shared widget patterns).
 
-<!-- Commit checkpoint: tasks 9-11 -->
+<!-- Commit checkpoint: tasks 9-11 ✅ -->
 
 ### Phase 5: Frontend Visualization (F4 cont.) + Practice Life (F5)
 
-- [x] **Task 12: Gap diagnostic map view and route builder** ✅ partial
-
-  **Deliverable:** Gap diagnostic map showing root gaps with cascade arrows.
-
-  **Done:** `GapMap.tsx` — displays root gaps ranked by impact with module/subject cascade info. Route builder deferred (M1 RouteBuilder.tsx already handles route construction).
+- [x] **Task 12: Gap diagnostic map view and route builder** ⚠️ PARTIAL (route builder)
 
   **Deliverable:** Visual gap diagnostic map showing only root gaps (unmastered modules with no unmastered prerequisites) with cascade arrows, ranked by impact. Visual 5-step route builder (select goal → visualize route → estimate time → confirm → fixate plan).
 
-  **Files to create/modify:**
-  - `frontend/src/features/visualization/GapMap.tsx` — filtered knowledge map:
-    - Shows only root gaps (red) + cascade arrows to dependent nodes
-    - Ranking overlay: [1] Module X — blocks N modules in M subjects
-    - Click on gap → detail: "close X → unlock M subjects"
-  - `frontend/src/features/visualization/RouteBuilder.tsx` — 5-step flow:
-    1. Goal selection (search topics)
-    2. Route visualization (prerequisite chain)
-    3. Time estimate (sum of module durations)
-    4. Confirmation (review before fixating)
-    5. Plan fixation (POST → plan-management)
-  - `frontend/src/features/visualization/hooks/useGapMap.ts`
-  - `frontend/src/features/visualization/hooks/useRouteBuilder.ts`
-  - `frontend/src/pages/GapMapPage.tsx`
-  - `frontend/src/pages/RouteBuilderPage.tsx`
-  - Update `frontend/src/routes.tsx` — add `/dashboard/gaps`, `/dashboard/route-builder`
-
-  **Acceptance criteria:**
-  - Gap map: only root gaps (derived hidden); cascade arrows to ALL dependent nodes; ranked by descending impact
-  - Route builder: all 5 steps in order; time estimate visible before confirmation; ≤ 5 min for typical route (≤ 30 modules)
-  - Gap map recompute ≤ 1 s on progress change
+  **Actual state:** GapMap DONE — `GapMap.tsx` (ranked root gaps, cascade info, empty state, tests pass). **Pending:** 5-step visual RouteBuilder — M1 `RouteBuilder.tsx` covers route construction but not the full 5-step fixate-plan flow; page wiring pending (Phase 7).
 
   **Logging requirements (frontend):**
   - INFO: gap map rendered (root_gap_count), route builder step changed (step)
@@ -411,29 +212,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Tasks 4 (gap diagnosis API), 6 (F2 endpoints), 9 (knowledge map base component).
 
-- [x] **Task 13: Group management panel** ✅
-
-  **Deliverable:** Panel with mini-cards per learner.
-
-  **Done:** `GroupPanel.tsx` — learner cards (name, module, FGOS %, forecast, attention flag), "X of Y at risk" summary, role-scoped navigation.
+- [x] **Task 13: Group management panel** ✅ (component) / ⏳ page wiring pending
 
   **Deliverable:** Panel with mini-cards per learner (name, current module, FGOS coverage %, forecast status, attention flag), quick switching between learners, summary "X of Y at risk".
 
-  **Files to create/modify:**
-  - `frontend/src/features/visualization/GroupPanel.tsx` — list/grid of LearnerCard components:
-    - Fields: name, current module, FGOS %, forecast status, attention flag
-    - Attention flag: lag > 10% of plan OR unclosed prerequisites
-    - Summary bar: "X of Y at risk"
-    - Quick switch: click card → navigate to learner dashboard
-  - `frontend/src/features/visualization/LearnerCard.tsx` — individual card component
-  - `frontend/src/features/visualization/hooks/useGroupPanel.ts` — fetches group data based on role (parent → children, director → school, HR → department)
-  - `frontend/src/pages/GroupPanelPage.tsx` — page with role-aware scope
-  - Update `frontend/src/routes.tsx` — add `/dashboard/group`
-
-  **Acceptance criteria:**
-  - 5 mandatory fields per card; switch ≤ 300 ms
-  - "X of Y at risk" matches reference count (80 learners)
-  - Role scoping: parent sees own children, director sees school, HR sees department
+  **Actual state:** Component DONE — `GroupPanel.tsx` (learner cards, attention flag, "X of Y at risk", onSelect callback, tests pass). **Pending:** `GroupPanelPage.tsx` + route, role-scoped data hook (Phase 7).
 
   **Logging requirements (frontend):**
   - INFO: group panel loaded (role, learner_count, at_risk_count)
@@ -441,36 +224,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Tasks 6 (F2 endpoints), 10 (learner dashboard for navigation), 11 (parent dashboard).
 
-- [x] **Task 14: Stories and project ideas display with recommendation** ✅
-
-  **Deliverable:** UI components for stories and project ideas.
-
-  **Done:**
-  - `PracticeComponents.tsx` — StoryCard, ProjectCard, RecommendationPanel
-  - `index.ts` — barrel exports + api functions (fetchStoriesForModule, fetchProjectsForModule, fetchRecommendations)
+- [x] **Task 14: Stories and project ideas display with recommendation** ✅ (component) / ⏳ page wiring pending
 
   **Deliverable:** UI components for displaying stories and project ideas, integrated into the learner dashboard and knowledge map. Recommendation panel triggered at module mastery.
 
-  **Files to create/modify:**
-  - `frontend/src/features/practice-life/StoryCard.tsx` — displays a story (title, reading time ≤ 5 min, linked topics, real-world section)
-  - `frontend/src/features/practice-life/ProjectCard.tsx` — displays a project idea (title, modules list, difficulty badge, expected outcome)
-  - `frontend/src/features/practice-life/RecommendationPanel.tsx` — "You've mastered [module] — check out these connections":
-    - Related stories (via `appliesTo`/`enriches`)
-    - Related project ideas (cross-subject, ≥ 80% modules accessible)
-    - Context: "why this matters" from story's real-world section
-  - `frontend/src/features/practice-life/api.ts` — API calls: GET /modules/{id}/stories, GET /modules/{id}/projects, GET /learners/{id}/recommended-stories, GET /learners/{id}/recommended-projects
-  - `frontend/src/features/practice-life/hooks/useRecommendations.ts` — fetches and caches recommendations
-  - `frontend/src/features/practice-life/index.ts` — barrel exports
-  - `frontend/src/pages/PracticePage.tsx` — standalone practice-life page (browse all stories/projects)
-  - Update `frontend/src/routes.tsx` — add `/dashboard/practice`
-
-  **Acceptance criteria:**
-  - Story delivery ≤ 1 s after module open
-  - Reading time ≤ 5 min per story
-  - Cross-subject links displayed (1-3 topics)
-  - Project ideas: only when ≥ 80% required modules are mastered/available
-  - Recommendations trigger at mastery confirmation
-  - No duplicate recommendations within same module
+  **Actual state:** Components DONE — `PracticeComponents.tsx` (StoryCard, ProjectCard, RecommendationPanel), `index.ts` (barrel + api functions). Tests pass (7). **Pending:** `PracticePage.tsx` + route, recommendation trigger at mastery confirmation (Phase 7).
 
   **Logging requirements (frontend):**
   - INFO: recommendations fetched (module, story_count, project_count)
@@ -478,31 +236,15 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 7 (practice-life REST endpoints), Task 10 (dashboard widget integration).
 
-<!-- Commit checkpoint: tasks 12-14 -->
+<!-- Commit checkpoint: tasks 12-14 ✅ -->
 
 ### Phase 6: Integration & Quality Assurance
 
 - [x] **Task 15: Backend integration and unit tests** ✅
 
-  **Deliverable:** Go test suite covering domain services, application services.
-
-  **Done:**
-  - `forecast_service_test.go` — on-track, not-on-track, low-confidence scenarios
-  - `deviation_alert_service_test.go` — threshold not exceeded/exceeded, default threshold, threshold update
-  - `practice_life_service_test.go` — stories by module, dedup, project eligibility (80% gate), counts
-
   **Deliverable:** Go test suite covering domain services, application services, and repository adapters using testcontainers for PostgreSQL integration.
 
-  **Files to create/modify:**
-  - `backend/internal/modules/executionprogress/application/trajectory_service_test.go` — mock repository, test mastery recording + event emission
-  - `backend/internal/modules/executionprogress/application/plan_vs_actual_test.go` — test deviation computation with known plan snapshots and mastery records
-  - `backend/internal/modules/executionprogress/application/forecast_service_test.go` — test forecast with various pace/remaining scenarios
-  - `backend/internal/modules/gapcoverage/application/gap_diagnosis_service_test.go` — test root-cause chains on known ontology subgraph, test cascade impact
-  - `backend/internal/modules/gapcoverage/application/coverage_service_test.go` — test FGOS coverage computation, deficit prioritization
-  - `backend/internal/modules/gapcoverage/application/attestation_service_test.go` — test verdict logic for ready/at-risk/not-ready
-  - `backend/internal/modules/practicelife/application/story_service_test.go` — test recommendation logic
-  - `backend/tests/integration/progress_integration_test.go` — end-to-end: record mastery → compare plan-vs-actual → compute coverage
-  - `backend/tests/integration/gap_integration_test.go` — end-to-end: deviation → gap diagnosis → coverage recalculation
+  **Actual state:** DONE (unit/contract level) — `forecast_service_test.go` (on-track, not-on-track, low-confidence), `deviation_alert_service_test.go` (threshold logic), `practice_life_service_test.go` (dedup, 80% eligibility), 5 new contract tests in `handler_contract_test.go` (validation + forecast + stories). **Gap:** testcontainers-based integration tests (`tests/integration/progress_integration_test.go`, `gap_integration_test.go`) are not yet written (Phase 7 optional).
 
   **Logging requirements (tests):**
   - Test helpers should NOT log (clean test output); use `zap.NewNop()` for services under test
@@ -511,24 +253,9 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
 - [x] **Task 16: Frontend component tests for visualization and practice-life** ✅
 
-  **Deliverable:** Vitest + React Testing Library tests for all new UI components.
-
-  **Done:**
-  - `visualization.test.tsx` — 11 tests: LearnerDashboard (6 widgets, coverage %, plan-vs-actual), GroupPanel (at-risk summary, cards, attention flag, onSelect), GapMap (ranked gaps, cascade, empty state)
-  - `practice-life.test.tsx` — 7 tests: StoryCard (title, subjects, reading time), ProjectCard (difficulty, modules), RecommendationPanel (present/empty states)
-  - Frontend suite: 35 passed, 4 skipped (down from 6 skipped)
-
   **Deliverable:** Vitest + React Testing Library tests for all new UI components, replacing scaffolded `it.skip()` stubs with real test cases.
 
-  **Files to create/modify:**
-  - `frontend/src/features/visualization/__tests__/knowledge-map.test.tsx` — test color mapping (5 statuses), mode switching, legend rendering, loading/error states
-  - `frontend/src/features/visualization/__tests__/learner-dashboard.test.tsx` — test 6 widgets render, data-api integration via mocks, refresh behavior
-  - `frontend/src/features/visualization/__tests__/parent-dashboard.test.tsx` — test multi-child switching, deviation highlights, role guard
-  - `frontend/src/features/visualization/__tests__/gap-map.test.tsx` — test root-gap-only filtering, ranking display
-  - `frontend/src/features/visualization/__tests__/group-panel.test.tsx` — test card fields, "X of Y" summary, role scoping
-  - `frontend/src/features/visualization/__tests__/route-builder.test.tsx` — test 5-step flow progression
-  - `frontend/src/features/practice-life/__tests__/stories.test.tsx` — test story display, recommendation panel
-  - `frontend/src/features/practice-life/__tests__/projects.test.tsx` — test project display, difficulty badges
+  **Actual state:** DONE — `visualization.test.tsx` (14 tests incl. toStatusMap), `practice-life.test.tsx` (7 tests). Frontend suite: 38 passed, 4 skipped (only M3+ scaffolds remain).
 
   **Test patterns (from existing tests):**
   - `vi.mock()` for API modules
@@ -539,4 +266,67 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Tasks 9-14 (all frontend components must be implemented).
 
-<!-- Commit checkpoint: tasks 15-16 -->
+<!-- Commit checkpoint: tasks 15-16 ✅ -->
+
+### Phase 7: M2 Completion Gaps (from /aif-roadmap check, 2026-08-03)
+
+> These tasks close the three unmet M2 exit criteria: launch content volume,
+> demo flow, and end-to-end page/route wiring.
+
+- [ ] **Task 17: Launch content — seed 50+ stories and 30+ project ideas**
+
+  **Deliverable:** Expand the practice-life content from in-memory fixtures (3 stories, 2 projects) to launch volume (≥50 stories, ≥30 project ideas) as seed data, covering grades 5-11 topics with cross-subject links and mandatory real-world sections.
+
+  **Files to create/modify:**
+  - `backend/internal/modules/practicelife/application/seed.go` or `deploy/seeds/practicelife/` — structured story/project catalog (JSON/YAML)
+  - `backend/internal/cli/seed.go` — extend `vedo-edutrack seed` to load practice-life content into the story/project catalog
+  - `backend/internal/modules/practicelife/adapters/repository/` — persistence adapter for the catalog (currently in-memory)
+  - Contract test: story count ≥ 50, project count ≥ 30, every story has real-world section, every project has ≥ 2 subjects
+
+  **Acceptance criteria (M2 exit):** launch content ≥ 50 stories + ≥ 30 project ideas, all valid (1-3 linked modules, mandatory real-world section, ≥2 subjects per project).
+
+  **Logging requirements:**
+  - INFO: seed loaded (stories=N, projects=M, validation errors=K)
+  - WARN: invalid story/project skipped (reason)
+
+  **Dependencies:** Task 7 (practice-life domain/adapters), M2 starter ontology in VEDO Hub (external).
+
+- [ ] **Task 18: Demo flow for product validation**
+
+  **Deliverable:** End-to-end demo scenario (demo data + demo route) so a parent can validate the product without custom customer setup: pick a learner → build a route ≤5 min → see knowledge map, FGOS coverage, gap diagnosis, stories/projects.
+
+  **Files to create/modify:**
+  - `frontend/src/pages/DemoPage.tsx` — guided demo flow walking through the family education journey
+  - `frontend/src/routes.tsx` — add `/demo` route
+  - `deploy/seeds/demo/` — demo learner/plan/progress fixtures
+  - Wire demo data into `backend/internal/api/handler.go` fixtures (or a demo handler)
+  - E2E scenario in `tests/e2e/gui/` — demo journey smoke test
+
+  **Acceptance criteria (M2 exit):** demo flow supports product validation without custom customer setup; route build demonstrated ≤ 5 min.
+
+  **Logging requirements (frontend):**
+  - INFO: demo step entered (step_name), demo completed (duration_ms)
+
+  **Dependencies:** Tasks 9-14 (components), Task 17 (content), existing page wiring.
+
+- [ ] **Task 19: Page wiring and routes for M2 dashboards**
+
+  **Deliverable:** Create page components and routes for the already-built M2 components: LearnerDashboardPage, ParentDashboardPage, MethodologistDashboardPage, GapMapPage, GroupPanelPage, PracticePage.
+
+  **Files to create/modify:**
+  - `frontend/src/pages/LearnerDashboardPage.tsx` — wires `LearnerDashboard` + data hook, role guard
+  - `frontend/src/pages/ParentDashboardPage.tsx` — wires `ParentDashboard`, parent role guard
+  - `frontend/src/pages/MethodologistDashboardPage.tsx` — wires `MethodologistDashboard`, methodologist role guard
+  - `frontend/src/pages/GapMapPage.tsx` — wires `GapMap` + gap data hook
+  - `frontend/src/pages/GroupPanelPage.tsx` — wires `GroupPanel` + role-scoped group hook
+  - `frontend/src/pages/PracticePage.tsx` — wires stories/projects browse + RecommendationPanel
+  - `frontend/src/routes.tsx` — add `/dashboard/learner`, `/dashboard/parent`, `/dashboard/methodologist`, `/dashboard/gaps`, `/dashboard/group`, `/dashboard/practice` (lazy-loaded, ProtectedRoute + RoleGate)
+  - Component tests for each page (harness pattern)
+
+  **Acceptance criteria:** all 6 pages reachable via routes with correct role guards; data flows from API (or fixtures) to components; navigation via MainLayout sidebar.
+
+  **Logging requirements (frontend):**
+  - INFO: page mounted (route, role), data fetch result
+  - ERROR: page data fetch failed
+
+  **Dependencies:** Tasks 9-14 (components), Task 6 (backend endpoints).
