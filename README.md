@@ -111,6 +111,8 @@ The `Makefile` is the single entry point. Run `make help` for the full list.
 | `make up` / `make down` | Start / stop the full dev stack (compose, waits for health) |
 | `make dev` | Dev mode — stack up with hot reload (air + Vite) |
 | `make build` | Production build check (Go binary + SPA, version injected) |
+| `make docker-build` | Production images — backend (distroless) + frontend (Go embed) |
+| `make docker-build-all` | All production images (+ nginx frontend variant for SaaS/CDN) |
 | `make test` / `make test-e2e` | All tests (Go unit, Vitest, Playwright) |
 | `make lint` / `make format` | golangci-lint + Biome; gofmt + Biome format |
 | `make gen` | Regenerate code (OpenAPI/sqlc — wired in M0.3) |
@@ -127,6 +129,18 @@ The `Makefile` is the single entry point. Run `make help` for the full list.
 
 Run `make gates-list` to see which gates apply to the current phase.
 Every target prints a colored verdict (`[PASS]` / `[FAIL]` / `[WARN]` / `[SKIP]`) — set `NO_COLOR=1` to disable colors (CI-safe).
+
+### Docker images
+
+`docker-build*` targets build **production** images only — the dev stack (`make up` / `make dev`) runs containers from base images via compose and needs no image build. Every image is tagged with the build version (`VERSION` — derived from `git describe`, override with `VERSION=x.y.z make docker-build`).
+
+| Target | What it builds | Image tag(s) | Dockerfile | Environment |
+|--------|----------------|--------------|------------|-------------|
+| `make docker-build` | Default production delivery: backend + SPA embedded into the Go binary | `vedo-edutrack:<VERSION>` · `vedo-edutrack-embed:<VERSION>` | `backend/Dockerfile` · `frontend/Dockerfile.embed` | Production — default; Enterprise on-prem single-binary path |
+| `make docker-build-all` | All production images, incl. the nginx frontend variant | `vedo-edutrack:<VERSION>` · `vedo-edutrack-embed:<VERSION>` · `vedo-edutrack-nginx:<VERSION>` | + `frontend/Dockerfile.nginx` | Production — both contours (Community SaaS + Enterprise on-prem) |
+| `make docker-build-backend` | Backend runtime image (distroless, nonroot, healthcheck) | `vedo-edutrack:<VERSION>` | `backend/Dockerfile` | Production — backend service |
+| `make docker-build-frontend-embed` | SPA built into a Go embed server — single-binary path | `vedo-edutrack-embed:<VERSION>` | `frontend/Dockerfile.embed` | Enterprise on-prem — from M0.3 embedded directly in the backend binary |
+| `make docker-build-frontend-nginx` | Static SPA served by unprivileged nginx (UID 101, port 8080) | `vedo-edutrack-nginx:<VERSION>` | `frontend/Dockerfile.nginx` | Community SaaS / CDN (variant B) |
 
 ## Quality gates
 
