@@ -138,7 +138,7 @@ push/PR → lint (biome ci + golangci-lint + gofmt)
 | **БД-бэкап** | `pg_dump` перед миграциями (автоматически в CI) |
 | **K8s** | Пост-MVP: managed K8s (HPA, canary) при росте Community / опциональный Helm для Enterprise-клиентов со своим K8s |
 | **Graceful shutdown** | Signal-handling + drain inflight-запросов (контекст с таймаутом) |
-| **Health-checks** | Liveness (лёгкий) + readiness (PostgreSQL, JWKS-endpoint) — M0.3 |
+| **Health-checks** | Liveness (`/healthz`, всегда 200) + readiness (`/readyz`: PostgreSQL TCP-dial; JWKS/Keycloak — с identity-модулем M0.3). Реализовано в M0.2: `vedo-edutrack server` + подкоманда `health` для HEALTHCHECK (distroless без curl); SPA: nginx HEALTHCHECK + `spa-embed health` |
 
 ## 9. Наблюдаемость
 

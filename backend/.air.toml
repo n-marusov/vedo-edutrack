@@ -7,10 +7,8 @@ tmp_dir = "tmp"
 
 [build]
   cmd = "go build -o ./tmp/vedo-edutrack ./cmd/vedo-edutrack"
-  bin = "./tmp/vedo-edutrack"
-  # M0.3: cobra `server` subcommand (ADR-DES.API.cli-interface) — full_bin
-  # rebuilds the single binary on every change (modular monolith).
-  full_bin = "./tmp/vedo-edutrack server"
+  # air splits on spaces → runs the `server` subcommand (health endpoints).
+  bin = "./tmp/vedo-edutrack server"
   include_ext = ["go"]
   include_dir = ["."]
   exclude_dir = ["tmp", "vendor", "mocks", "bin", "migrations", ".git"]

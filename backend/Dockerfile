@@ -43,9 +43,9 @@ COPY --from=build /out/vedo-edutrack /usr/local/bin/vedo-edutrack
 USER nonroot:nonroot
 EXPOSE 8080
 
-# M0.2 placeholder: the binary exits 0 for any subcommand (CLI dispatch lands
-# in M0.3 per ADR-DES.API.cli-interface). M0.3 replaces this healthcheck with a
-# real readiness endpoint (liveness/readiness split — development-tooling §8).
+# Liveness probe via the binary's own `health` subcommand (distroless runtime
+# has no shell/curl/wget): it GETs /healthz over HTTP and exits 0 on 200.
+# Liveness/readiness split: /healthz + /readyz (PostgreSQL) — development-tooling §8.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD ["/usr/local/bin/vedo-edutrack", "health"]
 

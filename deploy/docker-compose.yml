@@ -75,8 +75,14 @@ services:
       postgres:
         condition: service_healthy
     networks: [edutrack-net]
-    # M0.2: readiness endpoint lands in M0.3 (development-tooling §8) —
-    # the healthcheck is added then; --wait only blocks on postgres.
+    # Liveness via the binary's own probe (no curl in the alpine image is
+    # needed — busybox wget is used; /healthz always 200 once the server runs).
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
 
   # Dev frontend: Vite dev server with HMR. VITE_PROXY_TARGET is consumed by
   # frontend/vite.config.ts (T11) so /api proxying works inside the container.
@@ -93,6 +99,13 @@ services:
       - "${FRONTEND_PORT:-5173}:5173"
     depends_on:
       - backend
+    # Vite dev server answers on / — liveness for the dev stack (make up --wait).
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:5173/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 90s # first start runs pnpm install
     networks: [edutrack-net]
 
   otel-collector:

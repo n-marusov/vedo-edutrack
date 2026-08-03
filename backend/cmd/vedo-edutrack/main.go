@@ -34,18 +34,34 @@ func main() {
 // run is the placeholder for the CLI dispatch (cobra Execute).
 // Kept separate from main so it can be unit-tested.
 //
-// The `version` subcommand is already functional: it prints the build version
-// injected via ldflags (ADR-DES.INFRA.dynamic-config-injection):
+// Functional subcommands at M0.2:
 //
-//	go build -ldflags "-X vedo-edutrack/backend/internal/platform/config.Version=1.2.3" ...
+//	version  — print build version (injected via ldflags,
+//	           ADR-DES.INFRA.dynamic-config-injection)
+//	server   — HTTP server with health endpoints (/healthz, /readyz)
+//	health   — liveness probe for container HEALTHCHECK (distroless: no curl)
 func run(args []string) error {
-	if len(args) > 0 {
-		switch args[0] {
-		case "version", "--version", "-v":
-			fmt.Printf("vedo-edutrack %s (env %s)\n", config.Version, envOrDefault("APP_ENV", "development"))
-			return nil
-		}
+	if len(args) == 0 {
+		log.Printf("[INFO] [vedo-edutrack] no subcommand (CLI dispatch pending M0.3)")
+		return nil
 	}
+
+	switch args[0] {
+	case "version", "--version", "-v":
+		fmt.Printf("vedo-edutrack %s (env %s)\n", config.Version, envOrDefault("APP_ENV", "development"))
+		return nil
+
+	case "server":
+		cfg, err := config.Load()
+		if err != nil {
+			return err
+		}
+		return serveHTTP(cfg)
+
+	case "health":
+		return checkHealth()
+	}
+
 	log.Printf("[INFO] [vedo-edutrack] args=%v (CLI dispatch pending M0.3)", args)
 	return nil
 }

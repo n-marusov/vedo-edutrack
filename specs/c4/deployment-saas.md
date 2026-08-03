@@ -27,7 +27,7 @@ C4Deployment
             }
 
             Deployment_Node(backendNode, "backend", "vedo-edutrack (distroless, GHCR)") {
-                Container(api, "API-сервер (монолит)", "Go (distroless nonroot)", "10 bounded contexts; порт 8080; healthcheck /health; из M0.3 — SPA через Go embed (single artifact)")
+                Container(api, "API-сервер (монолит)", "Go (distroless nonroot)", "10 bounded contexts; порт 8080; liveness /healthz + readiness /readyz (PostgreSQL); health-проба `vedo-edutrack health`; из M0.3 — SPA через Go embed (single artifact)")
             }
 
             Deployment_Node(pgNode, "postgres", "postgres:16-alpine") {
