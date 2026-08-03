@@ -50,10 +50,16 @@ endef
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
 		echo "VEDO EduTrack — available targets:"; \
-		grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  \033[1;36m%-14s\033[0m %s\n", $$1, $$2}'; \
+		grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | while IFS=':' read -r name desc; do \
+			desc="$${desc#*## }"; \
+			printf '  \033[1;36m%-14s\033[0m %s\n' "$$name" "$$desc"; \
+		done; \
 	else \
 		echo "VEDO EduTrack — available targets:"; \
-		grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-14s %s\n", $$1, $$2}'; \
+		grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | while IFS=':' read -r name desc; do \
+			desc="$${desc#*## }"; \
+			printf '  %-14s %s\n' "$$name" "$$desc"; \
+		done; \
 	fi
 	@echo ""
 	@echo "See ADR-IMPL.PROCESS.development-tooling §11 for details."
