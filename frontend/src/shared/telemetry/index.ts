@@ -1,0 +1,1 @@
+export { initTelemetry } from './tracer';
