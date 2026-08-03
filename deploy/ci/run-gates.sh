@@ -41,6 +41,21 @@ if [[ "$TIER" != "fast" && "$TIER" != "delivery" ]]; then
   exit 2
 fi
 
+# ---- colored output (unified verdict scheme with scripts/verdict.sh) ----
+# Colors auto-disable when stdout is not a TTY or NO_COLOR is set (CI-safe).
+colorize_status() {
+  local st="$1"
+  [[ -t 1 ]] || { printf '%s' "$st"; return; }
+  [[ -z "${NO_COLOR:-}" ]] || { printf '%s' "$st"; return; }
+  case "$st" in
+    pass) printf '\033[1;32m%s\033[0m' "$st" ;;
+    fail) printf '\033[1;31m%s\033[0m' "$st" ;;
+    warn) printf '\033[1;33m%s\033[0m' "$st" ;;
+    skip) printf '\033[1;36m%s\033[0m' "$st" ;;
+    *)    printf '%s' "$st" ;;
+  esac
+}
+
 # ---- phase scoring (m0.0..m10, post-mvp) ----
 phase_score() {
   case "$1" in
@@ -189,7 +204,7 @@ run_one() {
   if [[ "$id" == "unit-touched" && -f /tmp/unit-touched.out ]]; then
     : # affected files tracked below
   fi
-  printf '%-24s %-8s %-8s %s\n' "$id" "$out_status" "${dur_ms}ms" "$sev/$grp"
+  printf '%-24s %-8s %-8s %s\n' "$id" "$(colorize_status "$out_status")" "${dur_ms}ms" "$sev/$grp"
 }
 
 # changed files for affected_files (best effort)
@@ -206,11 +221,11 @@ print_summary_table() {
   local r
   for r in "${RESULTS[@]}"; do
     IFS='|' read -r id st dur sev grp <<< "$r"
-    printf '%-24s %-8s %s\n' "$id" "$st" "$sev/$grp (${dur}ms)"
+    printf '%-24s %-8s %s\n' "$id" "$(colorize_status "$st")" "$sev/$grp (${dur}ms)"
   done
   echo ""
   if [[ ${#BLOCKERS[@]} -gt 0 ]]; then
-    echo "BLOCKING FAILURES: ${BLOCKERS[*]}"
+    echo "BLOCKING FAILURES: $(colorize_status fail) — ${BLOCKERS[*]}"
   else
     echo "No blocking failures."
   fi
