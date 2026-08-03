@@ -14,7 +14,8 @@
 # --- Stage 1: build the SPA (Vite) ---
 FROM node:24-alpine AS spa-build
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+# Workspace root files (lockfile + workspace manifest) before frontend sources
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY frontend/package.json ./frontend/package.json
 RUN corepack enable && pnpm install --frozen-lockfile
 COPY frontend/ ./frontend/
@@ -61,6 +62,8 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 EOF
+# Minimal module — the embed server uses stdlib only.
+RUN go mod init spa-embed
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/spa-embed .
 
 # --- Stage 3: distroless static runtime ---

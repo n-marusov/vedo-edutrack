@@ -19,7 +19,7 @@ all bounded contexts behind a single HTTP surface. Deployment follows the same s
 |-------|------------|----------------|------|---------|
 | Backend | `backend/Dockerfile` | `golang:1.26-alpine` → `gcr.io/distroless/static-debian12:nonroot` | ~15 MB | Production runtime (healthcheck, nonroot, OCI labels) |
 | SPA (embed) | `frontend/Dockerfile.embed` | node build → Go embed server → distroless | small | Proves the on-prem embed path (moves into the backend binary in M0.3) |
-| SPA (nginx) | `frontend/Dockerfile.nginx` | node build → `nginx:1.27-alpine` | ~50 MB | SaaS/CDN-friendly variant B |
+| SPA (nginx) | `frontend/Dockerfile.nginx` | node build → `nginxinc/nginx-unprivileged:1.27-alpine-slim` | ~7 MB | SaaS/CDN-friendly variant B, non-root (UID 101), port 8080 |
 | Frontend dev | — (no build) | `node:24-alpine` + Vite dev server | — | Hot-reload HMR, no Docker build needed |
 
 Build contexts: `backend/Dockerfile` → `backend/`; frontend Dockerfiles → **repo root**
@@ -73,7 +73,7 @@ image stays ≤ 20 MB.
 
 ## Security
 
-- nonroot runtime user (`USER nonroot:nonroot`), distroless (no shell/packages)
+- nonroot runtime user (backend: distroless `nonroot`; SPA nginx: `nginxinc/nginx-unprivileged`, UID 101)
 - CSP/HSTS/security headers + rate limiting + circuit breaker at the Traefik edge
 - `gitleaks` secret scan + `gosec` SAST + `pnpm audit` + syft SBOM in CI
 - no secrets in images (`.dockerignore` excludes `.env*`); secrets come from env/CI
