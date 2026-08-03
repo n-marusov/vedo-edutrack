@@ -3,3 +3,4 @@
 000003_executionprogress_init.sql h1:vBMrG9uOfIp+CLraRYztNsZHWsQxhKpqvk0eBqWUdR0=
 000004_gapcoverage_init.sql h1:RhOe648DG3S3M3R1pRAcSx7Zonqe1nF161T05n8PLCM=
 000005_resources_init.sql h1:6bRSz/46KeE4eRcHgcuyAuAxsqw7VGOLeaNn1DswSEE=
+000006_integrations_init.sql h1:7wfQnDqg5mOH2QfXY7xcDmTM8T1A8pK6YyWvWeCkAFc=

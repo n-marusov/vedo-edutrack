@@ -31,7 +31,7 @@ Decisions carried over:
 
 ### Phase 1: Domain & Infrastructure Foundation
 
-- [ ] **Task 1: Define domain models and PostgreSQL migrations for integrations context**
+- [x] **Task 1: Define domain models and PostgreSQL migrations for integrations context**
   Implement the domain layer for the `integrations` bounded context and create Atlas migrations.
 
   **Domain models** (`backend/internal/modules/integrations/domain/integrations.go`):
@@ -56,7 +56,7 @@ Decisions carried over:
 
   **Files:** `backend/internal/modules/integrations/domain/integrations.go`, `backend/internal/modules/integrations/domain/domain_test.go`, `backend/migrations/<ts>_integrations_*.sql`
 
-- [ ] **Task 2: Implement PostgreSQL-backed outbox replacing in-memory prototype**
+- [x] **Task 2: Implement PostgreSQL-backed outbox replacing in-memory prototype**
   Replace the in-memory outbox (`adapters/webhook/outbox.go`) with a PostgreSQL-backed implementation.
 
   **Outbox repository** (`backend/internal/modules/integrations/adapters/webhook/outbox.go`):
@@ -80,7 +80,7 @@ Decisions carried over:
 
   **Files:** `backend/internal/modules/integrations/adapters/webhook/outbox.go`, `backend/internal/modules/integrations/adapters/webhook/outbox_test.go`
 
-- [ ] **Task 3: Implement rate limiter and circuit breaker infrastructure**
+- [x] **Task 3: Implement rate limiter and circuit breaker infrastructure**
   Add shared infrastructure for API rate limiting and VEDO Hub circuit breaker.
 
   **Rate limiter** (`backend/internal/modules/integrations/adapters/` or `backend/internal/platform/`):
