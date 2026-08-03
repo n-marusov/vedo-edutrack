@@ -1,0 +1,227 @@
+# Unified quality-gate manifest — VEDO EduTrack (T16)
+#
+# Single source of truth for all quality gates. Consumers:
+#   - deploy/ci/run-gates.sh  — the two-tier runner (fast / delivery)
+#   - Makefile                — make dev-check (fast) / make check (delivery) / make ci
+#   - .github/workflows/ci.yml — jobs call the runner with --group <job>
+#   - agent skills            — /aif-implement runs fast per task, delivery before handoff
+#
+# No command duplication anywhere else. Design: RESEARCH 2026-08-03 02:43.
+#
+# Gate schema:
+#   id          stable gate id
+#   command     shell command executed with bash -c from the repo root (single line)
+#   tier        fast | delivery        — fast ⊆ delivery
+#   phase       m0.0..m10 | post-mvp   — runs when phase <= current_phase (regression)
+#   severity    blocking | advisory    — advisory warns but does not fail the run
+#   group       lint|typecheck|test|coverage|gen|db|validate|security|build
+#   trigger     local|ci|ci-main|precommit (default: all); ci-main = main-branch CI only
+#   needs       optional env requirements: postgres | stack-up | docker
+#   tool        optional binary; when absent the runner skips the gate with a warning
+#   nfr         requirement ID traced (optional)
+#   runner      agent | internal — non-shell gates (agent-declared, executed by the agent)
+
+current_phase: m0.2
+
+# Deferred stages — declared so DESCRIPTION.md / CI never drift (never executed at m0.2).
+deferred:
+  - id: mutation
+    tool: gremlins
+    phase: m1
+    severity: advisory
+    note: "mutation testing (gremlins, <= 15% survived) — core F1/F2 lands on M1 (REQ-NFR-process.dev.test-coverage)"
+  - id: smoke
+    phase: post-mvp
+    severity: blocking
+    note: "post-MVP deployment smoke — deployment verification (REQ-NFR-ops.release.deployment-verification)"
+
+gates:
+  # ================= Fast tier (dev loop, make dev-check; no Postgres/Docker/E2E) =================
+
+  - id: go-build
+    command: cd backend && go build ./...
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: build
+    nfr: REQ-NFR-process.dev.engineering-gates
+
+  - id: ts-typecheck
+    command: cd frontend && pnpm typecheck
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: typecheck
+    nfr: REQ-NFR-process.dev.engineering-gates
+
+  - id: gofmt-check
+    command: cd backend && test -z "$(gofmt -l .)"
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: lint
+    nfr: REQ-NFR-process.dev.engineering-gates
+
+  - id: biome-check
+    command: cd frontend && pnpm lint
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: lint
+    nfr: REQ-NFR-process.dev.engineering-gates
+
+  - id: golangci-lint
+    command: cd backend && golangci-lint run ./...
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: lint
+    tool: golangci-lint
+    nfr: REQ-NFR-process.dev.code-complexity
+
+  - id: unit-touched
+    runner: internal
+    command: auto-scope from git diff (touched backend packages)
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: test
+    nfr: REQ-NFR-process.dev.test-coverage
+
+  - id: gen-consistency
+    # Scoped to backend/: gen only touches generated code (openapi/sqlc);
+    # unrelated worktree changes (agent artifacts) must not fail the gate.
+    command: make gen && git diff --exit-code -- backend/
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: gen
+    nfr: REQ-NFR-ops.release.deployment-verification
+
+  - id: mermaid-validate
+    command: pnpm validate:mermaid:all
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: validate
+
+  - id: gitleaks
+    command: gitleaks detect --source . --verbose
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: security
+    tool: gitleaks
+    nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+
+  # ================= Delivery tier (task handoff, make check / make ci) =================
+
+  - id: go-test-unit
+    command: cd backend && go test -race -count=1 -coverprofile=coverage.out ./...
+    tier: delivery
+    phase: m0.2
+    severity: advisory # red placeholder scaffolds at M0.2 (T13); blocking from M0.3
+    group: test
+    nfr: REQ-NFR-process.dev.test-coverage
+
+  - id: go-test-integration
+    command: cd backend && go test -tags=integration -count=1 ./...
+    tier: delivery
+    phase: m0.2
+    severity: advisory # placeholder skips at M0.2 (T13); blocking from M0.3
+    group: test
+    needs: postgres
+    nfr: REQ-NFR-process.dev.test-coverage
+
+  - id: e2e-gui
+    command: cd tests/e2e/gui && pnpm install --ignore-workspace && pnpm test
+    tier: delivery
+    phase: m0.2
+    severity: advisory # red placeholder at M0.2 (T15); blocking from M0.3
+    group: test
+    needs: stack-up
+    nfr: REQ-NFR-process.dev.test-coverage
+
+  - id: coverage-check
+    command: bash deploy/ci/coverage-check.sh --min 90 backend/coverage.out --generate-on-missing
+    tier: delivery
+    phase: m0.2
+    severity: advisory # advisory at M0.2 -> blocking at M1 (REQ-NFR-process.dev.test-coverage)
+    group: coverage
+    nfr: REQ-NFR-process.dev.test-coverage
+
+  - id: docker-build
+    command: bash deploy/ci/docker-build-check.sh --max-mb 20
+    tier: delivery
+    phase: m0.2
+    severity: blocking
+    group: build
+    needs: docker
+    tool: docker
+    nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+
+  - id: atlas-migrate-validate
+    command: bash deploy/ci/atlas-migrate-validate.sh
+    tier: delivery
+    phase: m0.2
+    severity: blocking
+    group: db
+    tool: atlas
+    nfr: REQ-NFR-ops.release.deployment-verification
+
+  - id: gosec
+    command: cd backend && gosec ./...
+    tier: delivery
+    phase: m0.2
+    severity: blocking
+    group: security
+    tool: gosec
+    nfr: REQ-NFR-security.compliance.owasp-application-security
+
+  - id: pnpm-audit
+    command: cd frontend && pnpm audit
+    tier: delivery
+    phase: m0.2
+    severity: advisory # informational at M0.2; blocking decisions from M1
+    group: security
+    nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+
+  - id: sbom
+    command: syft backend/cmd/vedo-edutrack -o spdx-json=backend-sbom.spdx.json
+    tier: delivery
+    phase: m0.2
+    severity: advisory
+    group: security
+    trigger: ci-main
+    tool: syft
+    nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+
+  - id: docker-push
+    command: bash deploy/ci/push-images.sh
+    tier: delivery
+    phase: m0.2
+    severity: blocking
+    group: build
+    trigger: ci-main
+    tool: docker
+    nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+
+  # ============ Agent-declared gates (runner: agent) — executed by the agent, listed here ============
+
+  - id: tqs-rcs
+    runner: agent
+    tier: delivery
+    phase: m0.3
+    severity: advisory
+    group: coverage
+    nfr: REQ-NFR-process.dev.test-coverage
+    note: "TQS/RCS via /aif-test-quality — executed by the agent before handoff"
+
+  - id: docs-drift
+    runner: agent
+    tier: delivery
+    phase: m0.3
+    severity: blocking
+    group: validate
+    nfr: REQ-NFR-process.dev.developer-documentation
+    note: "docs/env/drift checks via /aif-verify Step 3 — executed by the agent"

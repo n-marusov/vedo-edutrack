@@ -42,7 +42,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 - [x] T15: E2E test scaffold (Playwright, placeholder, red)
 
 ### Phase 7: Gate Automation
-- [ ] T16: Unified gate manifest + two-tier runner
+- [x] T16: Unified gate manifest + two-tier runner
 
 ## Commit Plan
 - **Commit 1** (after T1–T3): `chore: scaffold repository directory tree`
@@ -518,7 +518,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
 ### Phase 7: Gate Automation
 
-- [ ] **T16: Unified gate manifest + two-tier runner**
+- [x] **T16: Unified gate manifest + two-tier runner**
 
   Create a single source of truth for quality gates and a runner that both the dev loop (fast tier) and the delivery handoff (full tier) execute. Implements the gate-automation design from RESEARCH (session 2026-08-03 02:43) and makes the "task ready for delivery" decision executable: the agent runs the full tier before declaring a task done.
 
