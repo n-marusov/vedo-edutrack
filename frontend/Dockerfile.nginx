@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+# VEDO EduTrack SPA — nginx variant (SaaS/CDN-friendly).
+#
+# Build context: repository root (pnpm workspace lockfile lives at the root).
+#   docker build -f frontend/Dockerfile.nginx .
+#
+# Variant B from ADR-IMPL.PROCESS.development-tooling §8. The docker-compose
+# dev stack does NOT use this image — it runs the Vite dev server directly
+# (hot-reload, no Docker build needed). This image targets staging/SaaS.
+FROM node:24-alpine AS spa-build
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+COPY frontend/package.json ./frontend/package.json
+RUN corepack enable && pnpm install --frozen-lockfile
+COPY frontend/ ./frontend/
+RUN pnpm --filter @vedo-edutrack/frontend build
+
+FROM nginx:1.27-alpine
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=spa-build /app/frontend/dist /usr/share/nginx/html
+EXPOSE 80

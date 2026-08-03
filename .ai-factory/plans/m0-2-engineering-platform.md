@@ -20,11 +20,11 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 - [x] T3: Create deploy/ directory structure
 
 ### Phase 2: Containerization & Dev Environment
-- [ ] T4: Backend Dockerfile (distroless, multi-stage)
-- [ ] T5: Frontend Dockerfile (Go embed SPA)
-- [ ] T6: Docker Compose with full dev stack
-- [ ] T7: Traefik reverse-proxy configuration
-- [ ] T8: Container strategy documentation (deploy/README.md)
+- [x] T4: Backend Dockerfile (distroless, multi-stage)
+- [x] T5: Frontend Dockerfile (Go embed SPA)
+- [x] T6: Docker Compose with full dev stack
+- [x] T7: Traefik reverse-proxy configuration
+- [x] T8: Container strategy documentation (deploy/README.md)
 
 ### Phase 3: Build Automation
 - [ ] T9: Makefile (up / down / dev / build / test / lint / migrate / hooks / ci)
@@ -57,7 +57,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
 ### Phase 1: Repository Structure & Module Initialization
 
-- [ ] **T1: Initialize Go module and backend directory tree**
+- [x] **T1: Initialize Go module and backend directory tree**
 
   Create the backend directory skeleton following ADR-IMPL.PROCESS.repository-structure.md (§2, §4) and ADR-DES.API.cli-interface.md:
   ```
@@ -103,7 +103,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.repository-structure.md §2, §4; ADR-DES.API.cli-interface.md; DDD context-map.md (10 contexts).
   **Logging:** INFO — log Go module initialization path and directory counts.
 
-- [ ] **T2: Initialize React + Vite frontend application**
+- [x] **T2: Initialize React + Vite frontend application**
 
   Create the frontend application skeleton (ADR-DES.STACK.framework-vs-vs, ADR-IMPL.PROCESS.development-tooling.md §11):
   ```
@@ -147,7 +147,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.development-tooling.md §11; ADR-IMPL.PROCESS.repository-structure.md §3.
   **Logging:** INFO — log package installation output and directory structure creation.
 
-- [ ] **T3: Create deploy/ directory structure**
+- [x] **T3: Create deploy/ directory structure**
 
   Create the deploy/ layout (ADR-IMPL.PROCESS.repository-structure.md §4):
   ```
@@ -176,7 +176,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
 ### Phase 2: Containerization & Dev Environment
 
-- [ ] **T4: Backend Dockerfile (distroless, multi-stage)**
+- [x] **T4: Backend Dockerfile (distroless, multi-stage)**
 
   Create `backend/Dockerfile` following ADR-IMPL.PROCESS.development-tooling.md §8:
   - Multi-stage build: `golang:1.24-alpine` (build) → `gcr.io/distroless/static-debian12:nonroot` (run)
@@ -188,7 +188,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.development-tooling.md §8; DESCRIPTION.md (Go stack).
   **Logging:** INFO — log Docker build stage names and binary size.
 
-- [ ] **T5: Frontend Dockerfile (Go embed SPA)**
+- [x] **T5: Frontend Dockerfile (Go embed SPA)**
 
   Create `frontend/Dockerfile` — Go embed approach for single-artifact deployment (ADR modular-monolith §7, §8; ADR development-tooling §8):
   - Build stage: `node:24-alpine` — `pnpm install`, `pnpm build` (vite build → static assets)
@@ -204,7 +204,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.development-tooling.md §8; ADR-DES.INFRA.modular-monolith-approach.md §7.
   **Logging:** INFO — log build approach used and output size.
 
-- [ ] **T6: Docker Compose with full dev stack**
+- [x] **T6: Docker Compose with full dev stack**
 
   Create `deploy/docker-compose.yml` — full development environment (ADR-IMPL.PROCESS.development-tooling.md §8):
 
@@ -227,7 +227,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.development-tooling.md §8, §9; ADR modular-monolith §5.
   **Logging:** INFO — log service startup order and health check status.
 
-- [ ] **T7: Traefik reverse-proxy configuration**
+- [x] **T7: Traefik reverse-proxy configuration**
 
   Create Traefik configuration files (ADR-IMPL.PROCESS.development-tooling.md §8):
   - `deploy/traefik/traefik.yml` — static config:
@@ -244,7 +244,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.development-tooling.md §7, §8; REQ-NFR-security.compliance.owasp-application-security.
   **Logging:** INFO — log entrypoints created, routers configured, TLS status.
 
-- [ ] **T8: Container strategy documentation**
+- [x] **T8: Container strategy documentation**
 
   Write `deploy/README.md` — container strategy aligned with stack and deployment contours (ADR modular-monolith, ADR development-tooling, M0.2 exit criterion "container strategy documented and aligned with selected stack"):
 

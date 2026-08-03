@@ -1,0 +1,167 @@
+# Docker Compose — VEDO EduTrack full development stack (M0.2, T6).
+#
+# One command starts the whole dev environment (ADR-IMPL.PROCESS.development-tooling §8):
+#   docker compose -f deploy/docker-compose.yml up -d --wait
+#
+# Services: backend (air hot-reload), frontend (Vite dev server), postgres,
+# otel-collector, prometheus, loki, tempo, grafana, traefik.
+#
+# Image tags: dev-friendly pins — bump deliberately (supply-chain NFR).
+# Variables are interpolated from deploy/.env (see deploy/.env.example);
+# every variable has a sane default, so the file is optional.
+
+name: vedo-edutrack
+
+networks:
+  # Service network. Named "internal" by purpose (no inbound exposure);
+  # NOT Docker "internal" — containers keep egress (VEDO Hub API, modules).
+  edutrack-net:
+    driver: bridge
+  # Traefik ingress network (reverse proxy edge).
+  edutrack-public:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  grafana_data:
+  loki_data:
+  tempo_data:
+  # Container-owned node_modules: keeps the host tree clean and avoids
+  # Linux/Windows binary clashes in the mounted frontend source.
+  frontend_node_modules:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-edutrack}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-edutrack}
+      POSTGRES_DB: ${POSTGRES_DB:-edutrack}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-edutrack} -d ${POSTGRES_DB:-edutrack}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks: [edutrack-net]
+
+  # Dev backend: Go source mounted, air hot-reload inside the container.
+  # Production image: backend/Dockerfile (distroless, no air).
+  backend:
+    image: golang:1.26-alpine
+    working_dir: /app
+    environment:
+      APP_ENV: dev
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      DATABASE_URL: postgres://${POSTGRES_USER:-edutrack}:${POSTGRES_PASSWORD:-edutrack}@postgres:5432/${POSTGRES_DB:-edutrack}?sslmode=disable
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SAMPLING_RATIO: ${OTEL_SAMPLING_RATIO:-0.1}
+    volumes:
+      - ../backend:/app
+    command: >
+      sh -c "go install github.com/air-verse/air@latest &&
+             air -c .air.toml"
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [edutrack-net]
+    # M0.2: readiness endpoint lands in M0.3 (development-tooling §8) —
+    # the healthcheck is added then; --wait only blocks on postgres.
+
+  # Dev frontend: Vite dev server with HMR. VITE_PROXY_TARGET is consumed by
+  # frontend/vite.config.ts (T11) so /api proxying works inside the container.
+  frontend:
+    image: node:24-alpine
+    working_dir: /app
+    environment:
+      VITE_PROXY_TARGET: http://backend:8080
+    volumes:
+      - ../frontend:/app
+      - frontend_node_modules:/app/node_modules
+    command: sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm dev --host"
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    depends_on:
+      - backend
+    networks: [edutrack-net]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.118.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./observability/collector-config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "${OTEL_OTLP_GRPC_PORT:-4317}:4317"
+      - "${OTEL_OTLP_HTTP_PORT:-4318}:4318"
+    networks: [edutrack-net]
+
+  prometheus:
+    image: prom/prometheus:v3.4.0
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks: [edutrack-net]
+
+  loki:
+    image: grafana/loki:3.5.0
+    command: ["-config.file=/etc/loki/loki-config.yaml"]
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    networks: [edutrack-net]
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    command: ["-config.file=/etc/tempo/tempo-config.yaml"]
+    volumes:
+      - ./observability/tempo-config.yaml:/etc/tempo/tempo-config.yaml:ro
+      - tempo_data:/tmp/tempo
+    ports:
+      - "${TEMPO_PORT:-3200}:3200"
+    networks: [edutrack-net]
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "true" # dev only — observability dashboards
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks: [edutrack-net]
+
+  # Reverse-proxy edge: 80/443 ingress + dashboard (host 8082 — backend owns 8080).
+  traefik:
+    image: traefik:v3.1.2
+    command: ["--configFile=/etc/traefik/traefik.yml"]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "${TRAEFIK_DASHBOARD_PORT:-8082}:8080" # dashboard (api.insecure, dev only)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - edutrack-net
+      - edutrack-public

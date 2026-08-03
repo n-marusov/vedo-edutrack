@@ -1,0 +1,19 @@
+# Backend build context hygiene — keep the distroless image lean and the
+# build context free of local artifacts (see ADR-IMPL.PROCESS.development-tooling §8).
+
+# Local build/run artifacts
+tmp/
+bin/
+*.log
+coverage.out
+*.test
+*.exe
+
+# VCS / agent tooling
+.git/
+.agents/
+.ai-factory/
+
+# Never copy secrets into an image
+.env
+.env.*

@@ -11,14 +11,19 @@ http:
       rule: "Host(`api.edutrack.localhost`) || PathPrefix(`/api`)"
       entryPoints: ["websecure"]
       service: backend
+      tls: true  # dev: Traefik default self-signed; prod: letsencrypt resolver
       middlewares:
         - rate-limit
         - security-headers
+        - circuit-breaker
 
     spa:
+      # dev: Vite dev server (5173). prod: backend Go-embed SPA handler —
+      # replace service with `spa-embed` (weighted blue-green post-MVP).
       rule: "Host(`edutrack.localhost`)"
       entryPoints: ["websecure"]
       service: frontend
+      tls: true
       middlewares:
         - security-headers
 
@@ -43,12 +48,25 @@ http:
         servers:
           - url: http://frontend:5173
 
+    # Production: SPA served by the Go-embed handler inside the backend binary
+    # (single artifact, ADR-DES.INFRA.modular-monolith-approach §7-8):
+    # spa-embed:
+    #   loadBalancer:
+    #     servers:
+    #       - url: http://backend:8080
+
   middlewares:
     rate-limit:
       rateLimit:
         average: 100
         burst: 50
         period: 1s
+
+    circuit-breaker:
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.5 || LatencyAtQuantileMS(50.0) > 2000"
+        fallbackDuration: 30s
+        recoveryDuration: 60s
 
     security-headers:
       headers:

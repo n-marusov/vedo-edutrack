@@ -1,0 +1,26 @@
+# Root build-context hygiene for frontend Dockerfiles (frontend/Dockerfile.*)
+# — their build context is the repository root (pnpm workspace lockfile).
+# backend/Dockerfile uses context backend/ and its own backend/.dockerignore.
+
+# Workspace / tooling
+node_modules/
+.pnpm-store/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+*.tsbuildinfo
+
+# Backend artifacts (never needed in a frontend image)
+backend/tmp/
+backend/bin/
+backend/coverage.out
+
+# VCS / agent tooling
+.git/
+.agents/
+.ai-factory/
+
+# Logs / secrets
+*.log
+.env
+.env.*

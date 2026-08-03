@@ -16,7 +16,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:8080",
+        // Containerized dev (docker-compose): the frontend container reaches
+        // the backend via the service name; local dev keeps localhost.
+        target: process.env.VITE_PROXY_TARGET ?? "http://localhost:8080",
         changeOrigin: true,
       },
     },

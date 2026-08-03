@@ -17,6 +17,19 @@ entryPoints:
   websecure:
     address: ":443"
 
+# TLS certificates: Let's Encrypt (staging by default for dev, production
+# endpoint in CI/production — override via ACME_CASERVER). Localhost dev uses
+# Traefik's default self-signed certificate (routers declare tls: true).
+# See ADR-IMPL.PROCESS.development-tooling §8.
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: ${ACME_EMAIL:-admin@edutrack.local}
+      storage: /etc/traefik/acme.json
+      caServer: ${ACME_CASERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}
+      httpChallenge:
+        entryPoint: web
+
 providers:
   docker:
     exposedByDefault: false
@@ -40,3 +53,6 @@ metrics:
   prometheus:
     addEntryPointsLabels: true
     addServicesLabels: true
+
+# Blue-green deployment is a post-MVP weighted-services setup (see dynamic.yml
+# comments); no additional static config is needed for it.
