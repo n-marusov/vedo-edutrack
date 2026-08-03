@@ -16,7 +16,8 @@
     "incremental": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "noEmit": true
   },
   "include": ["src", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]

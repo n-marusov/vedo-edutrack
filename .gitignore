@@ -31,6 +31,8 @@ Thumbs.db
 
 # ===== Go (будущий бэкенд) =====
 /bin/
+**/bin/
+backend/tmp/
 *.exe
 *.test
 coverage.out

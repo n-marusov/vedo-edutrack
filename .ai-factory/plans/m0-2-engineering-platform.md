@@ -27,7 +27,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 - [x] T8: Container strategy documentation (deploy/README.md)
 
 ### Phase 3: Build Automation
-- [ ] T9: Makefile (up / down / dev / build / test / lint / migrate / hooks / ci)
+- [x] T9: Makefile (up / down / dev / build / test / lint / migrate / hooks / ci)
 
 ### Phase 4: Development Tooling
 - [ ] T10: Pre-commit hooks + Go lint config + Go hot-reload
@@ -266,7 +266,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
 ### Phase 3: Build Automation
 
-- [ ] **T9: Makefile (up / down / dev / build / test / lint / migrate / hooks / ci)**
+- [x] **T9: Makefile (up / down / dev / build / test / lint / migrate / hooks / ci)**
 
   Create `Makefile` at repository root — single entry point for all workflows (ADR-IMPL.PROCESS.development-tooling.md §11):
 
