@@ -1,11 +1,11 @@
 # Project Roadmap
 
-> VEDO EduTrack — an educational route service on top of VEDO Hub that builds personalized, cross-subject learning paths from a shared knowledge ontology.
+> VEDO EduTrack — an educational route service on top of VEDO Hub that builds personalized, cross-subject learning paths from a shared knowledge ontology. Current focus: family education demo («Дай пять»), single Go binary with embedded SPA.
 
 ## Current Focus
 
-**Now:** Phase I — MVP (M1: Core Infrastructure ✅, M2: Family Education ✅ code-complete 2026-08-03)
-**Next milestone:** M3: Corporate Onboarding Pilot
+**Now:** Phase I — Family Education MVP (M1: Core Infrastructure ✅, M2: Family Education ✅ code-complete 2026-08-03)
+**Next milestone:** M4: Integration & Webhook Layer
 **Blocking decision:** None — stack, architecture, repository structure, and M1/M2 core infrastructure fixed
 **External blocker:** Starter ontology readiness in VEDO Hub for M5 enrichment validation
 
@@ -13,7 +13,7 @@
 
 | Total | Completed | Current | Next |
 |-------|-----------|---------|------|
-| 14 | 6 (M0.0, M0.1, M0.2, M0.3, M1, M2) | Phase I: MVP in progress | M3: Corporate Onboarding Pilot |
+| 10 | 6 (M0.0, M0.1, M0.2, M0.3, M1, M2) | Phase I: Family Education MVP in progress | M4: Integration & Webhook Layer |
 
 ## External Dependencies
 
@@ -25,7 +25,6 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
 | VEDO Hub REST API and MCP server | M1, M4, M5, M6 | Stable read APIs for modules, links, FGOS bindings, resources, stories, pedagogy concepts; MCP access for AI agents; documented auth and versioning behavior |
 | VEDO Hub SPARQL/Cypher endpoint | M1, M4, M6 | Read-only query access suitable for route computation and partner integrations |
 | VEDO Hub fork/merge/community mechanics | M6, M8 | Public ontology fork flow, contribution review, semantic diff/merge, contributor profiles; EduTrack consumes these capabilities but does not implement ontology authoring |
-| Enterprise identity provider / customer LMS access | M3, M6, M7, M9 | Testable SSO/SAML and LMS integration environments for corporate pilots |
 
 ## Milestones
 
@@ -99,9 +98,9 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
 
 ---
 
-### Phase I — MVP
+### Phase I — Family Education MVP
 
-> Core product: route engine, visualization, family education app, corporate onboarding pilot, and integration layer.
+> Core product: shared backend (API, route engine, plan execution, gap diagnosis) + family education demo frontend («Дай пять») served from a single Go binary with embedded SPA.
 
 - [x] **M1: Core Infrastructure (F0 + F1 + F2 + F3 + F6)** ✅ completed 2026-08-03
   Replace scaffold stubs with real MVP infrastructure for reading VEDO Hub ontology data, computing routes, tracking plans/progress, diagnosing gaps, and exposing initial APIs.
@@ -136,22 +135,8 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   **Dependencies:** M1. External: starter ontology in VEDO Hub (deferred to M5 enrichment validation, per M1 precedent).
   **Business goals:** G1, G3, G4.
 
-- [ ] **M3: Corporate Onboarding Pilot — «Вектор Компетенций»**
-  Validate the corporate onboarding application using the shared route, plan, framework-coverage, and dashboard mechanics.
-
-  **Exit criteria:**
-  - Personalized onboarding route combines professional skills, domain context, corporate values, internal services, and socialization steps.
-  - Basic HR/corporate dashboard shows onboarding progress and readiness.
-  - Time-to-productivity metric is captured and reportable.
-  - Pilot integration path exists for HR/LMS systems through REST APIs and webhooks.
-  - One pilot company can run a controlled onboarding scenario.
-
-  **Success metrics:** target time to productivity is 2 weeks instead of 4 weeks.
-  **Dependencies:** M1, M4 partial integration capabilities.
-  **Business goals:** G6.
-
 - [ ] **M4: Integration & Webhook Layer (F6)**
-  Establish the MVP integration surface for partners, pilots, and AI agents without duplicating VEDO Hub ontology-management responsibilities.
+  Establish the MVP integration surface for partners and AI agents without duplicating VEDO Hub ontology-management responsibilities.
 
   **Exit criteria:**
   - Production-ready REST API contracts are documented for MVP route, progress, coverage, and integration flows.
@@ -164,11 +149,13 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   **Dependencies:** M1.
   **Business goals:** G2, G5.
 
-**Network plan:** M1 → M2, M3, M4. M4 partially blocks M3 HR/LMS integration. M2–M4 can proceed in parallel after M1.
+**Network plan:** M1 → M2, M4. M2 and M4 can proceed in parallel after M1.
 
 ---
 
-### Phase II — Enrichment & B2B
+### Phase II — Product Enrichment
+
+> Deeper routes, all 5 link types, pedagogy-aware routing, richer forecasts, expanded content. Consumes enriched ontology from VEDO Hub.
 
 - [ ] **M5: Route Enrichment from Extended Hub Ontology**
   Upgrade EduTrack route, resource, forecast, and motivation mechanics by consuming richer ontology data from VEDO Hub.
@@ -186,6 +173,12 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   **Dependencies:** M1, M2, relevant enriched ontology fields/events from VEDO Hub.
   **Business goals:** G1, G3, G4.
 
+---
+
+### Phase III — Ecosystem
+
+> EdTech partner onboarding and community network effect — grow the platform by enabling external consumption of EduTrack's route/progress/coverage mechanics through VEDO Hub's public ontology.
+
 - [ ] **M6: EdTech Platform Integration**
   Mature the integration experience for EdTech platforms and LMS partners beyond the MVP API foundation.
 
@@ -200,24 +193,6 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   **Success metrics:** 20+ platforms use the public ontology/integration flow.
   **Dependencies:** M4, VEDO Hub fork/community mechanics.
   **Business goals:** G2.
-
----
-
-### Phase III — Verticals & Community
-
-- [ ] **M7: Corporate Application & Compliance**
-  Expand the corporate contour from onboarding pilot to full competency, career-track, compliance, and ROI analytics use cases.
-
-  **Exit criteria:**
-  - Career tracks compute gaps from current position to target role.
-  - Regulatory requirements bind to modules and real work scenarios.
-  - Corporate dashboard covers onboarding funnel, time-to-productivity by department, compliance coverage, and ROI analytics.
-  - System supports 50+ employees on simultaneous onboarding under control.
-  - Enterprise reporting demonstrates target ROI model.
-
-  **Success metrics:** 50+ simultaneous onboarding employees; ROI target 16:1.
-  **Dependencies:** M3, M4, M6.
-  **Business goals:** G4, G6.
 
 - [ ] **M8: Community Consumption & Network Effect**
   Surface the value of the VEDO Hub contributor ecosystem through EduTrack routes, dashboards, and partner flows while leaving ontology authoring and merge mechanics in Hub.
@@ -235,21 +210,9 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
 
 ---
 
-### Phase IV — Enterprise & Scale
+### Phase IV — Global Readiness
 
-- [ ] **M9: Enterprise Deployment & Compliance**
-  Support private enterprise deployments and regulated corporate environments.
-
-  **Exit criteria:**
-  - On-premise/private-cloud deployment model is documented and validated with VEDO Hub Enterprise.
-  - Dedicated API endpoints and SLA model are available for enterprise customers.
-  - SAP SuccessFactors integration is supported.
-  - Private corporate ontology isolation works through VEDO Hub Enterprise boundaries.
-  - Static assets served from S3-compatible storage as fallback when SPA is not embedded in the single binary (optional enterprise contour).
-  - Predictive analytics cover deficit forecasting and churn-risk scenarios where data is available.
-
-  **Dependencies:** M7, M8, enterprise deployment requirements.
-  **Business goals:** G5, G6.
+> Multilingual support and international expansion foundation.
 
 - [ ] **M10: Multilingual & Global Readiness**
   Prepare EduTrack for multilingual ontology consumption, localized UI, and international expansion.
@@ -270,16 +233,17 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
 ```text
 M0.0 → M0.1 → M0.2 → M0.3 → M1
                                   ├─→ M2 ─→ M5
-                                  ├─→ M4 ─→ M6 ─→ M8 ─→ M10
-                                  └─→ M3 ─→ M7 ─→ M9
+                                  └─→ M4 ─→ M6 ─→ M8 ─→ M10
 ```
 
 - Phase 0 is strictly sequential because requirements, architecture, platform, and scaffold depend on one another.
-- M1 is the MVP technical pivot: product, visualization, corporate pilot, and integrations all depend on real route/plan/gap mechanics.
+- M1 is the MVP technical pivot: product, visualization, and integrations all depend on real route/plan/gap mechanics.
 - M2 (Community family education) is complete at code level (2026-08-03); its enrichment path into M5 activates once the VEDO Hub starter ontology is ready.
-- M4 can run in parallel with M2 and M3 after M1, but M3 needs partial M4 capabilities for HR/LMS integration.
+- M4 can run in parallel with M2 after M1; M2 is done, M4 is the clear next.
 - M5 enriches the Community product after the MVP route/visualization loop is validated.
-- M6 matures partner integration after the API foundation is stable.
+- M6 matures partner integration after the API foundation (M4) is stable.
+- M8 builds on partner integration and Hub community mechanics.
+- M10 is the final horizon — localization once the ecosystem is mature.
 
 ---
 
@@ -292,8 +256,7 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 | Technology stack remains TBD too long | Blocks M0.2/M0.3 | Complete stack ADR during M0.1 before platform work starts |
 | EduTrack duplicates Hub responsibilities | Product boundary drift and implementation waste | Maintain explicit Hub/EduTrack responsibility matrix in architecture docs and API contracts |
 | EdTech partners hesitate to share ontology contributions | Slower network effect | Preserve private forks and content ownership; expose clear value of public contribution through Hub mechanics |
-| Enterprise pilots require long integration cycles | Delays corporate validation | Keep M3 pilot scope narrow and use M4 integration sandbox/webhooks to reduce setup cost |
-| Forecast accuracy cannot be proven early | Risk to G1/G4/G6 metrics | Start with binary forecast in MVP, collect data, then upgrade to risk-level forecast in M5 |
+| Forecast accuracy cannot be proven early | Risk to G1/G4 metrics | Start with binary forecast in MVP, collect data, then upgrade to risk-level forecast in M5 |
 
 ---
 
@@ -320,13 +283,10 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 | M0.3: Runnable Product Scaffold | Engineering enabler for all business goals |
 | M1: Core Infrastructure | G1, G3 |
 | M2: Family Education | G1, G3, G4 |
-| M3: Corporate Onboarding Pilot | G6 |
 | M4: Integration & Webhook Layer | G2, G5 |
 | M5: Route Enrichment from Extended Hub Ontology | G1, G3, G4 |
 | M6: EdTech Platform Integration | G2 |
-| M7: Corporate Application & Compliance | G4, G6 |
 | M8: Community Consumption & Network Effect | G5 |
-| M9: Enterprise Deployment & Compliance | G5, G6 |
 | M10: Multilingual & Global Readiness | G5 |
 
 ## Milestone ↔ Feature Areas Traceability
@@ -339,11 +299,8 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 | M0.3 | App/API scaffold, auth shell, ontology stub, route stub, SPA embed unification, OTel tracing, multi-arch builds |
 | M1 | F0, F1, F2, F3, F6 |
 | M2 | F2, F4, F5 |
-| M3 | F1, F2, F4, F6 for corporate onboarding pilot |
 | M4 | F6 |
 | M5 | F0, F1, F2, F3, F5 |
 | M6 | F6 |
-| M7 | F1, F2, F4, F6 for corporate/compliance scenarios |
 | M8 | F6 plus community-enriched ontology consumption |
-| M9 | F6, enterprise deployment, compliance analytics |
 | M10 | Localization, multilingual ontology consumption |
