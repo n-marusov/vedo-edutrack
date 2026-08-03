@@ -3,6 +3,12 @@ node_modules/
 .pnpm-store/
 *.tsbuildinfo
 
+# pnpm-lock.yaml и pnpm-workspace.yaml живут ТОЛЬКО в корне воркспейса;
+# случайные копии в подпапках (напр. от pnpm/npm в контейнере) игнорируем.
+frontend/pnpm-lock.yaml
+frontend/pnpm-workspace.yaml
+frontend/package-lock.json
+
 # ===== Временные вспомогательные файлы (agent tooling) =====
 .tmp-*
 .tmp-*/
