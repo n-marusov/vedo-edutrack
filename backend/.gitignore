@@ -1,0 +1,6 @@
+# Generated SPA embed (copied from frontend/dist by `make build-frontend`)
+internal/platform/spa/frontend/dist/
+
+# Local build artifacts
+bin/
+tmp/

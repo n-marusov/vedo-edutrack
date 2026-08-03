@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"fmt"
@@ -7,15 +7,27 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/spf13/cobra"
 )
 
-// checkHealth implements the `health` subcommand — a self-contained liveness
-// probe used by the container HEALTHCHECK (distroless images have no curl/wget):
+// newHealthCmd builds the `health` subcommand — a self-contained liveness
+// probe for the container HEALTHCHECK (distroless images have no curl/wget).
+// It GETs http://127.0.0.1:<PORT>/healthz and exits 0 on HTTP 200, 1 otherwise.
+func newHealthCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "health",
+		Short: "Self liveness probe (container HEALTHCHECK)",
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return runHealthProbe()
+		},
+	}
+}
+
+// runHealthProbe implements the `health` subcommand body.
 //
 //	HEALTHCHECK CMD ["/usr/local/bin/vedo-edutrack", "health"]
-//
-// It GETs http://127.0.0.1:<PORT>/healthz and exits 0 on HTTP 200, 1 otherwise.
-func checkHealth() error {
+func runHealthProbe() error {
 	port := 8080
 	if raw := os.Getenv("PORT"); raw != "" {
 		if p, err := strconv.Atoi(raw); err == nil {

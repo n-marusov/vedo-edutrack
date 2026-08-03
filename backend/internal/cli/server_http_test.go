@@ -1,10 +1,9 @@
-package main
+package cli
 
 import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -17,11 +16,11 @@ func TestHealthzLiveness(t *testing.T) {
 	t.Cleanup(func() { config.Version = oldVersion })
 
 	cfg := &config.Config{Port: 8080, Environment: "test"}
-	mux := newHealthMux(cfg)
+	r := newRouter(cfg, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, req)
+	r.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("healthz status = %d, want 200", rec.Code)
@@ -46,12 +45,12 @@ func TestHealthzLiveness(t *testing.T) {
 
 func TestReadyzDatabaseDown(t *testing.T) {
 	// Port 1: dial fails fast → readiness must report degraded/503.
-	cfg := &config.Config{DatabaseURL: "postgres://u:p@127.0.0.1:1/db?sslmode=disable"}
-	mux := newHealthMux(cfg)
+	cfg := &config.Config{DatabaseURL: "postgres://u:p@127.0.0.1:1/db?sslmode=disable", JWKSURL: "http://127.0.0.1:1/.well-known/jwks.json"}
+	r := newRouter(cfg, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, req)
+	r.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusServiceUnavailable {
 		t.Fatalf("readyz status = %d, want 503", rec.Code)
@@ -64,6 +63,9 @@ func TestReadyzDatabaseDown(t *testing.T) {
 	if body.Checks["database"] != "down" {
 		t.Errorf("readyz database check = %q, want down", body.Checks["database"])
 	}
+	if body.Checks["identity_provider"] != "down" {
+		t.Errorf("readyz identity_provider check = %q, want down", body.Checks["identity_provider"])
+	}
 }
 
 func TestReadyzDatabaseUp(t *testing.T) {
@@ -72,13 +74,15 @@ func TestReadyzDatabaseUp(t *testing.T) {
 	defer ts.Close()
 
 	host := strings.TrimPrefix(ts.URL, "http://")
-	u := url.URL{Scheme: "postgres", User: url.UserPassword("u", "p"), Host: host, Path: "/db"}
-	cfg := &config.Config{DatabaseURL: u.String()}
-	mux := newHealthMux(cfg)
+	cfg := &config.Config{
+		DatabaseURL: "postgres://u:p@" + host + "/db?sslmode=disable",
+		JWKSURL:     "http://" + host + "/.well-known/jwks.json",
+	}
+	r := newRouter(cfg, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, req)
+	r.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("readyz status = %d, want 200", rec.Code)
@@ -90,5 +94,24 @@ func TestReadyzDatabaseUp(t *testing.T) {
 	}
 	if body.Checks["database"] != "up" {
 		t.Errorf("readyz database check = %q, want up", body.Checks["database"])
+	}
+	if body.Checks["identity_provider"] != "up" {
+		t.Errorf("readyz identity_provider check = %q, want up", body.Checks["identity_provider"])
+	}
+}
+
+func TestMetricsEndpoint(t *testing.T) {
+	cfg := &config.Config{Port: 8080, Environment: "test"}
+	r := newRouter(cfg, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("metrics status = %d, want 200", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "go_gc_duration_seconds") {
+		t.Error("metrics body missing prometheus default collectors output")
 	}
 }
