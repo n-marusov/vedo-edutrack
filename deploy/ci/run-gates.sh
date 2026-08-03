@@ -298,7 +298,9 @@ if [[ "$OUT_FORMAT" == "list" ]]; then
   echo "Gates selected for --tier $TIER --trigger $TRIGGER (phase <= $CUR_PHASE):"
   for rec in "${SELECTED[@]:-}"; do
     IFS='|' read -r id cmd tier phase sev grp trig needs tool runner nfr <<< "$rec"
-    printf '  %-24s %-10s phase=%-6s %-8s %s\n' "$id" "$tier" "$phase" "$sev" "$( [[ -n "$tool" ]] && echo "tool=$tool" || echo "group=$grp" )"
+    printf '  %-24s %-10s phase=%-6s %-8s group=%-12s' "$id" "$tier" "$phase" "$sev" "$grp"
+    [[ -n "$tool" ]] && printf ' tool=%s' "$tool"
+    printf '\n'
   done
   exit 0
 fi
