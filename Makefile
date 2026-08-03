@@ -53,7 +53,7 @@ define verdict
 	bash scripts/verdict.sh "$(1)" $(2)
 endef
 
-.PHONY: help up down dev build test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json clean
+.PHONY: help up down dev build test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-frontend docker-build-all clean
 
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
@@ -219,6 +219,38 @@ ci: ## Full local CI run (mirrors GitHub Actions; delegates to the gate runner, 
 		exit 1; \
 	fi
 
+##@ Docker — Production images
+
+docker-build: docker-build-backend docker-build-frontend-embed ## Build production images (backend + embed frontend)
+	@$(call verdict,PASS,"production images built ($(VERSION))")
+
+docker-build-all: docker-build-backend docker-build-frontend-embed docker-build-frontend-nginx ## Build all production images
+
+docker-build-backend: ## Build production backend image (distroless, ~3 MB)
+	@$(call header,docker-build: backend ($(VERSION)))
+	@DOCKER_BUILDKIT=1 docker build \
+		--build-arg VERSION=$(VERSION) \
+		-t vedo-edutrack:$(VERSION) \
+		-f backend/Dockerfile backend/
+	@$(call verdict,PASS,"backend image ($(VERSION))")
+
+docker-build-frontend-embed: ## Build production frontend image (Go embed, single binary)
+	@$(call header,docker-build: frontend-embed ($(VERSION)))
+	@DOCKER_BUILDKIT=1 docker build \
+		--build-arg VERSION=$(VERSION) \
+		-t vedo-edutrack-embed:$(VERSION) \
+		-f frontend/Dockerfile.embed .
+	@$(call verdict,PASS,"frontend-embed image ($(VERSION))")
+
+docker-build-frontend-nginx: ## Build production frontend image (nginx, SaaS/CDN)
+	@$(call header,docker-build: frontend-nginx ($(VERSION)))
+	@DOCKER_BUILDKIT=1 docker build \
+		--build-arg VERSION=$(VERSION) \
+		-t vedo-edutrack-nginx:$(VERSION) \
+		-f frontend/Dockerfile.nginx .
+	@$(call verdict,PASS,"frontend-nginx image ($(VERSION))")
+
+clean:
 ##@ Gates (quality gates, T16)
 
 gates: ## Run all delivery gates
