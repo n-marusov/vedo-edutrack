@@ -1,0 +1,11 @@
+{
+  "name": "vedo-edutrack",
+  "groups": [
+    "vedo"
+  ],
+  "share": [
+    "package.json",
+    "Makefile",
+    "README.md"
+  ]
+}
