@@ -113,7 +113,8 @@ vedo-edutrack/
 
 | Document | Path | Description |
 |----------|------|-------------|
-| Product vision | `vision.md` | Business requirements, scope, MVP, roadmap (Russian) |
+| README | `README.md` | Project landing page: what it is, why not an LMS, getting started, make targets (English) |
+| Product vision | `specs/vision.md` | Business requirements, scope, MVP, roadmap (Russian) |
 | Requirements | `specs/requirements/` | FR + NFR requirements with measurable acceptance criteria, README with conventions (Russian) |
 | Use cases | `specs/use-cases/` | 42 UC covering route building, execution, viz, auth, API integration (Russian) |
 | User stories | `specs/user-stories/` | 47 US in Gherkin with @UC/@FR tags (Russian) |
