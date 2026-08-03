@@ -1,0 +1,188 @@
+# GitHub Actions CI — VEDO EduTrack (M0.2, T12)
+#
+# Thin wrapper pipeline: every job delegates the actual commands to the
+# unified gate runner (deploy/ci/run-gates.sh) which reads the single
+# source of truth deploy/ci/gates.yaml. This YAML stays a skeleton —
+# no command duplication (see ADR-IMPL.PROCESS.development-tooling §7).
+#
+# Pipeline: lint → typecheck → test (Postgres service) → coverage → security
+#           → build (GHCR push on main). Deferred: mutation (m1), smoke (post-MVP).
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+
+jobs:
+  lint:
+    name: Lint (backend + frontend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+      - uses: pnpm/action-setup@v4 # version read from packageManager (pnpm 11)
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64
+          args: --out-format=github-actions ./...
+      - name: Run lint gates
+        run: bash deploy/ci/run-gates.sh --trigger ci --group lint --out-format json
+
+  typecheck:
+    name: Typecheck (frontend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run typecheck gates
+        run: bash deploy/ci/run-gates.sh --trigger ci --group typecheck --out-format json
+
+  test:
+    name: Test (unit + integration + e2e)
+    needs: [lint, typecheck]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: edutrack
+          POSTGRES_PASSWORD: edutrack
+          POSTGRES_DB: edutrack
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U edutrack"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright (tests/e2e/gui)
+        run: |
+          cd tests/e2e/gui
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Run test gates
+        run: bash deploy/ci/run-gates.sh --trigger ci --group test --out-format json
+      - name: Upload Playwright report (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/e2e/gui/playwright-report/
+          retention-days: 7
+
+  coverage:
+    name: Coverage gate
+    needs: [test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run coverage gates
+        run: bash deploy/ci/run-gates.sh --trigger ci --group coverage --out-format json
+
+  security:
+    name: Security (SAST + SBOM + secret scan + audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+      - name: Install gitleaks
+        run: go install github.com/gitleaks/gitleaks/v8@latest
+      - name: Run security gates
+        env:
+          PATH: ${{ github.workspace }}/bin:$PATH
+        run: bash deploy/ci/run-gates.sh --trigger ci --group security --out-format json
+
+  build:
+    name: Build + push images
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run build gates
+        run: bash deploy/ci/run-gates.sh --trigger ci --group build --out-format json
+      - name: Log in to GHCR (main only)
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push images to GHCR (main only)
+        if: github.ref == 'refs/heads/main'
+        env:
+          REGISTRY: ghcr.io
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: bash deploy/ci/run-gates.sh --trigger ci-main --group build --out-format json

@@ -34,7 +34,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 - [x] T11: Frontend lint/formatter config (Biome, TypeScript)
 
 ### Phase 5: CI Pipeline
-- [ ] T12: GitHub Actions CI workflow
+- [x] T12: GitHub Actions CI workflow
 
 ### Phase 6: Test Scaffolds
 - [ ] T13: Backend unit/integration test scaffolds (placeholder, red)
@@ -367,7 +367,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
 ### Phase 5: CI Pipeline
 
-- [ ] **T12: GitHub Actions CI workflow**
+- [x] **T12: GitHub Actions CI workflow**
 
   Create `.github/workflows/ci.yml` — complete CI pipeline (ADR-IMPL.PROCESS.development-tooling.md §7):
 
