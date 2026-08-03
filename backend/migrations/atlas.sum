@@ -1,1 +1,5 @@
 000001_identity_access_init.sql h1:LtUUqqhSvytV5p9JDKTOoSMdHh6vRBkem0O/dvg2Dnc=
+000002_planmanagement_init.sql h1:FzQYSD9ylnPIj2AHzEJnQMV/HUZ0c1bBZBlDs9j2oYU=
+000003_executionprogress_init.sql h1:vBMrG9uOfIp+CLraRYztNsZHWsQxhKpqvk0eBqWUdR0=
+000004_gapcoverage_init.sql h1:RhOe648DG3S3M3R1pRAcSx7Zonqe1nF161T05n8PLCM=
+000005_resources_init.sql h1:6bRSz/46KeE4eRcHgcuyAuAxsqw7VGOLeaNn1DswSEE=
