@@ -15,6 +15,7 @@ C4Container
     %% ===== Система EduTrack =====
     System_Boundary(edutrack, "VEDO EduTrack") {
 
+        Container(traefik, "Traefik", "Reverse proxy (edge)", "Единая точка входа: TLS-терминация (Let's Encrypt), маршрутизация edutrack.localhost → SPA и api.edutrack.localhost → API, rate limiting, security headers (CSP/HSTS), circuit breaker. Dev/SaaS — docker-compose + deploy/traefik")
         Container(webApp, "Веб-приложение", "SPA (браузер)", "Пользовательский интерфейс: карта знаний, дашборды, конструктор маршрутов, панель группы. Тонкий клиент — только отображение и ввод")
         Container(apiServer, "API-сервер (модульный монолит)", "Стек TBD (T3); DI, модульность, async-события", "Все 10 bounded contexts как модули Clean Architecture: маршруты, планы, исполнение, лакуны/покрытие, ресурсы, практика, визуализация (read-модели), порт онтологии, identity, интеграции. In-process событийная шина + outbox. REST / SPARQL / webhooks / MCP")
         ContainerDb(postgres, "PostgreSQL", "БД", "Данные EduTrack: ученики, планы, прогресс, лакуны, покрытие (НЕ онтологии). Изоляция контуров схемами/tenant")
@@ -28,11 +29,13 @@ C4Container
     System_Ext(aiAgents, "AI-агенты", "Внешние AI-сервисы")
 
     %% ===== Связи =====
-    Rel(user, webApp, "Использует", "HTTPS")
-    Rel(webApp, apiServer, "REST / WebSocket", "JSON/HTTPS")
+    Rel(user, traefik, "Использует", "HTTPS")
+    Rel(traefik, webApp, "Отдаёт SPA (edutrack.localhost)", "HTTP")
+    Rel(traefik, apiServer, "Маршрутизирует API (api.edutrack.localhost, /api)", "HTTP")
+    Rel(webApp, apiServer, "REST / WebSocket (логический контракт)", "JSON/HTTPS")
     Rel(edtechCto, edtechPlatform, "Интегрирует")
-    Rel(edtechPlatform, apiServer, "Вызовы REST API / SPARQL", "JSON/HTTPS")
-    Rel(aiAgents, apiServer, "MCP", "JSON-RPC")
+    Rel(edtechPlatform, traefik, "Вызовы REST API / SPARQL", "HTTPS")
+    Rel(aiAgents, traefik, "MCP", "HTTPS/SSE")
 
     Rel(apiServer, postgres, "Читает и пишет", "SQL")
     Rel(apiServer, hub, "Читает онтологию, копирует подграф (F0.2)", "REST / MCP / SPARQL (read-only)")
@@ -45,6 +48,7 @@ C4Container
 
 | Контейнер | Тип | Описание |
 |-----------|-----|----------|
+| **Traefik** | Reverse proxy (edge) | Единая точка входа трафика в EduTrack (SaaS/staging): TLS-терминация (Let's Encrypt), маршрутизация SPA и API, rate limiting, security headers (CSP/HSTS), circuit breaker. Конфигурация — `deploy/traefik/` (T7), контейнер — `deploy/docker-compose.yml` (T6). Enterprise on-prem контур может обходиться без него (единый бинарник с embedded SPA). |
 | **Веб-приложение** | SPA (браузер) | Тонкий клиент: рендерит карту знаний (F4), дашборды, конструктор маршрутов, панель группы. Не содержит алгоритмов ядра — только отображение и ввод (согласуется с `REQ-NFR-infra.compliance.client-server-web-app`). |
 | **API-сервер (модульный монолит)** | Приложение | Ядро системы по ADR модульного монолита: 10 ограниченных контекстов как модули Clean Architecture внутри одного процесса. In-process событийная шина для каскадов (`ModuleMastered → RouteRecalculated → …`), outbox для внешних webhook. Детерминированное ядро (F1/F2) — чистые функции. Стек — TBD (T3), но стиль требует DI, модульность, async-события. |
 | **PostgreSQL** | База данных | Хранит **только данные EduTrack** (ученики, планы, прогресс, покрытие) — не онтологии (они в VEDO Hub). Изоляция контуров Community/Enterprise — схемами/tenant. Единственный компонент хранения в MVP: кэш read-моделей (проекционные таблицы), кэш подграфа (in-memory), outbox-таблица и rate limiting закрываются PostgreSQL + in-memory кэш Go-процесса. |
@@ -68,28 +72,33 @@ C4Container
 
 Диаграмма построена для сценария «инженерный baseline (M0.1)» — фиксирует контейнеры до выбора стека (T3) и инженерной платформы (M0.2). Отражает ADR модульного монолита: движки маршрутов/исполнения/ресурсов — **модули одного контейнера**, а не отдельные сервисы; **хранилище маршрутов отсутствует** (маршрут вычисляется на лету и кэшируется in-memory — подграф онтологии иммутабелен по `ontologyVersion`, поэтому распределённый кэш не нужен).
 
+**Обновление M0.2 (Engineering Platform):** добавлен контейнер **Traefik** как edge reverse-proxy — решение зафиксировано в `deploy/docker-compose.yml` (T6), `deploy/traefik/` (T7) и container strategy (`deploy/README.md`, T8). Внешний трафик (пользователи, EdTech-платформа, AI-агенты) входит через Traefik; в dev-режиме (compose) браузер ходит напрямую на Vite (`frontend:5173`) и бэкенд (`backend:8080`), минуя edge.
+
 > **Redis — пост-MVP**: не входит в MVP-контейнеры (один компонент хранения — PostgreSQL). Добавляется по триггеру (кросс-нодовый WebSocket/SSE fan-out, распределённый rate limiting при 10× нагрузке, тяжёлый outbox-трафик) как адаптер за портами кэша/очереди — без изменения ядра.
 
 ## Контуры развёртывания
 
-Оба контура (Community SaaS / Enterprise on-prem) используют **одинаковый набор контейнеров** — отличаются конфигурацией и изоляцией:
+Оба контура (Community SaaS / Enterprise on-prem) используют **одинаковый набор прикладных контейнеров** (webApp, apiServer, PostgreSQL) — отличаются конфигурацией, изоляцией и edge-слоем:
 
 | Контур | Размещение | Изоляция данных | Отличия |
 |--------|-----------|-----------------|---------|
-| **Community** | Публичное облако (SaaS) | Tenant-схемы в том же PostgreSQL | Без IdP (пароль/соцсети), тиры Community/Pro |
-| **Enterprise** | on-premise / private cloud | Выделенный инстанс PostgreSQL | SSO/SAML через Keycloak, 152-ФЗ, изоляция полная |
+| **Community** | Публичное облако (SaaS) | Tenant-схемы в том же PostgreSQL | **Traefik-эдж** (TLS, rate limiting, security headers), без IdP (пароль/соцсети), тиры Community/Pro |
+| **Enterprise** | on-premise / private cloud | Выделенный инстанс PostgreSQL | SSO/SAML через Keycloak, 152-ФЗ, изоляция полная; **Traefik не обязателен** — единый бинарник (embedded SPA) отдаётся напрямую |
 
 ## Связи с функциями (vision.md)
 
 | Связь | Функции |
 |-------|---------|
+| Пользователь → Traefik (edge) | F1–F6 (весь пользовательский трафик через edge, HTTPS/TLS) |
+| Traefik → Веб-приложение | F4 (отдача SPA, edutrack.localhost) |
+| Traefik → API-сервер | F1–F6 (маршрутизация API, api.edutrack.localhost) |
 | Веб-приложение ↔ API-сервер | F1–F6 (весь пользовательский функционал через API) |
 | API-сервер → VEDO Hub (read-only) | F0.1, F0.2, F0.3 |
 | API-сервер → PostgreSQL | F2 (прогресс, планы, покрытие), F4 (read-модели), F6.4 (outbox) |
 | API-сервер → LMS | F6.3 |
 | API-сервер → IdP | F6.5 |
-| EdTech-платформа → API-сервер | F6.1, F6.2 |
-| AI-агенты → API-сервер | F6.6 |
+| EdTech-платформа → Traefik → API-сервер | F6.1, F6.2 |
+| AI-агенты → Traefik → API-сервер | F6.6 (MCP) |
 
 ## Связанные артефакты
 
@@ -98,3 +107,6 @@ C4Container
 - [Карта контекстов](../ddd/context-map.md) — bounded contexts ↔ модули
 - [ADR модульного монолита](../adr/ADR-DES.INFRA.modular-monolith-approach.md)
 - [Граница ответственности](../requirements/REQ-NFR-api.compliance.ownership-boundary.md) — EduTrack vs VEDO Hub (T10)
+- [Container strategy](../../deploy/README.md) — стратегия контейнеров и контуров развёртывания (M0.2, T8)
+- [Dev-стек](../../deploy/docker-compose.yml) — Traefik + backend + frontend + PostgreSQL + OTel (M0.2, T6)
+- [Конфигурация Traefik](../../deploy/traefik/traefik.yml) — TLS, маршруты, middlewares (M0.2, T7)
