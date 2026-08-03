@@ -8,6 +8,10 @@ node_modules/
 .tmp-*/
 .playwright-mcp/
 
+# ===== E2E (Playwright) =====
+playwright-report/
+test-results/
+
 # ===== Сборка / артефакты =====
 dist/
 build/

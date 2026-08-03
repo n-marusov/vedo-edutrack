@@ -37,9 +37,9 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 - [x] T12: GitHub Actions CI workflow
 
 ### Phase 6: Test Scaffolds
-- [ ] T13: Backend unit/integration test scaffolds (placeholder, red)
-- [ ] T14: Frontend test scaffolds (Vitest + RTL, placeholder, red)
-- [ ] T15: E2E test scaffold (Playwright, placeholder, red)
+- [x] T13: Backend unit/integration test scaffolds (placeholder, red)
+- [x] T14: Frontend test scaffolds (Vitest + RTL, placeholder, red)
+- [x] T15: E2E test scaffold (Playwright, placeholder, red)
 
 ### Phase 7: Gate Automation
 - [ ] T16: Unified gate manifest + two-tier runner
@@ -422,7 +422,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
 ### Phase 6: Test Scaffolds
 
-- [ ] **T13: Backend unit/integration test scaffolds (placeholder, red)**
+- [x] **T13: Backend unit/integration test scaffolds (placeholder, red)**
 
   Create intentionally failing (red) test scaffolds across backend modules, following ADR repository-structure §5 (test structure by layer):
 
@@ -448,7 +448,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.repository-structure.md §5; REQ-NFR-process.dev.test-coverage (core ≥ 90% target).
   **Logging:** INFO — `go test` output shows intentional failures with TODO messages.
 
-- [ ] **T14: Frontend test scaffolds (Vitest + RTL, placeholder, red)**
+- [x] **T14: Frontend test scaffolds (Vitest + RTL, placeholder, red)**
 
   Create intentionally failing test scaffolds for frontend (ADR repository-structure §3, ADR development-tooling §6):
 
@@ -476,7 +476,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.development-tooling.md §6; REQ-NFR-process.dev.test-coverage.
   **Logging:** INFO — vitest output shows intentional failure with TODO markers.
 
-- [ ] **T15: E2E test scaffold (Playwright, placeholder, red)**
+- [x] **T15: E2E test scaffold (Playwright, placeholder, red)**
 
   Create E2E test scaffold with intentionally failing test (M0.2 exit criterion: "E2E test scaffolds exist with intentionally red or placeholder tests where implementation is pending"):
 

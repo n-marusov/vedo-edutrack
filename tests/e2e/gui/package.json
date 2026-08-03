@@ -1,0 +1,17 @@
+{
+  "name": "@vedo-edutrack/e2e-gui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "VEDO EduTrack E2E GUI tests (Playwright, M1–M10 Must-scenarios). Not a workspace package — installed separately (see ADR-DES.STACK.e2e-testing-playwright-vs-cypress).",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
+    "install:browsers": "playwright install --with-deps"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^26.1.2"
+  }
+}
