@@ -1,53 +1,20 @@
 # syntax=docker/dockerfile:1
-# VEDO EduTrack SPA — Go embed variant (production, on-prem single artifact).
+# VEDO EduTrack SPA — Go embed variant.
 #
-# Build context: repository root (pnpm workspace lockfile lives at the root).
-#   docker build -f frontend/Dockerfile.embed .
+# NOTE: RETIRED as a standalone image (M0.3). The SPA embed mechanism now
+# lives inside the backend binary: backend/Dockerfile builds the SPA in a
+# node stage and embeds frontend/dist at
+# backend/internal/platform/spa/frontend/dist, producing ONE binary that
+# serves both API and SPA from one port.
 #
-# M0.2: standalone embed server (proves the mechanism).
-# M0.3: the embed server moves into the backend binary
-#   (backend/cmd/vedo-edutrack wires the SPA handler) — this Dockerfile then
-#   becomes the SPA build stage consumed by the backend image, and the final
-#   distroless stage is dropped.
-# See ADR-DES.INFRA.modular-monolith-approach and development-tooling §8.
-
-# --- Stage 1: build the SPA (Vite) ---
-FROM node:24-alpine AS spa-build
-WORKDIR /app
-# Workspace root files before frontend sources (cache-friendly layer).
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-COPY frontend/package.json ./frontend/package.json
-RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
-    corepack enable && pnpm install --frozen-lockfile
-COPY frontend/ ./frontend/
-RUN pnpm --filter @vedo-edutrack/frontend build
-
-# --- Stage 2: embed dist/ into a minimal Go server ---
-FROM golang:1.26-alpine AS embed-build
-WORKDIR /src
-# Go module files for dependency caching.
-COPY frontend/cmd/spa-embed/go.mod ./
-RUN go mod download
-# Go sources + pre-built SPA dist.
-COPY frontend/cmd/spa-embed/ ./
-COPY --from=spa-build /app/frontend/dist ./dist
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/spa-embed .
-
-# --- Stage 3: distroless static runtime ---
-FROM gcr.io/distroless/static-debian12:nonroot
-ARG VERSION=0.1.0
-ARG SOURCE=https://github.com/vedo-edutrack/vedo-edutrack
-LABEL org.opencontainers.image.title="vedo-edutrack-spa" \
-      org.opencontainers.image.description="VEDO EduTrack SPA (Go embed variant — M0.2; M0.3: embedded in the backend binary)" \
-      org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.source="${SOURCE}" \
-      org.opencontainers.image.licenses="MIT"
-COPY --from=embed-build /out/spa-embed /spa-embed
-USER nonroot:nonroot
-EXPOSE 8080
-# Liveness probe via the binary's own `health` subcommand (distroless runtime
-# has no shell/curl/wget).
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["/spa-embed", "health"]
-ENTRYPOINT ["/spa-embed"]
+# This file is kept as a documentation reference for the M0.2 embed approach
+# (standalone spa-embed server). It is NOT built by Makefile targets anymore;
+# the `docker-build-frontend-embed` target now builds the unified backend
+# image (see Makefile and deploy/README.md).
+#
+# The M0.2 stages (for reference):
+#   Stage 1: node:24-alpine — build the SPA (Vite/pnpm)
+#   Stage 2: golang:1.26-alpine — build the spa-embed Go server with dist/
+#   Stage 3: distroless static — runtime
+#
+# See ADR-DES.INFRA.modular-monolith-approach and deploy/README.md.

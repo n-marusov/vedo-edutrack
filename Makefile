@@ -30,6 +30,7 @@ GOFMT        ?= gofmt
 GOLANGCI_LINT ?= golangci-lint
 LEFTHOOK     ?= lefthook
 DOCKER       ?= docker
+GOBIN        ?= $(shell $(GO) env GOPATH)/bin
 
 # Shell selection. POSIX recipes require bash. On Windows, native GNU make
 # honours SHELL set to the Git-for-Windows bash path (forward slashes are
@@ -77,7 +78,7 @@ define verdict
 	bash scripts/verdict.sh "$(1)" $(2)
 endef
 
-.PHONY: help up down dev build test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-frontend-embed docker-build-frontend-nginx docker-build-all clean
+.PHONY: help up down dev build build-frontend test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-local docker-build-frontend-embed docker-build-frontend-nginx docker-build-all clean
 
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
@@ -121,14 +122,28 @@ dev: up ## Dev mode: stack up + hot-reload (air in backend container, Vite in fr
 	@$(call verdict,INFO,"frontend -> http://localhost:5173   (vite)")
 	@$(call verdict,INFO,"traefik  -> http://localhost:8082   (dashboard, dev only)")
 
-build: ## Production build check (Go binary + SPA)
+build: build-frontend ## Production build check (Go binary with embedded SPA)
 	@$(call header,build,"Go binary + SPA")
 	@(cd backend && $(GO) build -ldflags="-s -w -X vedo-edutrack/backend/internal/platform/config.Version=$(VERSION)" -o bin/vedo-edutrack ./cmd/vedo-edutrack); b=$$?; \
-	(cd frontend && VITE_APP_VERSION=$(VERSION) $(PNPM) build); f=$$?; \
-	if [ $$b -eq 0 ] && [ $$f -eq 0 ]; then \
-		$(call verdict,PASS,"backend binary + SPA build (version $(VERSION))"); \
+	if [ $$b -eq 0 ]; then \
+		$(call verdict,PASS,"backend binary with embedded SPA (version $(VERSION))"); \
 	else \
-		$(call verdict,FAIL,"build: backend=$$b frontend=$$f"); \
+		$(call verdict,FAIL,"backend build failed: $$b"); \
+		exit 1; \
+	fi
+
+build-frontend: ## Build the SPA and copy dist into the backend embed path
+	@$(call header,build,"frontend + embed")
+	@(cd frontend && VITE_APP_VERSION=$(VERSION) $(PNPM) build); f=$$?; \
+	if [ $$f -ne 0 ]; then \
+		$(call verdict,FAIL,"frontend build failed: $$f"); \
+		exit 1; \
+	fi; \
+	rm -rf backend/internal/platform/spa/frontend/dist && mkdir -p backend/internal/platform/spa/frontend && cp -r frontend/dist backend/internal/platform/spa/frontend/dist; c=$$?; \
+	if [ $$c -eq 0 ]; then \
+		$(call verdict,PASS,"SPA built and embedded ($(VERSION))"); \
+	else \
+		$(call verdict,FAIL,"embed copy failed: $$c"); \
 		exit 1; \
 	fi
 
@@ -180,9 +195,14 @@ format: ## Auto-format both ends
 		exit 1; \
 	fi
 
-gen: ## Regenerate code (OpenAPI + sqlc) — no-op until generators are wired (M0.3)
-	@$(call header,gen,"go generate")
-	@if (cd backend && $(GO) generate ./...); then \
+gen: ## Regenerate code (OpenAPI via oapi-codegen + future sqlc)
+	@$(call header,gen,"oapi-codegen")
+	@(cd backend && \
+	  OAPI=$$(command -v oapi-codegen || echo "$(GOBIN)/oapi-codegen"); \
+	  if [ ! -x "$$OAPI" ]; then echo "oapi-codegen not installed; run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1"; exit 1; fi; \
+	  $$OAPI -package api -generate types -o internal/api/types.gen.go api/openapi/v1.yaml; \
+	  $$OAPI -package api -generate chi-server -exclude-operation-ids issueToken -o internal/api/server.gen.go api/openapi/v1.yaml); g=$$?; \
+	if [ $$g -eq 0 ]; then \
 		$(call verdict,PASS,"generated code up to date"); \
 	else \
 		$(call verdict,FAIL,"code generation failed"); \
@@ -245,26 +265,31 @@ ci: ## Full local CI run (mirrors GitHub Actions; delegates to the gate runner, 
 
 ##@ Docker — Production images
 
-docker-build: docker-build-backend docker-build-frontend-embed ## Build production images (backend + embed frontend)
-	@$(call verdict,PASS,"production images built ($(VERSION))")
+docker-build: docker-build-backend ## Build production images (unified backend + SPA binary)
+	@$(call verdict,PASS,"production image built ($(VERSION))")
 
-docker-build-all: docker-build-backend docker-build-frontend-embed docker-build-frontend-nginx ## Build all production images (backend + embed + nginx)
+docker-build-all: docker-build-backend docker-build-frontend-nginx ## Build all production images (unified backend + nginx)
 
-docker-build-backend: ## Build production backend image (distroless, ~3 MB)
+docker-build-backend: ## Build the unified production image (API + embedded SPA, multi-arch)
 	@$(call header,docker,"backend $(VERSION)")
-	@DOCKER_BUILDKIT=1 $(DOCKER) build \
+	@DOCKER_BUILDKIT=1 $(DOCKER) buildx build \
+		--platform linux/amd64,linux/arm64 \
 		--build-arg VERSION=$(VERSION) \
 		-t vedo-edutrack:$(VERSION) \
-		-f backend/Dockerfile backend/
-	@$(call verdict,PASS,"backend image ($(VERSION))")
+		-f backend/Dockerfile .
+	@$(call verdict,PASS,"unified image built ($(VERSION), amd64+arm64)")
 
-docker-build-frontend-embed: ## Build production frontend image (Go embed, single binary)
-	@$(call header,docker,"frontend-embed $(VERSION)")
-	@DOCKER_BUILDKIT=1 $(DOCKER) build \
+docker-build-local: ## Build the unified image for the local arch (--load)
+	@$(call header,docker,"backend $(VERSION) (local)")
+	@DOCKER_BUILDKIT=1 $(DOCKER) buildx build \
 		--build-arg VERSION=$(VERSION) \
-		-t vedo-edutrack-embed:$(VERSION) \
-		-f frontend/Dockerfile.embed .
-	@$(call verdict,PASS,"frontend-embed image ($(VERSION))")
+		-t vedo-edutrack:$(VERSION) \
+		-f backend/Dockerfile .
+	@$(call verdict,PASS,"unified image built ($(VERSION), local arch)")
+
+docker-build-frontend-embed: ## (Retired M0.3) embed variant is part of the unified backend image
+	@$(call header,docker,"frontend-embed (retired)")
+	@$(call verdict,SKIP,"Dockerfile.embed retired — use docker-build-backend (unified image)")
 
 docker-build-frontend-nginx: ## Build production frontend image (nginx, SaaS/CDN)
 	@$(call header,docker,"frontend-nginx $(VERSION)")
