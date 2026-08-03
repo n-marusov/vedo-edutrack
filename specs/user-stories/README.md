@@ -27,6 +27,7 @@ US-<domain>.<subdomain>.<action>
 | `US-practice.*` | F5. Связь с практикой и жизнью | Истории и контекст к модулям, проектные идеи, рекомендации при освоении, карта качеств | `US-practice.stories.recommend` |
 | `US-api.*` | F6. Интеграции | REST API, SPARQL endpoint, коннекторы к LMS, webhooks, SSO/SAML, MCP-сервер | `US-api.rest.compute-route` |
 | `US-a11y.*` | — (сквозная) | Доступность: screen reader, keyboard-only навигация | `US-a11y.navigation.map-reader` |
+| `US-onboarding.*` | — (сквозная, публичная витрина) | Вход пользователя в продукт: посадочная страница, регистрация | `US-onboarding.landing.explore-value-proposition` |
 
 ## Формат описания
 

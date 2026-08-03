@@ -615,6 +615,9 @@ tr:function-F6-5 a tr:BusinessFunction ;
 tr:function-a11y a tr:BusinessFunction ;
   tr:hasArtifactId "a11y" .
 
+tr:function-onboarding a tr:BusinessFunction ;
+  tr:hasArtifactId "onboarding" .
+
 tr:uc-a11y-navigation-keyboard-route-builder a tr:UseCase ;
   tr:hasArtifactId "UC-a11y.navigation.keyboard-route-builder" ;
   tr:hasFilePath "specs/use-cases/UC-a11y.navigation.keyboard-route-builder.md" ;
@@ -908,6 +911,13 @@ tr:uc-viz-panel-group-management-panel a tr:UseCase ;
   tr:hasPriority "P1" ;
   tr:refines tr:vision ;
   tr:hasFunction tr:function-F4-7 .
+
+tr:uc-onboarding-landing-explore-value-proposition a tr:UseCase ;
+  tr:hasArtifactId "UC-onboarding.landing.explore-value-proposition" ;
+  tr:hasFilePath "specs/use-cases/UC-onboarding.landing.explore-value-proposition.md" ;
+  tr:hasPriority "P1" ;
+  tr:refines tr:vision ;
+  tr:hasFunction tr:function-onboarding .
 
 tr:fr-a11y-navigation-dashboards-keyboard a tr:FunctionalRequirement ;
   tr:hasArtifactId "REQ-FR-a11y.navigation.dashboards-keyboard" ;
@@ -1297,6 +1307,13 @@ tr:fr-viz-panel-group-management a tr:FunctionalRequirement ;
   tr:refines tr:uc-viz-panel-group-management-panel ;
   tr:derivesFrom tr:vision .
 
+tr:fr-onboarding-landing-explore-value-proposition a tr:FunctionalRequirement ;
+  tr:hasArtifactId "REQ-FR-onboarding.landing.explore-value-proposition" ;
+  tr:hasFilePath "specs/requirements/REQ-FR-onboarding.landing.explore-value-proposition.md" ;
+  tr:hasPriority "P1" ;
+  tr:refines tr:uc-onboarding-landing-explore-value-proposition ;
+  tr:derivesFrom tr:vision .
+
 tr:nfr-api-availability-webhook-idempotency a tr:NonFunctionalRequirement ;
   tr:hasArtifactId "REQ-NFR-api.availability.webhook-idempotency" ;
   tr:hasFilePath "specs/requirements/REQ-NFR-api.availability.webhook-idempotency.md" ;
@@ -1674,6 +1691,13 @@ tr:us-viz-panel-group-management a tr:UserStory ;
   tr:partOf tr:uc-viz-panel-group-management-panel ;
   tr:isSourceOf tr:fr-viz-panel-group-management .
 
+tr:us-onboarding-landing-explore-value-proposition a tr:UserStory ;
+  tr:hasArtifactId "US-onboarding.landing.explore-value-proposition" ;
+  tr:hasFilePath "specs/user-stories/US-onboarding.landing.explore-value-proposition.md" ;
+  tr:hasPriority "P1" ;
+  tr:partOf tr:uc-onboarding-landing-explore-value-proposition ;
+  tr:isSourceOf tr:fr-onboarding-landing-explore-value-proposition .
+
 tr:fr-a11y-navigation-dashboards-keyboard tr:derivesFrom tr:us-a11y-navigation-keyboard-builder .
 
 tr:fr-a11y-navigation-keyboard-route-builder tr:derivesFrom tr:us-a11y-navigation-keyboard-builder .
@@ -1777,6 +1801,8 @@ tr:fr-viz-map-mode-switching tr:derivesFrom tr:us-viz-map-color-progress, tr:us-
 tr:fr-viz-map-progress-colors tr:derivesFrom tr:us-viz-map-color-progress, tr:us-viz-map-knowledge-graph .
 
 tr:fr-viz-panel-group-management tr:derivesFrom tr:us-viz-panel-group-management .
+
+tr:fr-onboarding-landing-explore-value-proposition tr:derivesFrom tr:us-onboarding-landing-explore-value-proposition .
 
 
 # ── Iteration 1 refinements: NFRs closing quality-matrix gaps (cells 1.2, 4.2, 4.3, col4, 5.1) ──
@@ -2335,6 +2361,13 @@ tr:adr-des-infra-docker-images-environments a tr:ArchitectureDecision ;
   tr:hasArtifactId "ADR-DES.INFRA.docker-images-environments" ;
   tr:hasFilePath "specs/adr/ADR-DES.INFRA.docker-images-environments.md" ;
   tr:derivesFrom tr:nfr-infra-compliance-community-enterprise-isolation, tr:nfr-infra-compliance-environment-isolation, tr:nfr-infra-compliance-client-server-web-app, tr:nfr-ops-compliance-support-sla, tr:nfr-ops-release-deployment-verification, tr:nfr-ops-performance-scalability, tr:nfr-security-compliance-owasp-application-security, tr:nfr-infra-compliance-cicd-supply-chain-security .
+
+# ── 2026-08-03: Landing page design ADR (public marketing landing, M0.3 T14) ──
+
+tr:adr-des-ui-landing-page-design a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.UI.landing-page-design" ;
+  tr:hasFilePath "specs/adr/ADR-DES.UI.landing-page-design.md" ;
+  tr:derivesFrom tr:fr-onboarding-landing-explore-value-proposition, tr:nfr-ops-compliance-i18n-readiness, tr:nfr-ui-compliance-wcag-level, tr:nfr-infra-compliance-client-server-web-app, tr:nfr-ops-observability-product-metrics, tr:nfr-process-dev-engineering-gates .
 
 # Deployment artifacts conform to this ADR in addition to the ones they already derive from.
 tr:dep-backend-dockerfile tr:derivesFrom tr:adr-des-infra-docker-images-environments .

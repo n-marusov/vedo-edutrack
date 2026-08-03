@@ -26,7 +26,7 @@ REQ-<TYPE>-<domain-or-area>.<qualifier>.<action|attribute>
 | Часть | Описание |
 |-------|----------|
 | **TYPE** | Тип требования: `FR` (функциональное) · `NFR` (нефункциональное) |
-| **domain / area** | Для FR — функциональный домен: `plan` · `execute` · `resource` · `viz` · `practice` · `api` · `a11y`. Для NFR — область ограничения: `api` · `security` · `data` · `infra` · `ui` · `ops` · `integration` · `process` · `doc` |
+| **domain / area** | Для FR — функциональный домен: `plan` · `execute` · `resource` · `viz` · `practice` · `api` · `a11y` · `onboarding`. Для NFR — область ограничения: `api` · `security` · `data` · `infra` · `ui` · `ops` · `integration` · `process` · `doc` |
 | **qualifier** | Для FR — поддомен (см. [use-cases/README.md](../use-cases/README.md)). Для NFR — категория качества: `performance` · `availability` · `observability` · `compliance` · `maintainability` |
 | **action / attribute** | Для FR — семантическая метка в kebab-case (действие). Для NFR — конкретный атрибут качества в kebab-case (ограничение) |
 

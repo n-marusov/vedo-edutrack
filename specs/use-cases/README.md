@@ -68,6 +68,7 @@ UC-<L1>.<L2>.<L3>
 | `practice` | F5. Связь с практикой и жизнью | Истории, проектные идеи, рекомендации, карта качеств | `UC-practice.stories.recommend-at-mastery` |
 | `api` | F6. Интеграции | REST API, SPARQL, коннекторы LMS, webhooks, SSO, MCP | `UC-api.rest.compute-route-for-learner` |
 | `a11y` | — (сквозная) | Доступность: screen reader, keyboard-only навигация | `UC-a11y.navigation.keyboard-route-builder` |
+| `onboarding` | — (сквозная, публичная витрина) | Вход пользователя в продукт: посадочная страница, регистрация | `UC-onboarding.landing.explore-value-proposition` |
 
 ---
 
