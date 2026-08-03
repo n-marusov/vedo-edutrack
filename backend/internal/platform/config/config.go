@@ -38,6 +38,9 @@ type Config struct {
 	Environment   string // APP_ENV: development | staging | production
 	PublicBaseURL string // PUBLIC_BASE_URL: externally reachable base URL (webhooks, absolute links)
 	HubAPIURL     string // VEDO_HUB_API_URL: base URL of the VEDO Hub REST API (F0, read-only)
+	// JWT issuer/audience for locally-issued dev tokens (T5).
+	JWTIssuer   string
+	JWTAudience string
 }
 
 // Load reads configuration from environment variables with defaults.
@@ -49,6 +52,8 @@ func Load() (*Config, error) {
 		Environment:   envOrDefault("APP_ENV", "development"),
 		PublicBaseURL: envOrDefault("PUBLIC_BASE_URL", "http://localhost:8080"),
 		HubAPIURL:     envOrDefault("VEDO_HUB_API_URL", "http://localhost:8081"),
+		JWTIssuer:     envOrDefault("JWT_ISSUER", "vedo-edutrack"),
+		JWTAudience:   envOrDefault("JWT_AUDIENCE", "vedo-edutrack"),
 	}
 
 	portStr := envOrDefault("PORT", "8080")
