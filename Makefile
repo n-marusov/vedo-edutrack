@@ -79,8 +79,8 @@ migrate: ## Apply DB migrations (wraps Atlas via the vedo-edutrack CLI, ADR-DES.
 migrate-down: ## Revert last migration
 	cd backend && go run ./cmd/vedo-edutrack migrate down
 
-hooks: ## Install pre-commit git hooks
-	pre-commit install
+hooks: ## Install lefthook git hooks
+	lefthook install
 
 ci: ## Full local CI run (mirrors GitHub Actions; delegates to the gate runner, T16)
 	bash deploy/ci/run-gates.sh --tier delivery --trigger ci

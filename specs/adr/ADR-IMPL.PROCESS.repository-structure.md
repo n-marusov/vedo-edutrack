@@ -302,7 +302,7 @@ vedo-edutrack/
 │   └── evolution/                    # Эволюция правил (патчи, skill-context)
 ├── Makefile                          # Единая точка входа (принцип 15)
 ├── package.json, pnpm-workspace.yaml, pnpm-lock.yaml
-├── .pre-commit-config.yaml           # Хуки (biome + gofmt + golangci-lint)
+├── lefthook.yml                      # Git-хуки (biome + gofmt + golangci-lint)
 ├── .nvmrc                            # Node-версия (24)
 └── traceability.ttl                  # Трассируемость Vision → UC → FR → ADR → COMP → TEST
 ```

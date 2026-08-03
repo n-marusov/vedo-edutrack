@@ -1,0 +1,41 @@
+# lefthook.yml — VEDO EduTrack git hooks
+#
+# Git hooks manager: Lefthook (https://lefthook.dev/) — ADR-IMPL.PROCESS.development-tooling §2.
+# Local reference: .ai-factory/references/lefthook.md (jobs style, best practices, pitfalls).
+#
+# Hooks run from the repo root. Globs are git-root-relative (gobwas matcher:
+# `**` requires 1+ dirs); matched staged files reach the command via
+# `{staged_files}`. Jobs run in parallel; `stage_fixed` re-stages fixes.
+# Tools that must analyze whole packages / the git index use a plain `run`
+# gated by `glob` (lefthook does not append files without a template).
+
+assert_lefthook_installed: true
+min_version: 2.1.10
+
+pre-commit:
+  parallel: true
+  jobs:
+    # --- Frontend: Biome (format + lint + organize imports, auto-fix) ---
+    # root: frontend/ — biome resolves biome.json from CWD; {staged_files}
+    # arrive frontend-relative (lefthook strips the root prefix).
+    - name: biome-check
+      root: frontend/
+      glob:
+        - "frontend/**/*.{js,jsx,ts,tsx,json,jsonc,css}"
+      run: pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+
+    # --- Backend: gofmt (format only staged Go files) ---
+    - name: gofmt
+      glob:
+        - "backend/**/*.go"
+      run: gofmt -l -w {staged_files}
+      stage_fixed: true
+
+    # --- Backend: golangci-lint (whole-package analysis, changed lines only) ---
+    # --new-from-rev=HEAD~1 analyzes only lines changed since the previous
+    # commit; golangci-lint needs whole packages, so no {staged_files} is passed.
+    - name: golangci-lint
+      glob:
+        - "backend/**/*.go"
+      run: cd backend && golangci-lint run --new-from-rev=HEAD~1

@@ -47,7 +47,7 @@ VEDO EduTrack is an educational route service built **on top of the VEDO Hub** o
 - **Observability:** OTel (Go+Web) → Collector → Prometheus/Loki/Tempo + Grafana
 - **Infra:** Docker (distroless, Go embed) · docker-compose + Traefik (blue-green) · K8s — пост-MVP
 - **CI/CD:** GitHub Actions (lint → test → mutation → coverage → security → build → deploy → smoke)
-- **Dev tools:** Biome (фронт, pre-commit) · gofmt + golangci-lint (бэкенд) · pre-commit framework — `ADR-IMPL.PROCESS.development-tooling`
+- **Dev tools:** Biome (фронт, git-хуки) · gofmt + golangci-lint (бэкенд) · Lefthook (git hooks manager) — `ADR-IMPL.PROCESS.development-tooling`
 - **External platform:** VEDO Hub (REST API + MCP server, SPARQL/Cypher endpoint, ontology storage/versioning)
 
 ## Architecture Notes

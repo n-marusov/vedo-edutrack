@@ -29,39 +29,46 @@
 | **Бэкенд (Go)** | **gofmt** (stdlib) | **golangci-lint** (агрегатор: govet, staticcheck, errcheck, revive) | Стандарт Go: gofmt обязателен, golangci-lint — единая точка конфигурации линтеров; покрывает errcheck (явные ошибки — наш стиль) |
 | **Markdown/спеки** | markdownlint (опционально) | — | Спеки — важный артефакт (стратегия документации) |
 
-## 2. Pre-commit: biome
+## 2. Git-хуки: Lefthook
 
-Используем **pre-commit framework** (Python) с локальным biome-hook, переиспользующим npm-установку (избегаем двойного версионирования):
+Используем **Lefthook** (https://lefthook.dev/) как менеджер git-хуков — быстрый, кросс-платформенный, без Python-зависимости. Хуки переиспользуют проектные установки инструментов (biome из frontend/, gofmt + golangci-lint системные) — без двойного версионирования. Референс: `references/lefthook.md`.
 
 ```yaml
-# .pre-commit-config.yaml
-repos:
-  - repo: local
-    hooks:
-      - id: local-biome-check
-        name: biome check (staged)
-        entry: npx @biomejs/biome check --write --files-ignore-unknown=true --no-errors-on-unmatched --staged
-        language: system
-        types: [text]
-      - id: gofmt
-        name: gofmt
-        entry: gofmt -l -w
-        language: system
-        files: \.go$
-      - id: golangci-lint
-        name: golangci-lint
-        entry: golangci-lint run --new-from-rev=HEAD~1
-        language: system
-        files: \.go$
+# lefthook.yml
+assert_lefthook_installed: true
+min_version: 2.1.10
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: biome-check        # frontend: формат + линт + импорты, авто-фикс
+      root: frontend/
+      glob: "frontend/**/*.{js,jsx,ts,tsx,json,jsonc,css}"
+      run: pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+    - name: gofmt              # backend: формат только staged .go
+      glob: "backend/**/*.go"
+      run: gofmt -l -w {staged_files}
+      stage_fixed: true
+    - name: golangci-lint      # backend: анализ изменённых строк целыми пакетами
+      glob: "backend/**/*.go"
+      run: cd backend && golangci-lint run --new-from-rev=HEAD~1
 ```
 
 **Правила biome (из референса `references/biome-precommit.md`):**
 - **Пиннинг версии**: `npm i -D -E @biomejs/biome` — Biome меняет CLI между релизами; незакреплённая версия ломает хуки/CI
-- **Локально**: `biome check --write --staged` — формат + линт + сортировка импортов, только staged-файлы, безопасные фиксы
+- **Локально**: `biome check --write` по `{staged_files}` (Lefthook передаёт только staged-файлы из `frontend/`, `root:` снимает префикс) — формат + линт + сортировка импортов, безопасные фиксы; `stage_fixed: true` перестейдживает исправленное
 - **В CI**: `biome ci .` (read-only, GitHub-аннотации) — CI ловит то, что хуки автофиксили
 - **Всегда**: `--no-errors-on-unmatched` (коммит только markdown не падает) + `--files-ignore-unknown=true` (работает с новыми типами файлов)
 - **`vcs.useIgnoreFile: true`** в `biome.json` — `.gitignore`-файлы (dist, сборка) не проверяются
 - Обновление: `biome migrate` после апгрейда (v1→v2 сменил конфиг-семантику)
+
+**Правила Lefthook (из референса `references/lefthook.md`):**
+- Установка: `pnpm add -D lefthook` (одобрение postinstall: `onlyBuiltDependencies` в `.npmrc` + `allowBuilds` в `pnpm-workspace.yaml`); `lefthook install` вешает хуки в `.git/hooks`
+- `assert_lefthook_installed: true` — падать громко, если бинарник отсутствует; `min_version` — защита от старых версий
+- `parallel: true` — джобы идут конкурентно; `stage_fixed` работает только в `pre-commit`
+- Джобы через `{staged_files}` + `glob` — линтеры трогают только изменённые файлы; инструменты, требующие анализа целого пакета/индекса (golangci-lint, biome --staged), гейтятся `glob` без шаблона файлов
+- `root: <dir>/` меняет CWD команды и снимает префикс с путей `{staged_files}`; glob-ы считаются от корня git-репозитория
 
 ## 3. Доступ к данным и миграции
 
@@ -170,7 +177,7 @@ PostgreSQL как data source для продуктовых метрик (NPS, �
 | `make lint` | `golangci-lint run` + `biome ci` | Линт обоих концов |
 | `make format` | `gofmt -l -w` + `biome check --write` | Форматирование |
 | `make migrate` / `make migrate-down` | `vedo-edutrack migrate up` / `down` (обёртка над Atlas через CLI, `ADR-DES.API.cli-interface`) | Миграции БД (drift = 0) |
-| `make hooks` | `pre-commit install` | Установка pre-commit хуков |
+| `make hooks` | `lefthook install` | Установка Lefthook git-хуков |
 | `make ci` | полный локальный CI-прогон (lint → test → coverage) | Воспроизведение CI локально |
 
 **CLI-обёртки:** инструментальные цели делегируют в единый бинарник `vedo-edutrack` (cobra-дерево, `ADR-DES.API.cli-interface`): `migrate` → `vedo-edutrack migrate`, сиды → `vedo-edutrack seed`, синк онтологии → `vedo-edutrack ontology sync`, отчёты → `vedo-edutrack report`. Makefile остаётся тонкой обёрткой; тулинг воспроизводим в контейнере (тот же образ).
@@ -231,7 +238,7 @@ PostgreSQL как data source для продуктовых метрик (NPS, �
 | **uber-fx (DI)** | ⚠️ | Runtime-магия, дольше сборка, сложнее дебаг; wire — compile-time для статического графа из 10 модулей |
 | **GORM / Ent (доступ к данным)** | ⚠️ | GORM — магия, слабые границы; Ent — своя DSL; sqlc — явный типизированный SQL |
 | **golang-migrate** | ⚠️ | SQL-версии, но без drift-детекции; Atlas даёт drift = 0 (NFR) |
-| **Husky + lint-staged** | ⚠️ | Husky один не умеет staged-файлы (нужен lint-staged); pre-commit framework — единый конфиг для Go+TS хуков |
+| **Husky + lint-staged** | ⚠️ | Husky один не умеет staged-файлы (нужен lint-staged); Lefthook — единый конфиг для Go+TS хуков без JS-зависимости хуков |
 | **Jaeger вместо Tempo** | ⚠️ | Оба принимают OTLP; Tempo — Grafana-native (TraceQL, единый UI) |
 | **Webpack / CRA (сборка фронта)** | ❌ | Медленная сборка, устаревший CRA; Vite — быстрее dev-server + HMR, современный стандарт React-SPA |
 | **npm / yarn (пакетный менеджер)** | ⚠️ | npm — медленнее установки и больше диска; yarn классик устарел. pnpm — быстрее, экономнее, строгая изоляция |
@@ -242,7 +249,7 @@ PostgreSQL как data source для продуктовых метрик (NPS, �
 **Последствия:**
 
 *Положительные:*
-- Один pre-commit-фреймворк (`.pre-commit-config.yaml`) покрывает Go + TS хуки — единый вход для вайбкодинга и ревью.
+- Один hook-менеджер (Lefthook, `lefthook.yml`) покрывает Go + TS хуки — единый вход для вайбкодинга и ревью.
 - Biome: одна зависимость вместо ESLint+Prettier, `biome ci` даёт GitHub-аннотации — CI-гейты из коробки (engineering-gates NFR).
 - sqlc + wire: явный типизированный код — чистые границы монолита, надёжная AI-генерация.
 - Observability as-code: наблюдаемость воспроизводима, телеметрия псевдонимизирована (152-ФЗ).

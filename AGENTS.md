@@ -32,7 +32,7 @@ vedo-edutrack/
 ├── .nvmrc                 # Закреплённая версия Node (24)
 ├── traceability.ttl       # OWL 2 DL traceability model (US → UC → FR → ADR/C4 → COMP → TEST)
 ├── Makefile               # Единая точка входа: up/down/dev/build/test/lint/migrate/dev-check/check/ci
-├── .pre-commit-config.yaml# Хуки: biome (staged) + gofmt + golangci-lint
+├── lefthook.yml           # Git-хуки (Lefthook): biome (frontend) + gofmt + golangci-lint (backend)
 ├── .github/workflows/     # GitHub Actions: ci.yml — тонкие обёртки над deploy/ci/run-gates.sh
 ├── backend/               # Go-модуль (modular monolith, единый бинарник vedo-edutrack)
 │   ├── Dockerfile         # distroless multi-stage (build: golang:1.26-alpine → runtime: distroless nonroot)
@@ -96,7 +96,7 @@ vedo-edutrack/
 | `backend/internal/cli/` | Cobra-дерево команд (входной адаптер): server, mcp, migrate, seed, ontology sync, route compute, plan get, gap diagnose, report — `ADR-DES.API.cli-interface` |
 | `deploy/ci/gates.yaml` | Единый манифест гейтов качества (T16): tier fast/delivery, phase-регрессия, severity, trigger, group — единственный источник команд гейтов |
 | `deploy/ci/run-gates.sh` | Двухуровневый раннер гейтов (T16): `--tier fast|delivery`, `--trigger`, `--group`, `--out-format table|json` (aif-gate-result v1); exit 1 при blocking-фейле |
-| `Makefile` | Build automation (T9): up/down/dev/build/test/lint/format/migrate/hooks + dev-check (fast) / check (delivery) / ci |
+| `Makefile` | Build automation (T9): up/down/dev/build/test/lint/format/migrate/hooks (lefthook install) + dev-check (fast) / check (delivery) / ci |
 | `.github/workflows/ci.yml` | CI-пайплайн (T12): тонкие обёртки над run-gates.sh (lint → typecheck → test → coverage → security → build) |
 | `backend/Dockerfile` | distroless multi-stage образ бэкенда (T4); frontend: `Dockerfile.embed`/`Dockerfile.nginx` (T5) |
 | `tests/e2e/gui/` | Playwright E2E (T15): config, placeholder.spec.ts (red), mvp-must-scenarios.spec.ts (M1–M10 стабы), fixtures/auth.ts |
