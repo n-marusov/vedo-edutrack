@@ -327,7 +327,14 @@ func (h *StubHandler) GetLearnerForecast(w http.ResponseWriter, _ *http.Request,
 
 	result, err := h.Forecast.ForecastReadiness(context.Background(), learnerID, "plan-1", 30, 60)
 	if err != nil {
-		msg := err.Error()
+		// Log the full error server-side with context; expose only a stable
+		// client-safe code (REQ-NFR-ops.observability.log-level-config,
+		// security: no internal details in responses).
+		h.Logger.Error("forecast computation failed",
+			zap.String("learner_id", learnerID),
+			zap.Error(err),
+		)
+		msg := "forecast computation failed"
 		writeJSONBody(w, http.StatusInternalServerError, ErrorResponse{Error: "forecast_failed", Message: &msg})
 		return
 	}
@@ -353,6 +360,21 @@ func (h *StubHandler) RecordModuleMastered(w http.ResponseWriter, r *http.Reques
 	var req MasteryRecordRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		msg := "invalid request body"
+		writeJSONBody(w, http.StatusBadRequest, ErrorResponse{Error: "invalid_request", Message: &msg})
+		return
+	}
+
+	// Input validation: reject empty module IDs and unsupported statuses
+	// (REQ-FR-execute.progress.plan-vs-actual; security: validate all input).
+	switch req.Status {
+	case MasteryRecordRequestStatus("in_progress"), MasteryRecordRequestStatus("mastered"), MasteryRecordRequestStatus("skipped"):
+	default:
+		msg := "status must be one of in_progress|mastered|skipped"
+		writeJSONBody(w, http.StatusBadRequest, ErrorResponse{Error: "invalid_request", Message: &msg})
+		return
+	}
+	if req.ModuleId == "" {
+		msg := "module_id is required"
 		writeJSONBody(w, http.StatusBadRequest, ErrorResponse{Error: "invalid_request", Message: &msg})
 		return
 	}

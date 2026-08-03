@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { GapMap, type RootGap } from '../GapMap';
 import { GroupPanel, type LearnerCard } from '../GroupPanel';
 import { LearnerDashboard, type LearnerDashboardData } from '../LearnerDashboard';
+import { type ModuleProgressItem, toStatusMap } from '../api';
 
 const dashboardData: LearnerDashboardData = {
   learnerName: 'Misha',
@@ -130,5 +131,32 @@ describe('<GapMap>', () => {
   it('shows an empty state when no gaps exist', () => {
     render(<GapMap gaps={[]} />);
     expect(screen.getByText(/No root gaps detected/)).toBeInTheDocument();
+  });
+});
+
+describe('toStatusMap', () => {
+  it('maps mastered and in-progress statuses', () => {
+    const modules: ModuleProgressItem[] = [
+      { module_id: 'percent', status: 'mastered' },
+      { module_id: 'solutions', status: 'in_progress' },
+    ];
+    expect(toStatusMap(modules)).toEqual({
+      percent: 'mastered',
+      solutions: 'in-progress',
+    });
+  });
+
+  it('maps not_started and skipped to available', () => {
+    const modules: ModuleProgressItem[] = [
+      { module_id: 'm1', status: 'not_started' },
+      { module_id: 'm2', status: 'skipped' },
+    ];
+    const map = toStatusMap(modules);
+    expect(map.m1).toBe('available');
+    expect(map.m2).toBe('available');
+  });
+
+  it('returns an empty map for empty input', () => {
+    expect(toStatusMap([])).toEqual({});
   });
 });
