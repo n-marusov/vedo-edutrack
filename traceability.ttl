@@ -2328,3 +2328,33 @@ tr:dep-backend-dockerfile tr:derivesFrom tr:adr-des-infra-dynamic-config-injecti
 tr:dep-frontend-embed-dockerfile tr:derivesFrom tr:adr-des-infra-dynamic-config-injection .
 tr:dep-frontend-nginx-dockerfile tr:derivesFrom tr:adr-des-infra-dynamic-config-injection .
 tr:dep-docker-compose tr:derivesFrom tr:adr-des-infra-dynamic-config-injection .
+
+# ── 2026-08-03: Docker image strategy ADR (per-environment image generation; embed for on-prem) ──
+
+tr:adr-des-infra-docker-images-environments a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.INFRA.docker-images-environments" ;
+  tr:hasFilePath "specs/adr/ADR-DES.INFRA.docker-images-environments.md" ;
+  tr:derivesFrom tr:nfr-infra-compliance-community-enterprise-isolation, tr:nfr-infra-compliance-environment-isolation, tr:nfr-infra-compliance-client-server-web-app, tr:nfr-ops-compliance-support-sla, tr:nfr-ops-release-deployment-verification, tr:nfr-ops-performance-scalability, tr:nfr-security-compliance-owasp-application-security, tr:nfr-infra-compliance-cicd-supply-chain-security .
+
+# Deployment artifacts conform to this ADR in addition to the ones they already derive from.
+tr:dep-backend-dockerfile tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+tr:dep-frontend-embed-dockerfile tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+tr:dep-frontend-nginx-dockerfile tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+tr:dep-docker-compose tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+tr:dep-ci-workflow tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+tr:doc-container-strategy tr:documents tr:adr-des-infra-docker-images-environments .
+
+# ── 2026-08-03: Docker image strategy ADR — C4 deployment diagrams and CI links ──
+
+# C4 Deployment diagrams (dev/saas/enterprise) visualize the per-environment
+# image generation matrix fixed by the ADR (dev: no image, saas: nginx SPA,
+# enterprise: embedded SPA in the backend binary).
+tr:c4-deployment-dev tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+tr:c4-deployment-saas tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+tr:c4-deployment-enterprise tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+
+# CI/build tooling implements the strategy: gates.yaml defines the docker-build
+# (image size <= 20 MB) and docker-push (GHCR) gates; the Makefile exposes the
+# docker-build* targets (backend, embed, nginx).
+tr:dep-gates-manifest tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+tr:dep-makefile tr:derivesFrom tr:adr-des-infra-docker-images-environments .
