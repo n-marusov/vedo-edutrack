@@ -9,6 +9,7 @@
 | **1. System Context** | Система и её внешние акторы: VEDO Hub, ученики, родители, HR, методисты, EdTech-платформы, LMS | Бизнес, продукт |
 | **2. Container** | Крупные строительные блоки: веб-приложение, API-сервер, движок маршрутов, PostgreSQL, кэш | Архитекторы, разработчики |
 | **3. Component** | Компоненты внутри контейнеров: планирование маршрута, исполнение плана, диагностика лакун, визуализация, порт онтологии | Разработчики |
+| **4. Deployment** | Физическое развёртывание по окружениям: dev (docker-compose), Community SaaS (Traefik + GHCR), Enterprise on-prem (single binary + PostgreSQL) | DevOps, архитекторы |
 | *(4. Code — не используется)* | | |
 
 ## Правила именования файлов
@@ -25,6 +26,9 @@
 | `context-system.md` | System Context: EduTrack и внешние системы |
 | `container-overview.md` | Container: общий обзор контейнеров |
 | `container-api-server.md` | Container: детальный вид API-сервера |
+| `deployment-dev.md` | Deployment: локальный dev-контур (docker-compose, 9 сервисов) |
+| `deployment-saas.md` | Deployment: Community SaaS / staging (Traefik-эдж + GHCR) |
+| `deployment-enterprise.md` | Deployment: Enterprise on-prem (single binary + PostgreSQL) |
 | `component-api-server.md` | Component: бэкенд — компоненты API-сервера (модульный монолит) |
 | `component-web-app.md` | Component: фронтенд — компоненты веб-приложения (React SPA) |
 

@@ -92,12 +92,17 @@ tr:UserStory a owl:Class ;
 
 tr:C4Diagram a owl:Class ;
   rdfs:label "C4 Diagram"@en ;
-  rdfs:comment "C4 architecture diagram, <LEVEL>-<name>.md (context|container|component)."@en ;
+  rdfs:comment "C4 architecture diagram, <LEVEL>-<name>.md (context|container|component|deployment)."@en ;
   rdfs:subClassOf tr:Artifact .
 
 tr:Component a owl:Class ;
   rdfs:label "Component (COMP)"@en ;
   rdfs:comment "Implementation artifact: module, service, class, API endpoint; realizes FR in accordance with an ADR."@en ;
+  rdfs:subClassOf tr:Artifact .
+
+tr:DeploymentArtifact a owl:Class ;
+  rdfs:label "Deployment Artifact (DEP)"@en ;
+  rdfs:comment "Infrastructure-as-code deployment artifact: Dockerfiles, docker-compose, Traefik/observability configs, PostgreSQL init, Makefile, CI pipeline, gate manifest (deploy/, .github/, Makefile). Derived from the governing ADR (development-tooling) and NFRs; visualized by C4 Deployment diagrams."@en ;
   rdfs:subClassOf tr:Artifact .
 
 # Test taxonomy — verification artifacts; each concrete kind has its own
@@ -418,6 +423,11 @@ tr:LoadTest rdfs:subClassOf
 tr:C4Diagram rdfs:subClassOf
   [ a owl:Restriction ; owl:onProperty tr:derivesFrom ; owl:someValuesFrom tr:ArchitectureDecision ] .
 
+# Deployment artifacts (infrastructure-as-code) are derived from the governing
+# architecture decision and the NFRs they satisfy.
+tr:DeploymentArtifact rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty tr:derivesFrom ; owl:someValuesFrom tr:ArchitectureDecision ] .
+
 # Every documentation artifact must document at least one artifact.
 tr:Documentation rdfs:subClassOf
   [ a owl:Restriction ; owl:onProperty tr:documents ; owl:minCardinality 1 ] .
@@ -434,7 +444,7 @@ tr:Glossary rdfs:subClassOf
   owl:members (
     tr:Vision tr:Glossary tr:ArchitectureDecision tr:UseCase
     tr:Requirement tr:UserStory tr:C4Diagram tr:Component
-    tr:Test tr:Documentation
+    tr:Test tr:Documentation tr:DeploymentArtifact
   ) .
 
 [] a owl:AllDisjointClasses ;
@@ -2209,3 +2219,97 @@ tr:adr-des-api-cli-interface a tr:ArchitectureDecision ;
   tr:hasFilePath "specs/adr/ADR-DES.API.cli-interface.md" ;
   tr:derivesFrom tr:fr-api-mcp-server, tr:nfr-process-dev-test-coverage, tr:nfr-process-dev-engineering-gates, tr:nfr-security-compliance-ops-admin-separation, tr:nfr-ops-compliance-support-sla .
 
+
+
+# ── M0.2 refinement: deployment artifacts and C4 Deployment diagrams (T4–T8, T16) ──
+
+# --- Deployment artifacts (infrastructure-as-code, deploy/, .github/, Makefile) ---
+
+tr:dep-backend-dockerfile a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.backend-dockerfile" ;
+  tr:hasFilePath "backend/Dockerfile" ;
+  tr:derivesFrom tr:adr-impl-process-development-tooling, tr:adr-des-infra-modular-monolith-approach, tr:nfr-infra-compliance-cicd-supply-chain-security, tr:nfr-ops-compliance-support-sla .
+
+tr:dep-frontend-embed-dockerfile a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.frontend-embed-dockerfile" ;
+  tr:hasFilePath "frontend/Dockerfile.embed" ;
+  tr:derivesFrom tr:adr-des-infra-modular-monolith-approach, tr:adr-impl-process-development-tooling, tr:nfr-ops-compliance-support-sla .
+
+tr:dep-frontend-nginx-dockerfile a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.frontend-nginx-dockerfile" ;
+  tr:hasFilePath "frontend/Dockerfile.nginx" ;
+  tr:derivesFrom tr:adr-impl-process-development-tooling, tr:nfr-security-compliance-owasp-application-security, tr:nfr-infra-compliance-cicd-supply-chain-security .
+
+tr:dep-docker-compose a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.docker-compose" ;
+  tr:hasFilePath "deploy/docker-compose.yml" ;
+  tr:derivesFrom tr:adr-impl-process-development-tooling, tr:nfr-infra-compliance-environment-isolation, tr:nfr-ops-observability-log-level-config, tr:nfr-ops-observability-distributed-tracing, tr:nfr-ops-observability-golden-signals-dashboards .
+
+tr:dep-traefik-static a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.traefik-static" ;
+  tr:hasFilePath "deploy/traefik/traefik.yml" ;
+  tr:derivesFrom tr:adr-impl-process-development-tooling, tr:nfr-security-compliance-owasp-application-security, tr:nfr-ops-release-canary-kill-switch, tr:nfr-infra-availability-multi-az-geo-dr .
+
+tr:dep-traefik-dynamic a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.traefik-dynamic" ;
+  tr:hasFilePath "deploy/traefik/dynamic.yml" ;
+  tr:derivesFrom tr:adr-impl-process-development-tooling, tr:nfr-security-compliance-owasp-application-security, tr:nfr-ops-release-canary-kill-switch .
+
+tr:dep-observability-collector a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.observability-collector" ;
+  tr:hasFilePath "deploy/observability/collector-config.yaml" ;
+  tr:derivesFrom tr:adr-impl-process-development-tooling, tr:nfr-ops-observability-distributed-tracing, tr:nfr-ops-observability-golden-signals-dashboards, tr:nfr-security-compliance-owasp-application-security .
+
+tr:dep-observability-backends a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.observability-backends" ;
+  tr:hasFilePath "deploy/observability/" ;
+  tr:derivesFrom tr:adr-impl-process-development-tooling, tr:nfr-ops-observability-log-level-config, tr:nfr-ops-observability-distributed-tracing, tr:nfr-ops-observability-golden-signals-dashboards .
+
+tr:dep-postgres-init a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.postgres-init" ;
+  tr:hasFilePath "deploy/postgres/init.sql" ;
+  tr:derivesFrom tr:adr-des-data-storage-strategy, tr:nfr-ops-release-deployment-verification .
+
+tr:dep-makefile a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.makefile" ;
+  tr:hasFilePath "Makefile" ;
+  tr:derivesFrom tr:adr-impl-process-development-tooling, tr:nfr-process-dev-engineering-gates, tr:nfr-data-availability-migration-rollback, tr:nfr-ops-release-deployment-verification .
+
+tr:dep-ci-workflow a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.ci-workflow" ;
+  tr:hasFilePath ".github/workflows/ci.yml" ;
+  tr:derivesFrom tr:adr-impl-process-development-tooling, tr:nfr-process-dev-engineering-gates, tr:nfr-infra-compliance-cicd-supply-chain-security, tr:nfr-ops-release-deployment-verification, tr:nfr-ops-release-canary-kill-switch .
+
+tr:dep-gates-manifest a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.gates-manifest" ;
+  tr:hasFilePath "deploy/ci/gates.yaml" ;
+  tr:derivesFrom tr:nfr-process-dev-engineering-gates, tr:nfr-process-dev-test-coverage, tr:nfr-infra-compliance-cicd-supply-chain-security .
+
+# --- Container strategy documentation (deploy/README.md) ---
+
+tr:doc-container-strategy a tr:Documentation ;
+  tr:hasArtifactId "DOC.container-strategy" ;
+  tr:hasFilePath "deploy/README.md" ;
+  tr:documents tr:dep-backend-dockerfile, tr:dep-frontend-embed-dockerfile, tr:dep-frontend-nginx-dockerfile, tr:dep-docker-compose, tr:dep-traefik-static, tr:dep-traefik-dynamic, tr:dep-observability-collector, tr:dep-observability-backends, tr:dep-ci-workflow .
+
+# --- C4 Level 4 Deployment diagrams (per environment) ---
+
+tr:c4-deployment-dev a tr:C4Diagram ;
+  tr:hasArtifactId "C4-deployment-dev" ;
+  tr:hasFilePath "specs/c4/deployment-dev.md" ;
+  tr:derivesFrom tr:dep-docker-compose, tr:dep-observability-collector, tr:dep-observability-backends, tr:adr-impl-process-development-tooling, tr:nfr-infra-compliance-environment-isolation .
+
+tr:c4-deployment-saas a tr:C4Diagram ;
+  tr:hasArtifactId "C4-deployment-saas" ;
+  tr:hasFilePath "specs/c4/deployment-saas.md" ;
+  tr:derivesFrom tr:dep-docker-compose, tr:dep-traefik-static, tr:dep-traefik-dynamic, tr:dep-frontend-nginx-dockerfile, tr:dep-backend-dockerfile, tr:dep-ci-workflow, tr:adr-impl-process-development-tooling, tr:nfr-ops-release-canary-kill-switch, tr:nfr-infra-compliance-cicd-supply-chain-security .
+
+tr:c4-deployment-enterprise a tr:C4Diagram ;
+  tr:hasArtifactId "C4-deployment-enterprise" ;
+  tr:hasFilePath "specs/c4/deployment-enterprise.md" ;
+  tr:derivesFrom tr:dep-frontend-embed-dockerfile, tr:dep-backend-dockerfile, tr:adr-des-infra-modular-monolith-approach, tr:adr-impl-process-development-tooling, tr:nfr-ops-compliance-support-sla, tr:nfr-infra-compliance-community-enterprise-isolation .
+
+# C4 Deployment diagrams visualize the container model they deploy.
+tr:c4-deployment-dev tr:relatesTo tr:c4-container-overview .
+tr:c4-deployment-saas tr:relatesTo tr:c4-container-overview .
+tr:c4-deployment-enterprise tr:relatesTo tr:c4-container-overview .
