@@ -21,7 +21,8 @@ func TestProgressRepositoryUpsertAndList(t *testing.T) {
 	ctx := context.Background()
 
 	learnerID := "22222222-2222-2222-2222-222222222222"
-	planID := "plan-progress-1"
+	// plan_id is a uuid column (gen_random_uuid default), so the fixture must be a valid UUID.
+	planID := "77777777-7777-7777-7777-777777777777"
 	now := time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
 
 	// 1. First insert.
@@ -86,7 +87,7 @@ func TestProgressRepositoryDeviationEventDedup(t *testing.T) {
 	ctx := context.Background()
 
 	learnerID := "33333333-3333-3333-3333-333333333333"
-	planID := "plan-progress-2"
+	planID := "88888888-8888-8888-8888-888888888888"
 	detectedAt := time.Date(2026, 9, 5, 8, 0, 0, 0, time.UTC)
 
 	event := execreposqlc.DeviationEventRow{
@@ -131,7 +132,7 @@ func TestProgressRepositoryReadinessForecast(t *testing.T) {
 
 	forecast := execreposqlc.ReadinessForecastRow{
 		LearnerID:        learnerID,
-		PlanID:           strPtr("plan-progress-3"),
+		PlanID:           strPtr("99999999-9999-9999-9999-999999999999"),
 		Status:           "on_track",
 		ExpectedDate:     &expected,
 		RemainingModules: 4,

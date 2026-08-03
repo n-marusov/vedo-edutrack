@@ -20,8 +20,9 @@ func TestGapRepositorySaveAndListAnalysis(t *testing.T) {
 	learnerID := "55555555-5555-5555-5555-555555555555"
 
 	analysis := gapreposqlc.GapAnalysisRow{
-		LearnerID:       learnerID,
-		PlanID:          strPtr("plan-gap-1"),
+		LearnerID: learnerID,
+		// plan_id is a uuid column, so the fixture must be a valid UUID.
+		PlanID:          strPtr("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
 		OntologyVersion: "v1",
 	}
 	roots := []gapreposqlc.GapRootRow{
