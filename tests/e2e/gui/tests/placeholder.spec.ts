@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
 
-test("placeholder — fails until M0.3 scaffold is ready", async ({ page }) => {
-  test.fail(true, "TODO: implement E2E tests for MVP Must-scenarios (M0.3+)");
+// Smoke test — verifies the frontend scaffold serves the SPA with the
+// correct document title (M0.3 scaffold is in place; placeholder replaced).
+// Real MVP Must-scenarios (M1–M10) are stubbed in mvp-must-scenarios.spec.ts.
+test("app scaffold renders with correct title", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle(/VEDO EduTrack/);
 });

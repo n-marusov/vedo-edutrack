@@ -21,6 +21,9 @@ echo "=== secrets-check: scanning for committed secrets ==="
 # ------------------------------------------------------------------
 # 1. Private keys — never commit these.
 # ------------------------------------------------------------------
+# The scanner itself declares the patterns below, so its own source file
+# must be excluded — otherwise the gate false-positives on self-scanning.
+SELF_EXCLUDE=':!deploy/ci/secrets-check.sh'
 PRIVATE_KEY_PATTERNS=(
   "BEGIN RSA PRIVATE KEY"
   "BEGIN EC PRIVATE KEY"
@@ -33,7 +36,7 @@ PRIVATE_KEY_PATTERNS=(
 echo ""
 echo "[1/4] private keys..."
 for pattern in "${PRIVATE_KEY_PATTERNS[@]}"; do
-  hits="$(git grep -n "$pattern" || true)"
+  hits="$(git grep -n "$pattern" -- "$SELF_EXCLUDE" || true)"
   if [[ -n "$hits" ]]; then
     echo "  [FAIL] $pattern found:"
     echo "$hits" | sed 's/^/    /'
@@ -46,7 +49,7 @@ done
 # ------------------------------------------------------------------
 echo ""
 echo "[2/4] AWS access keys..."
-AWS_HITS="$(git grep -nP 'AKIA[0-9A-Z]{16}' || true)"
+AWS_HITS="$(git grep -nP 'AKIA[0-9A-Z]{16}' -- "$SELF_EXCLUDE" || true)"
 if [[ -n "$AWS_HITS" ]]; then
   echo "  [FAIL] AWS access keys found:"
   echo "$AWS_HITS" | sed 's/^/    /'
@@ -58,7 +61,7 @@ fi
 # ------------------------------------------------------------------
 echo ""
 echo "[3/4] hardcoded credentials..."
-CRED_HITS="$(git grep -n -iP '(password|secret|token|api_key|apikey)\s*[:=]\s*["\x27][^"'"'"'\x27]{8,}' -- ':!*.md' ':!*.yaml' ':!*.yml' ':!*.json' ':!*.lock' ':!specs/' ':!pnpm-lock.yaml' ':!go.sum' ':!vendor/' || true)"
+CRED_HITS="$(git grep -n -iP '(password|secret|token|api_key|apikey)\s*[:=]\s*["\x27][^"'"'"'\x27]{8,}' -- ':!*.md' ':!*.yaml' ':!*.yml' ':!*.json' ':!*.lock' ':!specs/' ':!pnpm-lock.yaml' ':!go.sum' ':!vendor/' "$SELF_EXCLUDE" || true)"
 if [[ -n "$CRED_HITS" ]]; then
   echo "  [FAIL] hardcoded credentials found:"
   echo "$CRED_HITS" | sed 's/^/    /'
