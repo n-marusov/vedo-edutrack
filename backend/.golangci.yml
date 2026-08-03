@@ -1,0 +1,62 @@
+# golangci-lint configuration — VEDO EduTrack backend
+# See ADR-IMPL.PROCESS.development-tooling §1 and M0.2 plan (T10).
+# Validated with: golangci-lint config verify
+
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - depguard
+    - gocyclo
+    - goconst
+    - misspell
+    - nilerr
+    - nolintlint
+    - prealloc
+    - revive
+  disable-all: true
+
+linters-settings:
+  gocyclo:
+    min-complexity: 10 # REQ-NFR-process.dev.code-complexity (CC <= 10)
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  misspell:
+    locale: US
+  revive:
+    confidence: 0.8
+  nolintlint:
+    require-explanation: true
+    require-specific: true
+  depguard:
+    rules:
+      main:
+        # Modular monolith boundary (ADR-IMPL.PROCESS.repository-structure §1):
+        # modules may not import sibling modules. depguard denies by import
+        # prefix, so intra-module imports share the denied prefix too —
+        # refined with per-module rules in M0.3 when real cross-package
+        # imports appear. Shared infrastructure lives in internal/pkg and
+        # internal/platform only.
+        deny:
+          - pkg: "vedo-edutrack/backend/internal/modules"
+            desc: "cross-module import is forbidden (modular monolith dependency rule)"
+
+issues:
+  exclude-dirs:
+    - vendor
+    - mocks
+  exclude-rules:
+    # Scaffold tests are intentionally minimal (T13)
+    - path: _test\.go
+      linters: [gocyclo, prealloc, goconst]
+    # Generated code is excluded from linting
+    - path: (wire_gen\.go|sqlc/)
+      linters: [all]

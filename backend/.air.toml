@@ -1,0 +1,28 @@
+# Air — Go hot-reload for the vedo-edutrack dev loop.
+# Used by the backend dev container (deploy/docker-compose.yml) and `make dev`.
+# See ADR-IMPL.PROCESS.development-tooling §11 and M0.2 plan (T10).
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/vedo-edutrack ./cmd/vedo-edutrack"
+  bin = "./tmp/vedo-edutrack"
+  # M0.3: cobra `server` subcommand (ADR-DES.API.cli-interface) — full_bin
+  # rebuilds the single binary on every change (modular monolith).
+  full_bin = "./tmp/vedo-edutrack server"
+  include_ext = ["go"]
+  include_dir = ["."]
+  exclude_dir = ["tmp", "vendor", "mocks", "bin", "migrations", ".git"]
+  exclude_regex = ["_test\\.go$", "tmp/"]
+  delay = 500
+  stop_on_error = true
+  send_interrupt = true
+  kill_delay = "1s"
+
+[log]
+  time = true
+  file = "tmp/air.log"
+
+[misc]
+  clean_on_exit = true

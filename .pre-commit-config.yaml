@@ -1,0 +1,25 @@
+# Pre-commit hooks — VEDO EduTrack
+# See ADR-IMPL.PROCESS.development-tooling §2 and M0.2 plan (T10).
+#
+# Hooks run from the repo root. Biome is a frontend devDependency — the hook
+# resolves it via `pnpm exec` (no double versioning); the ADR's `npx` form
+# would re-download biome at the root, which has no package.json.
+
+repos:
+  - repo: local
+    hooks:
+      - id: local-biome-check
+        name: biome check (staged)
+        entry: bash -c "cd frontend && pnpm exec biome check --write --files-ignore-unknown=true --no-errors-on-unmatched --staged"
+        language: system
+        types: [text]
+      - id: gofmt
+        name: gofmt
+        entry: gofmt -l -w
+        language: system
+        files: \.go$
+      - id: golangci-lint
+        name: golangci-lint
+        entry: golangci-lint run --new-from-rev=HEAD~1
+        language: system
+        files: \.go$

@@ -30,8 +30,8 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 - [x] T9: Makefile (up / down / dev / build / test / lint / migrate / hooks / ci)
 
 ### Phase 4: Development Tooling
-- [ ] T10: Pre-commit hooks + Go lint config + Go hot-reload
-- [ ] T11: Frontend lint/formatter config (Biome, TypeScript)
+- [x] T10: Pre-commit hooks + Go lint config + Go hot-reload
+- [x] T11: Frontend lint/formatter config (Biome, TypeScript)
 
 ### Phase 5: CI Pipeline
 - [ ] T12: GitHub Actions CI workflow
@@ -301,7 +301,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
 
 ### Phase 4: Development Tooling
 
-- [ ] **T10: Pre-commit hooks + Go lint config + Go hot-reload**
+- [x] **T10: Pre-commit hooks + Go lint config + Go hot-reload**
 
   Configure development tooling for the Go backend (ADR-IMPL.PROCESS.development-tooling.md §1, §2):
 
@@ -329,7 +329,7 @@ Rationale: This plan implements the full M0.2 exit criteria from ROADMAP.md — 
   **Source:** ADR-IMPL.PROCESS.development-tooling.md §1, §2; ADR modular-monolith §6 (dependency rule enforcement).
   **Logging:** INFO — log linter version at hook install, lint violations count.
 
-- [ ] **T11: Frontend lint/formatter config (Biome, TypeScript)**
+- [x] **T11: Frontend lint/formatter config (Biome, TypeScript)**
 
   Configure frontend tooling (ADR-IMPL.PROCESS.development-tooling.md §1, §11):
 
