@@ -105,6 +105,14 @@ gates:
     severity: blocking
     group: validate
 
+  - id: secrets-check
+    command: bash deploy/ci/secrets-check.sh
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: security
+    nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+
   - id: gitleaks
     command: gitleaks detect --source . --verbose
     tier: fast
