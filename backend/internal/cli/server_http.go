@@ -150,10 +150,16 @@ func newRouter(cfg *config.Config, a *auth.Auth) *chi.Mux {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
 
-	// CORS: allow the Vite dev server and any origin in dev mode.
-	allowedOrigins := []string{"http://localhost:5173"}
-	if cfg.Environment != "production" {
-		allowedOrigins = append(allowedOrigins, "*")
+	// CORS: allow the Vite dev server and the embedded SPA origin.
+	// AllowCredentials requires EXPLICIT origins — browsers reject
+	// Access-Control-Allow-Origin: * for credentialed requests (CORS spec),
+	// so a wildcard here would silently break dev browser auth from any
+	// non-listed port.
+	allowedOrigins := []string{
+		"http://localhost:5173", // Vite dev server
+		"http://127.0.0.1:5173",
+		"http://localhost:8080", // embedded SPA (same-origin; listed for clarity)
+		"http://127.0.0.1:8080",
 	}
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
