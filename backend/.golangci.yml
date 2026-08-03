@@ -38,16 +38,30 @@ linters-settings:
     require-specific: true
   depguard:
     rules:
-      main:
-        # Modular monolith boundary (ADR-IMPL.PROCESS.repository-structure §1):
-        # modules may not import sibling modules. depguard denies by import
-        # prefix, so intra-module imports share the denied prefix too —
-        # refined with per-module rules in M0.3 when real cross-package
-        # imports appear. Shared infrastructure lives in internal/pkg and
-        # internal/platform only.
+      # Modular monolith boundary (ADR-IMPL.PROCESS.repository-structure §1):
+      # module code may not import sibling modules; shared infrastructure
+      # lives in internal/pkg and internal/platform only.
+      modules-internal:
+        files: ["internal/modules/**"]
         deny:
           - pkg: "vedo-edutrack/backend/internal/modules"
-            desc: "cross-module import is forbidden (modular monolith dependency rule)"
+            desc: "modules may not import sibling modules (modular monolith dependency rule)"
+      # M0.3 (T9): the HTTP input adapter (internal/api) and CLI stub wire
+      # the module stub adapters (ontologyport/routeplanning adapters/stub)
+      # — allowed: input adapters depend on module adapters, never
+      # module→module (except the routeplanning stub which reuses the
+      # ontologyport stub graph, both demo stand-ins for M1).
+      api-to-module-stubs:
+        files: ["internal/api/**", "internal/cli/route_compute.go"]
+        deny: []
+        allow:
+          - "vedo-edutrack/backend/internal/modules/ontologyport/adapters/stub"
+          - "vedo-edutrack/backend/internal/modules/routeplanning/adapters/stub"
+      route-stub-uses-ontology-stub:
+        files: ["internal/modules/routeplanning/adapters/stub/**"]
+        deny: []
+        allow:
+          - "vedo-edutrack/backend/internal/modules/ontologyport/adapters/stub"
 
 issues:
   exclude-dirs:

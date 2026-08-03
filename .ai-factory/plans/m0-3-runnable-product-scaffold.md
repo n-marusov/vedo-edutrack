@@ -44,7 +44,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
 
 ### Phase 1: Backend Dependency Wiring
 
-- [ ] **T1: Add Go dependencies (go.mod)**
+- [x] **T1: Add Go dependencies (go.mod)**
 
   Add all Go external dependencies required for M0.3. This is the first time `go.mod` gains a `require` block and `go.sum`.
 
@@ -70,7 +70,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `backend/go.mod`, `backend/go.sum`
   **Logging:** INFO — log each dependency group added; log `go mod tidy` result.
 
-- [ ] **T2: Wire real platform services (zap, OTel, pgx)**
+- [x] **T2: Wire real platform services (zap, OTel, pgx)**
 
   Replace all four platform stubs with real implementations. Each retains the same function signature used in `platform/wire.go` so the call site is unchanged.
 
@@ -112,7 +112,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
 
 <!-- Commit checkpoint: T1–T2 -->
 
-- [ ] **T3: Wire cobra CLI tree**
+- [x] **T3: Wire cobra CLI tree**
 
   Replace the current `switch` in `main.go` with a cobra command tree. CLI is an input adapter over the Application layer (per ADR-DES.API.cli-interface).
 
@@ -142,7 +142,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `backend/internal/cli/cli.go` (rewrite from doc-only to real), `backend/internal/cli/server.go`, `backend/internal/cli/mcp.go`, `backend/internal/cli/migrate.go`, `backend/internal/cli/seed.go`, `backend/internal/cli/ontology_sync.go`, `backend/internal/cli/route_compute.go`, `backend/internal/cli/plan_get.go`, `backend/internal/cli/gap_diagnose.go`, `backend/internal/cli/report.go`, `backend/cmd/vedo-edutrack/main.go`
   **Logging:** INFO — log subcommand invocation with args; log "platform initialized" from persistent pre-run; WARN on unknown subcommand (cobra handles, but zap bridge should capture).
 
-- [ ] **T4: Upgrade server to chi router with graceful shutdown**
+- [x] **T4: Upgrade server to chi router with graceful shutdown**
 
   Replace `http.ServeMux` with `chi.NewRouter()`. The server becomes the production HTTP frontend serving API + metrics + health + (later) embedded SPA.
 
@@ -180,7 +180,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
 
 <!-- Commit checkpoint: T3–T4 -->
 
-- [ ] **T5: Implement JWT authentication middleware**
+- [x] **T5: Implement JWT authentication middleware**
 
   Implement local JWT auth with self-signed RS256 key pair for dev environments. Keycloak is post-MVP (ADR-DES.SECURITY.rbac-model); local RS256/JWKS is the MVP path.
 
@@ -215,7 +215,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `backend/internal/platform/auth/keys.go` (new), `backend/internal/platform/auth/token.go` (new), `backend/internal/platform/auth/middleware.go` (new), `backend/internal/platform/auth/context.go` (new)
   **Logging:** INFO — log token issuance with user_id (no secret); log token validation result; WARN on invalid/expired tokens; WARN if dev-mode token endpoint used with ENV=production.
 
-- [ ] **T6: Implement RBAC engine and seed command**
+- [x] **T6: Implement RBAC engine and seed command**
 
   Implement a deny-by-default RBAC engine matching the role catalog and permission matrix from the RBAC ADR. This is the server-side enforcement layer; UI role visibility is cosmetic (UX only).
 
@@ -247,7 +247,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
 
 <!-- Commit checkpoint: T5–T6 -->
 
-- [ ] **T7: Expand OpenAPI specification**
+- [x] **T7: Expand OpenAPI specification**
 
   Expand `backend/api/openapi/v1.yaml` from the current minimal `/healthz` spec to include the M0.3 API surface.
 
@@ -264,7 +264,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `backend/api/openapi/v1.yaml`
   **Logging:** N/A (spec file change only).
 
-- [ ] **T8: Run oapi-codegen and scaffold server interface**
+- [x] **T8: Run oapi-codegen and scaffold server interface**
 
   Generate Go types and server interface from the expanded OpenAPI spec.
 
@@ -287,7 +287,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `backend/api/openapi/codegen.yaml` (new), `backend/internal/api/server.gen.go` (generated), `backend/internal/api/types.gen.go` (generated), `backend/internal/api/handler.go` (new), `Makefile` (update `gen` target)
   **Logging:** INFO — log each generated file path; INFO — log "API handler mounted" on server start.
 
-- [ ] **T9: Implement ontology stub and route computation stub**
+- [x] **T9: Implement ontology stub and route computation stub**
 
   Replace the two critical stub endpoints with working in-memory implementations. These are hardcoded demo stubs — real VEDO Hub integration comes in M1.
 
@@ -320,7 +320,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
 
 <!-- Commit checkpoint: T7–T9 -->
 
-- [ ] **T10: Add frontend dependencies (routing, auth)**
+- [x] **T10: Add frontend dependencies (routing, auth)**
 
   Add npm packages required for M0.3 UI scaffolding.
 
@@ -334,7 +334,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `frontend/package.json`, `pnpm-lock.yaml`
   **Logging:** N/A (dependency installation).
 
-- [ ] **T11: Implement auth context and API client**
+- [x] **T11: Implement auth context and API client**
 
   Build the frontend auth layer: JWT storage, silent refresh (stub), and a typed fetch wrapper.
 
@@ -371,7 +371,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `frontend/src/store/authStore.ts` (new), `frontend/src/features/identity-access/AuthProvider.tsx` (new), `frontend/src/features/identity-access/index.ts` (new), `frontend/src/shared/api/client.ts` (new), `frontend/src/shared/api/index.ts` (new), `frontend/src/shared/telemetry/tracer.ts` (new), `frontend/src/shared/telemetry/index.ts` (new), `frontend/package.json`
   **Logging:** INFO (frontend console) — log auth state changes (login/logout/token refresh); log API errors with status code and endpoint; WARN on token expiry.
 
-- [ ] **T12: Set up client-side routing**
+- [x] **T12: Set up client-side routing**
 
   Define the SPA route tree and mount it in `App.tsx`.
 
@@ -407,7 +407,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
 
 <!-- Commit checkpoint: T10–T12 -->
 
-- [ ] **T13: Build shared component primitives and layout shell**
+- [x] **T13: Build shared component primitives and layout shell**
 
   Create a minimal design system of reusable components — no UI library, pure Tailwind CSS v4.
 
@@ -434,7 +434,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `frontend/src/shared/components/Button.tsx` (new), `frontend/src/shared/components/Card.tsx` (new), `frontend/src/shared/components/Input.tsx` (new), `frontend/src/shared/components/Badge.tsx` (new), `frontend/src/shared/components/Avatar.tsx` (new), `frontend/src/shared/layouts/MainLayout.tsx` (new), `frontend/src/shared/layouts/AuthLayout.tsx` (new), `frontend/src/shared/layouts/LandingLayout.tsx` (new), `frontend/src/shared/guards/ProtectedRoute.tsx` (new), `frontend/src/shared/guards/RoleGate.tsx` (new)
   **Logging:** INFO — log layout mount; WARN — log access denied in RoleGate with required role.
 
-- [ ] **T14: Build landing page**
+- [x] **T14: Build landing page**
 
   Public unauthenticated page (`/`) communicating the product value proposition.
 
@@ -452,7 +452,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `frontend/src/pages/Landing.tsx` (new), `frontend/src/pages/index.ts` (new)
   **Logging:** N/A (static page).
 
-- [ ] **T15: Build login page**
+- [x] **T15: Build login page**
 
   Simple login form for dev/demo auth flow.
 
@@ -472,7 +472,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `frontend/src/pages/Login.tsx` (new), `frontend/src/shared/api/types.ts` (new)
   **Logging:** INFO — log login attempt (user_id only, no secrets); WARN — log login failure with error.
 
-- [ ] **T16: Build role-aware dashboard shells**
+- [x] **T16: Build role-aware dashboard shells**
 
   Create dashboard placeholder pages for each MVP persona. All protected behind `<ProtectedRoute>` and `<RoleGate>`.
 
@@ -506,7 +506,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
 
 <!-- Commit checkpoint: T13–T16 -->
 
-- [ ] **T17: Embed SPA into backend binary**
+- [x] **T17: Embed SPA into backend binary**
 
   Merge the standalone `frontend/Dockerfile.embed` build stage into the backend binary. The result: a single `go build` produces one binary serving both API and SPA from one port.
 
@@ -529,7 +529,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `backend/internal/platform/spa/embed.go` (new), `backend/cmd/vedo-edutrack/server.go` (add SPA fallback route), `Makefile` (add `build-frontend` target, update `build` to include frontend build), `backend/.gitignore` (add frontend/dist/)
   **Logging:** INFO — log "SPA files embedded" with file count on server start; WARN — log "SPA not embedded (dev mode)" when running without build.
 
-- [ ] **T18: Update Dockerfiles for multi-arch and unified binary**
+- [x] **T18: Update Dockerfiles for multi-arch and unified binary**
 
   Update the backend Dockerfile to include the frontend embed build stage. Add multi-architecture support.
 
@@ -556,7 +556,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `backend/Dockerfile` (rewrite), `deploy/README.md` (update container strategy), `Makefile` (update docker targets)
   **Logging:** N/A (Docker/CI).
 
-- [ ] **T19: Update docker-compose and Traefik for unified binary**
+- [x] **T19: Update docker-compose and Traefik for unified binary**
 
   Adapt the dev stack to use the unified backend binary (API + SPA on one port).
 
@@ -581,7 +581,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
 
 <!-- Commit checkpoint: T17–T19 (Phase 7); Phase 8 commits after T25 -->
 
-- [ ] **T20: Mock-hub design docs — ADR, C4 deployment diagrams, contract channel update**
+- [x] **T20: Mock-hub design docs — ADR, C4 deployment diagrams, contract channel update**
 
   Materialize the design decision (RESEARCH session 2026-08-03) into architecture artifacts before implementation.
 
@@ -609,7 +609,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Logging:** INFO — log each ADR/C4/requirement artifact written.
   **Dependencies:** T19 (after Docker unification; design anchor for the phase)
 
-- [ ] **T21: Implement ontology loader — mini-Turtle parser + in-memory model**
+- [x] **T21: Implement ontology loader — mini-Turtle parser + in-memory model**
 
   `backend/internal/testing/mockhub/` (test-tooling package; `internal/` scopes it to the backend module; not part of the product binary).
 
@@ -627,7 +627,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Logging:** INFO — log ontology loaded: `{file, classes, properties}`.
   **Dependencies:** T1 (gqlparser/v2, used by T22), T20 (design anchor)
 
-- [ ] **T22: Implement GraphQL server — gqlparser resolvers + HTTP handler**
+- [x] **T22: Implement GraphQL server — gqlparser resolvers + HTTP handler**
 
   **22a. Handler** (`handler.go`)
   - `NewHandler(ont *Ontology, schemaSDL string) http.Handler` — routes: `POST /graphql` (gqlparser parse + execute against QueryRoot resolvers), `GET /healthz` (200)
@@ -643,7 +643,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Logging:** INFO — log each GraphQL operation (operationName); ERROR — log execution errors.
   **Dependencies:** T21
 
-- [ ] **T23: Add cmd/mockhub entry point**
+- [x] **T23: Add cmd/mockhub entry point**
 
   `backend/cmd/mockhub/main.go` — standalone dev/test binary (documented exception to the single-binary ADR `ADR-DES.API.cli-interface`: test-only, not shipped, not in SBOM).
 
@@ -655,7 +655,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Logging:** INFO — log startup: `{port, ontology_file, classes, properties}`.
   **Dependencies:** T22
 
-- [ ] **T24: Add Dockerfile.mockhub**
+- [x] **T24: Add Dockerfile.mockhub**
 
   `backend/Dockerfile.mockhub` — multi-stage image for the mock hub (parallel to `backend/Dockerfile`).
 
@@ -668,7 +668,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Logging:** INFO — log build stages and final image size.
   **Dependencies:** T23
 
-- [ ] **T25: Wire hub-mock into compose + CI + smoke verification**
+- [x] **T25: Wire hub-mock into compose + CI + smoke verification**
 
   **25a. Dev stack** (`deploy/docker-compose.yml`)
   - Add `hub-mock` service: build `backend/Dockerfile.mockhub`, port `8081:8081`, volume `../traceability.ttl:/data/ontology.ttl:ro`, `ONTOLOGY_FILE=/data/ontology.ttl`, healthcheck `wget -q -O /dev/null http://localhost:8081/healthz`, network `edutrack-net`
@@ -689,7 +689,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
 
 <!-- Commit checkpoint: T17–T19 -->
 
-- [ ] **T26: Extend health checks and verify reachability**
+- [x] **T26: Extend health checks and verify reachability**
 
   Finalize the health/readiness endpoints to verify all M0.3 components.
 
@@ -715,7 +715,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** `backend/cmd/vedo-edutrack/server.go` (readyz handler update)
   **Logging:** INFO — log each health check result in readyz; INFO — log verification results.
 
-- [ ] **T27: Seed database and verify RBAC**
+- [x] **T27: Seed database and verify RBAC**
 
   Run the seed command and verify the RBAC engine works end-to-end.
 
