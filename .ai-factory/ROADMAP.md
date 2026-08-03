@@ -4,8 +4,8 @@
 
 ## Current Focus
 
-**Now:** Phase 0 — Foundation (M0.0 + M0.1 complete ✅)
-**Next milestone:** M0.2: Engineering Platform
+**Now:** Phase 0 — Foundation (M0.0–M0.3 complete ✅)
+**Next milestone:** M1: Core Infrastructure
 **Blocking decision:** None — stack, architecture, and repository structure fixed (T3–T5)
 **External blocker:** Starter ontology readiness in VEDO Hub before M1/M2
 
@@ -13,7 +13,7 @@
 
 | Total | Completed | Current | Next |
 |-------|-----------|---------|------|
-| 14 | 2 (M0.0, M0.1) | M0.2: Engineering Platform | M0.3: Runnable Product Scaffold |
+| 14 | 4 (M0.0, M0.1, M0.2, M0.3) | Phase 0 done — Phase I: MVP | M1: Core Infrastructure |
 
 ## External Dependencies
 
@@ -76,20 +76,21 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   **Dependencies:** M0.1, stack ADR, repository-structure ADR.
   **Business goals:** Engineering enabler for all goals.
 
-- [ ] **M0.3: Runnable Product Scaffold**
+- [x] **M0.3: Runnable Product Scaffold** ✅ completed 2026-08-03
   Deliver a minimal authenticated product skeleton that proves the chosen stack, local environment, API shell, ontology stub, route stub, and role-aware UI shell work together.
 
   **Exit criteria:**
-  - Health checks verify API, database, and identity-provider reachability.
-  - Authentication middleware validates JWTs and supports role-based guards.
-  - Role-aware dashboard shells exist for MVP personas.
-  - Ontology stub returns a small fixed module graph.
-  - Route-computation stub demonstrates route calculation on the fixed graph via `POST /routes/compute`.
-  - SPA embed server unified with backend binary (`frontend/cmd/spa-embed` → `backend/cmd/vedo-edutrack`); single `go build` produces one binary serving both API and SPA from one port. `Dockerfile.embed` becomes a build stage inside `backend/Dockerfile`; the standalone embed image is retired.
-  - OpenTelemetry tracing wired across Go backend and Web frontend into the existing o11y stack (Collector → Tempo).
-  - Multi-arch Docker images (linux/amd64 + linux/arm64) with `ARG TARGETARCH` in Dockerfiles.
-  - Landing page communicates the product value proposition and routes users toward registration.
-  - Local environment reports healthy containers/services and scaffold-level tests pass.
+  - ✅ Health checks verify API, database, and identity-provider reachability (`/healthz`, `/readyz` with pgx ping + JWKS dial).
+  - ✅ Authentication middleware validates JWTs (RS256/JWKS, jwx) and supports role-based guards (RBAC engine + permission matrix, deny-by-default).
+  - ✅ Role-aware dashboard shells exist for MVP personas (learner/parent/teacher/methodologist/admin).
+  - ✅ Ontology stub returns a small fixed module graph (5th-grade math, 14 topics, 5 link types).
+  - ✅ Route-computation stub demonstrates route calculation on the fixed graph via `POST /routes/compute`.
+  - ✅ SPA embed unified with backend binary; single `go build` produces one binary serving both API and SPA from one port; `Dockerfile.embed` retired as standalone image (doc reference only).
+  - ✅ OpenTelemetry tracing wired across Go backend and Web frontend into the existing o11y stack (Collector → Tempo).
+  - ✅ Multi-arch Docker images (linux/amd64 + linux/arm64) with `ARG TARGETARCH` in Dockerfiles.
+  - ✅ Landing page communicates the product value proposition and routes users toward registration.
+  - ✅ Mock VEDO Hub GraphQL container (`hub-mock`, ADR-DES.INFRA.mock-hub-strategy) for dev/test/CI.
+  - ✅ Local environment reports healthy containers/services and scaffold-level tests pass (fast + delivery gate tiers green).
 
   **Dependencies:** M0.2.
   **Business goals:** Engineering enabler for all goals.
@@ -301,6 +302,7 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 | M0.0: Requirements Baseline | 2026-08-02 |
 | M0.1: Domain Model & Architecture Baseline | 2026-08-03 |
 | M0.2: Engineering Platform | 2026-08-03 |
+| M0.3: Runnable Product Scaffold | 2026-08-03 |
 
 ---
 
