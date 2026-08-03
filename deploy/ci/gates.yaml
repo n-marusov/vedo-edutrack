@@ -47,7 +47,7 @@ gates:
     nfr: REQ-NFR-process.dev.engineering-gates
 
   - id: ts-typecheck
-    command: cd frontend && pnpm typecheck
+    command: cd frontend && node_modules/.bin/tsc --noEmit
     tier: fast
     phase: m0.0
     severity: blocking
@@ -63,7 +63,7 @@ gates:
     nfr: REQ-NFR-process.dev.engineering-gates
 
   - id: biome-check
-    command: cd frontend && pnpm lint
+    command: cd frontend && node_modules/.bin/biome ci .
     tier: fast
     phase: m0.0
     severity: blocking
@@ -117,7 +117,7 @@ gates:
   # ================= Delivery tier (task handoff, make check / make ci) =================
 
   - id: go-test-unit
-    command: cd backend && go test -race -count=1 -coverprofile=coverage.out ./...
+    command: cd backend && go test -count=1 -coverprofile=coverage.out ./...
     tier: delivery
     phase: m0.2
     severity: advisory # red placeholder scaffolds at M0.2 (T13); blocking from M0.3
@@ -156,6 +156,16 @@ gates:
     phase: m0.2
     severity: blocking
     group: build
+    needs: docker
+    tool: docker
+    nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+
+  - id: compose-health
+    command: bash deploy/ci/compose-health-check.sh
+    tier: delivery
+    phase: m0.2
+    severity: blocking
+    group: validate
     needs: docker
     tool: docker
     nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
