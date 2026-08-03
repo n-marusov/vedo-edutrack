@@ -21,11 +21,12 @@ type Auth struct {
 	Kid        string
 	Issuer     string
 	Audience   string
+	TokenTTL   time.Duration
 	Logger     *zap.Logger
 }
 
 // New creates an Auth from the configured key path (auto-generates if missing).
-func New(keyPath, issuer, audience string, logger *zap.Logger) (*Auth, error) {
+func New(keyPath, issuer, audience string, tokenTTL time.Duration, logger *zap.Logger) (*Auth, error) {
 	if keyPath == "" {
 		keyPath = envOrDefault("JWKS_PRIVATE_KEY_PATH", DefaultKeyPath)
 	}
@@ -39,19 +40,23 @@ func New(keyPath, issuer, audience string, logger *zap.Logger) (*Auth, error) {
 	if audience == "" {
 		audience = "vedo-edutrack"
 	}
+	if tokenTTL <= 0 {
+		tokenTTL = 24 * time.Hour
+	}
 	return &Auth{
 		PrivateKey: key,
 		PublicKey:  &key.PublicKey,
 		Kid:        "dev-key",
 		Issuer:     issuer,
 		Audience:   audience,
+		TokenTTL:   tokenTTL,
 		Logger:     logger,
 	}, nil
 }
 
 // NewNop creates an Auth without persistence (tests).
 func NewNop(logger *zap.Logger) *Auth {
-	a, _ := New("", "vedo-edutrack", "vedo-edutrack", logger)
+	a, _ := New("", "vedo-edutrack", "vedo-edutrack", 0, logger)
 	return a
 }
 
@@ -70,7 +75,8 @@ func (a *Auth) JWKSHandler() http.HandlerFunc {
 }
 
 // TokenHandler issues a dev JWT from {"user_id", "roles"}.
-// WARNs when used with ENV=production.
+// Dev-only: with ENV=production the endpoint is disabled (fail-closed) —
+// real credential login lands post-MVP (Keycloak).
 func (a *Auth) TokenHandler() http.HandlerFunc {
 	type tokenRequest struct {
 		UserID string   `json:"user_id"`
@@ -83,9 +89,16 @@ func (a *Auth) TokenHandler() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Fail-closed: the dev token endpoint must never mint tokens in
+		// production (it accepts arbitrary user_id/roles).
 		if os.Getenv("APP_ENV") == "production" {
-			a.Logger.Warn("dev token endpoint used with ENV=production")
+			a.Logger.Error("dev token endpoint disabled in production")
+			writeJSONResponse(w, http.StatusNotFound, map[string]string{
+				"error": "not_found",
+			})
+			return
 		}
+
 		var req tokenRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, `{"error":"invalid_request"}`, http.StatusBadRequest)
@@ -99,7 +112,7 @@ func (a *Auth) TokenHandler() http.HandlerFunc {
 			req.Roles = []string{"learner"}
 		}
 
-		ttl := 24 * time.Hour
+		ttl := a.TokenTTL
 		token, err := IssueToken(a.PrivateKey, req.UserID, req.Roles, a.Issuer, a.Audience, ttl)
 		if err != nil {
 			a.Logger.Error("token issuance failed", zap.Error(err))

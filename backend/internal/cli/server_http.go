@@ -69,7 +69,7 @@ func serveHTTP(_ *cobra.Command) error {
 	}
 
 	// Initialize the local JWT auth (auto-generates a dev key if missing).
-	a, err := auth.New("", cfg.JWTIssuer, cfg.JWTAudience, zapLogger)
+	a, err := auth.New("", cfg.JWTIssuer, cfg.JWTAudience, cfg.JWTTokenTTL, zapLogger)
 	if err != nil {
 		return fmt.Errorf("init auth: %w", err)
 	}
@@ -134,6 +134,24 @@ func serveHTTP(_ *cobra.Command) error {
 	return nil
 }
 
+// securityHeaders sets baseline security headers on every response. This is
+// especially important for the embedded SPA (on-prem contour) which is served
+// without the Traefik edge headers; the edge may add/override more (HSTS, CSP
+// tuning). CSP is deliberately permissive for the Vite dev server (inline
+// styles/scripts) — tighten for production.
+func securityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("X-Frame-Options", "DENY")
+		h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		h.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+		h.Set("Content-Security-Policy",
+			"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:*")
+		next.ServeHTTP(w, r)
+	})
+}
+
 // newRouter builds the chi router with the full M0.3 middleware stack and
 // route groups. The auth bundle is optional (nil for tests that don't
 // exercise authentication).
@@ -145,6 +163,7 @@ func newRouter(cfg *config.Config, a *auth.Auth) *chi.Mux {
 	// RealIP is intentionally NOT used: chi's RealIP trusts X-Forwarded-For
 	// blindly (spoofing risk, GHSA-3fxj-6jh8-hvhx); the Traefik edge sets the
 	// trusted header and we rely on it only behind the edge.
+	r.Use(securityHeaders)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)

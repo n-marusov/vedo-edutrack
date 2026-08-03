@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
 // Version is the build version, injected at build time via ldflags
@@ -41,6 +42,8 @@ type Config struct {
 	// JWT issuer/audience for locally-issued dev tokens (T5).
 	JWTIssuer   string
 	JWTAudience string
+	// JWTTokenTTL is the dev token lifetime (JWT_TTL_MINUTES, default 1440 = 24h).
+	JWTTokenTTL time.Duration
 }
 
 // Load reads configuration from environment variables with defaults.
@@ -54,6 +57,7 @@ func Load() (*Config, error) {
 		HubAPIURL:     envOrDefault("VEDO_HUB_API_URL", "http://localhost:8081"),
 		JWTIssuer:     envOrDefault("JWT_ISSUER", "vedo-edutrack"),
 		JWTAudience:   envOrDefault("JWT_AUDIENCE", "vedo-edutrack"),
+		JWTTokenTTL:   envDurationMinutes("JWT_TTL_MINUTES", 24*60),
 	}
 
 	portStr := envOrDefault("PORT", "8080")
@@ -72,4 +76,18 @@ func envOrDefault(key, defaultVal string) string {
 		return v
 	}
 	return defaultVal
+}
+
+// envDurationMinutes reads an env var as minutes; falls back to the default
+// on missing or unparseable values.
+func envDurationMinutes(key string, defaultMinutes int) time.Duration {
+	raw := os.Getenv(key)
+	if raw == "" {
+		return time.Duration(defaultMinutes) * time.Minute
+	}
+	minutes, err := strconv.Atoi(raw)
+	if err != nil || minutes <= 0 {
+		return time.Duration(defaultMinutes) * time.Minute
+	}
+	return time.Duration(minutes) * time.Minute
 }
