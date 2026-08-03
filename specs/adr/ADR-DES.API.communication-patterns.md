@@ -62,7 +62,7 @@ EduTrack — клиент-серверное веб-приложение (`REQ-N
    - Endpoint проксирует запросы к VEDO Hub (SPARQL-эндпоинт Hub) через `ontology-port` с circuit breaker и кэшированием результатов.
 
 6. **Граница VEDO Hub — `ontology-port` (ACL)**:
-   - Единственный путь к онтологии: REST API Hub + MCP + SPARQL через адаптеры `ontology-port` (F0).
+   - Единственный путь к онтологии: REST API Hub + MCP + GraphQL-интерфейс онтология-сервиса + SPARQL через адаптеры `ontology-port` (F0). GraphQL (read-only, traversal-эндпоинты `graphNeighborhood`/`classDescendants`) — целевой канал для навигации по графу; контракт SDL копируется в репозиторий и покрывается стендом `hub-mock` (`ADR-DES.INFRA.mock-hub-strategy`).
    - Синхронные вызовы Hub: таймаут ≤ 3 с, circuit breaker, retry с backoff (`REQ-NFR-api.availability.hub-dependency-sla`).
    - Копирование подграфа (F0.2) — асинхронно, инкрементально, с версионированием по `ontology_version`.
    - Обновления онтологии — через подписку (webhook/events от Hub, F0.3, `REQ-FR-api.hub.subscribe-updates`): `OntologyUpdated` → каскадный пересчёт.

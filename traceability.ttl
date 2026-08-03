@@ -2391,3 +2391,24 @@ tr:c4-deployment-enterprise tr:derivesFrom tr:adr-des-infra-docker-images-enviro
 # docker-build* targets (backend, embed, nginx).
 tr:dep-gates-manifest tr:derivesFrom tr:adr-des-infra-docker-images-environments .
 tr:dep-makefile tr:derivesFrom tr:adr-des-infra-docker-images-environments .
+
+# ── 2026-08-03: Mock VEDO Hub strategy ADR (M0.3 T20; dev/test/CI stand-in) ──
+
+tr:adr-des-infra-mock-hub-strategy a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.INFRA.mock-hub-strategy" ;
+  tr:hasFilePath "specs/adr/ADR-DES.INFRA.mock-hub-strategy.md" ;
+  tr:derivesFrom tr:fr-api-hub-read-ontology, tr:fr-api-hub-copy-subgraph, tr:nfr-api-availability-hub-dependency-sla, tr:nfr-process-dev-test-coverage, tr:adr-des-api-communication-patterns .
+
+# C4 Deployment — CI test environment (new diagram, T20).
+tr:c4-deployment-test a tr:C4Diagram ;
+  tr:hasArtifactId "c4/deployment-test" ;
+  tr:hasFilePath "specs/c4/deployment-test.md" ;
+  tr:derivesFrom tr:adr-des-infra-mock-hub-strategy .
+tr:c4-deployment-test tr:relatesTo tr:c4-deployment-dev .
+tr:c4-deployment-dev tr:derivesFrom tr:adr-des-infra-mock-hub-strategy .
+
+# Contract tests of the Hub boundary (M1) use the mockhub httptest.Server.
+tr:test-hub-contract a tr:IntegrationTest ;
+  tr:hasArtifactId "contract/hub-boundary" ;
+  tr:validates tr:fr-api-hub-read-ontology ;
+  tr:derivesFrom tr:adr-des-infra-mock-hub-strategy .

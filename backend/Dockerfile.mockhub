@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1
+# VEDO Hub mock image — test-only stand-in for the VEDO Hub ontology service
+# (ADR-DES.INFRA.mock-hub-strategy, M0.3 T24).
+#
+# Not shipped / not in SBOM — dev/test/CI tooling only.
+# Parallel to backend/Dockerfile (separate binary from the product image).
+
+# --- Build stage ---
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
+WORKDIR /src
+ARG TARGETARCH
+
+# Cache module downloads.
+COPY go.mod ./go.mod
+COPY go.sum ./go.sum
+RUN go mod download
+
+# Build the mockhub binary (CGO off, stripped).
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
+    -trimpath \
+    -ldflags="-s -w" \
+    -o /out/mockhub \
+    ./cmd/mockhub
+
+# --- Runtime stage (distroless static, nonroot) ---
+FROM gcr.io/distroless/static-debian12:nonroot
+ARG VERSION=0.1.0
+ARG SOURCE=https://github.com/vedo-edutrack/vedo-edutrack
+
+LABEL org.opencontainers.image.title="vedo-edutrack-mockhub" \
+      org.opencontainers.image.description="VEDO Hub mock — GraphQL stand-in for dev/test/CI (not shipped)" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.source="${SOURCE}" \
+      org.opencontainers.image.licenses="MIT"
+
+COPY --from=build /out/mockhub /usr/local/bin/mockhub
+
+USER nonroot:nonroot
+EXPOSE 8081
+
+# Ontology is mounted at runtime (ONTOLOGY_FILE=/data/ontology.ttl).
+ENV PORT=8081
+ENV ONTOLOGY_FILE=/data/ontology.ttl
+
+ENTRYPOINT ["/usr/local/bin/mockhub"]

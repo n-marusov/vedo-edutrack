@@ -1,0 +1,394 @@
+"""
+An annotation on a property (custom annotation property).
+"""
+type Annotation {
+	propertyIri: String!
+	value: String!
+}
+
+"""
+Breadcrumb path item from root to a given class.
+"""
+type BreadcrumbItem {
+	id: String!
+	label: String!
+}
+
+"""
+A class in the ontology hierarchy (`TBox`).
+"""
+type Class implements Entity {
+	id: String!
+	label: String!
+	comment: String
+	entityType: EntityType!
+	parents: [String!]!
+	children: [String!]!
+	isAbstract: Boolean!
+	isDeprecated: Boolean!
+}
+
+"""
+Paginated connection wrapper for classes.
+"""
+type ClassConnection {
+	items: [ClassSummary!]!
+	total: Int!
+	page: Int!
+	perPage: Int!
+}
+
+"""
+Lightweight class summary used in list responses.
+"""
+type ClassSummary {
+	id: String!
+	label: String!
+	comment: String
+	parents: [String!]!
+}
+
+"""
+A node in the class hierarchy tree.
+"""
+type ClassTreeNode {
+	id: String!
+	label: String!
+	"""
+	Nested children (populated when tree is fetched).
+	"""
+	children: [ClassTreeNode!]!
+}
+
+"""
+The `Entity` interface — common fields exposed by all graph-navigation
+types (`Class`, `Property`, `Individual`).
+
+Required by ADR-DES.API.graphql-sparql-split-strategy §"Разделение
+ответственности" (полиморфизм: интерфейс `Entity`).
+"""
+interface Entity {
+	id: String!
+	label: String!
+	comment: String
+	entityType: EntityType!
+}
+
+"""
+The entity type discriminator for the `Entity` interface.
+"""
+enum EntityType {
+	"""
+	A class in the TBox.
+	"""
+	CLASS
+	"""
+	A property (object, datatype, or annotation).
+	"""
+	PROPERTY
+	"""
+	An individual in the ABox.
+	"""
+	INDIVIDUAL
+}
+
+"""
+An edge in the graph neighborhood.
+"""
+type GraphEdge {
+	sourceId: String!
+	targetId: String!
+	propertyId: String!
+	propertyLabel: String!
+}
+
+"""
+Graph neighborhood result (nodes + edges).
+"""
+type GraphNeighborhood {
+	nodes: [GraphNode!]!
+	edges: [GraphEdge!]!
+}
+
+"""
+A node in the graph neighborhood.
+"""
+type GraphNode {
+	id: String!
+	label: String!
+}
+
+"""
+An OWL individual (`ABox` instance).
+"""
+type Individual implements Entity {
+	id: String!
+	label: String!
+	comment: String
+	entityType: EntityType!
+	classId: String!
+	classLabel: String!
+	literalValues: [LiteralValue!]!
+	referenceValues: [ReferenceValue!]!
+}
+
+"""
+Paginated connection wrapper for individuals.
+"""
+type IndividualConnection {
+	items: [Individual!]!
+	total: Int!
+	page: Int!
+	perPage: Int!
+}
+
+"""
+A literal property value on an individual.
+"""
+type LiteralValue {
+	propertyId: String!
+	propertyLabel: String!
+	value: String!
+	xsdType: String
+	valueId: String
+}
+
+"""
+A property in the ontology (`ObjectProperty` or `DatatypeProperty`).
+"""
+type Property implements Entity {
+	id: String!
+	label: String!
+	comment: String
+	entityType: EntityType!
+	propertyType: PropertyType!
+	domains: [String!]!
+	ranges: [String!]!
+	xsdType: String
+	characteristics: PropertyCharacteristics!
+	annotations: [Annotation!]!
+}
+
+"""
+`ObjectProperty` characteristics (functional, transitive, etc.).
+"""
+type PropertyCharacteristics {
+	functional: Boolean!
+	inverseFunctional: Boolean!
+	transitive: Boolean!
+	symmetric: Boolean!
+}
+
+"""
+Paginated connection wrapper for properties.
+"""
+type PropertyConnection {
+	items: [PropertySummary!]!
+	total: Int!
+	page: Int!
+	perPage: Int!
+}
+
+"""
+Lightweight property summary for list responses.
+"""
+type PropertySummary {
+	id: String!
+	label: String!
+	propertyType: PropertyType!
+	xsdType: String
+	domains: [String!]!
+}
+
+"""
+The property type discriminator.
+"""
+enum PropertyType {
+	OBJECT
+	DATATYPE
+	ANNOTATION
+}
+
+type QueryRoot {
+	"""
+	Retrieve a single class by ID.
+	"""
+	class(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Class ID
+		"""
+		classId: String!
+	): Class
+	"""
+	List classes with optional search and pagination.
+	"""
+	classes(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Search filter (matches label)
+		"""
+		q: String = null,		page: Int! = 0,		perPage: Int! = 20
+	): ClassConnection!
+	"""
+	Returns the class hierarchy tree (root classes with lazy children).
+	"""
+	classTree(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!
+	): [ClassTreeNode!]!
+	"""
+	Returns the ancestor chain (breadcrumb) for a class.
+	"""
+	classAncestors(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Class ID
+		"""
+		classId: String!
+	): [BreadcrumbItem!]!
+	"""
+	Returns the descendant tree for a class.
+	"""
+	classDescendants(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Class ID
+		"""
+		classId: String!,		maxDepth: Int! = 10
+	): [ClassTreeNode!]!
+	"""
+	Returns the graph neighborhood for a class (connected nodes and edges).
+	"""
+	graphNeighborhood(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Class ID
+		"""
+		classId: String!,		depth: Int! = 2
+	): GraphNeighborhood!
+	"""
+	Autocomplete search for classes by label.
+	"""
+	autocompleteClasses(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Search query
+		"""
+		q: String!,		limit: Int! = 20
+	): [ClassSummary!]!
+	"""
+	Retrieve a single property by ID.
+	"""
+	property(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Property ID
+		"""
+		propertyId: String!
+	): Property
+	"""
+	List properties with optional type filter and pagination.
+	"""
+	properties(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Search filter
+		"""
+		q: String = null,
+		"""
+		Property type filter
+		"""
+		propertyType: PropertyType,		page: Int! = 0,		perPage: Int! = 20
+	): PropertyConnection!
+	"""
+	Retrieve a single individual by ID (full detail with property values).
+	"""
+	individual(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Individual ID
+		"""
+		individualId: String!
+	): Individual
+	"""
+	List individuals filtered by class with pagination.
+	"""
+	individuals(
+		"""
+		Ontology ID
+		"""
+		ontologyId: String!,
+		"""
+		Filter by class ID
+		"""
+		classId: String!,
+		"""
+		Text search
+		"""
+		q: String = null,		page: Int! = 0,		perPage: Int! = 20
+	): IndividualConnection!
+	_service: _Service!
+}
+
+"""
+A reference property value linking to another individual.
+"""
+type ReferenceValue {
+	propertyId: String!
+	propertyLabel: String!
+	targetId: String!
+	targetLabel: String!
+	edgeId: String
+}
+
+"""
+The `_Any` scalar is used to pass representations of entities from external
+services into the root `_entities` field for execution.
+"""
+scalar _Any
+
+type _Service {
+	sdl: String
+}
+
+"""
+Directs the executor to include this field or fragment only when the `if` argument is true.
+"""
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Directs the executor to skip this field or fragment when the `if` argument is true.
+"""
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+schema {
+	query: QueryRoot
+}

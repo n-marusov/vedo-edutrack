@@ -154,3 +154,4 @@ OpenAPI-спек (источник истины, в репозитории)
 - ADR `DES.API.communication-patterns` (T4) — REST + async-события
 - [Дизайн-процесс (Pencil)](ADR-DES.PROCESS.pencil-design-adoption.md) — .pen-артефакты, токены ↔ CSS
 - [Инструменты разработки](ADR-IMPL.PROCESS.development-tooling.md) — фронтенд-тулчейн (Vite + pnpm, §11), Makefile, pre-commit, CI/CD
+- [Mock VEDO Hub](ADR-DES.INFRA.mock-hub-strategy.md) — контейнер `hub-mock` (test-only), единственная новая зависимость `gqlparser/v2` (T20, M0.3)

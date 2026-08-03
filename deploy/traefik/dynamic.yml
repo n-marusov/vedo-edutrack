@@ -18,17 +18,24 @@ http:
         - circuit-breaker
 
     spa:
-      # dev: Vite dev server (5173). prod: backend Go-embed SPA handler —
-      # replace service with `spa-embed` (weighted blue-green post-MVP).
+      # M0.3+: the SPA is served by the unified backend binary (API + SPA on
+      # one port). The dev Vite server (frontend-dev profile) is routed only
+      # when the frontend-dev compose profile is active.
       rule: "Host(`edutrack.localhost`)"
       entryPoints: ["websecure"]
-      service: frontend
+      service: spa-embed
       tls: true
       middlewares:
         - security-headers
 
   services:
     backend:
+      loadBalancer:
+        servers:
+          - url: http://backend:8080
+
+    # M0.3: unified binary — SPA served by the backend Go-embed handler.
+    spa-embed:
       loadBalancer:
         servers:
           - url: http://backend:8080
@@ -42,18 +49,6 @@ http:
     #   loadBalancer:
     #     servers:
     #       - url: http://backend-green:8080
-
-    frontend:
-      loadBalancer:
-        servers:
-          - url: http://frontend:5173
-
-    # Production: SPA served by the Go-embed handler inside the backend binary
-    # (single artifact, ADR-DES.INFRA.modular-monolith-approach §7-8):
-    # spa-embed:
-    #   loadBalancer:
-    #     servers:
-    #       - url: http://backend:8080
 
   middlewares:
     rate-limit:

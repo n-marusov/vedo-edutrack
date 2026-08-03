@@ -32,6 +32,10 @@ C4Deployment
                     ContainerDb(pg, "PostgreSQL", "SQL", "Данные EduTrack (volume postgres_data); init.sql: uuid-ossp, pg_trgm, schema edutrack")
                 }
 
+                Deployment_Node(hubMockNode, "hub-mock", "backend/Dockerfile.mockhub (build)") {
+                    Container(hubMock, "VEDO Hub mock (GraphQL)", "Go", "Стенд-заменитель VEDO Hub: POST /graphql (classes, graphNeighborhood, classDescendants…), онтология в памяти из .ttl (ONTOLOGY_FILE), :8081; healthcheck /healthz; ADR-DES.INFRA.mock-hub-strategy")
+                }
+
                 Deployment_Node(otelNode, "otel-collector", "otel/opentelemetry-collector-contrib:0.118.0") {
                     Container(otel, "OTel Collector", "Go", "Приём OTLP (4317/4318), PII-redaction, экспорт в Prometheus/Loki/Tempo")
                 }
@@ -54,11 +58,12 @@ C4Deployment
         }
     }
 
-    Rel(traefik, vite, "Роутинг edutrack.localhost → SPA (dev)", "HTTP :5173")
+    Rel(traefik, vite, "Роутинг edutrack.localhost → SPA (dev, frontend-dev profile)", "HTTP :5173")
     Rel(traefik, api, "Роутинг api.edutrack.localhost → API", "HTTP :8080")
     Rel(vite, api, "Прокси /api (dev, минуя edge)", "HTTP :8080")
     Rel(air, api, "Перезапускает при изменениях", "process")
     Rel(api, pg, "Читает и пишет", "SQL :5432")
+    Rel(api, hubMock, "Читает онтологию (F0), GraphQL", "HTTP :8081")
     Rel(api, otel, "OTLP (трейсы/метрики/логи)", "gRPC/HTTP :4317/:4318")
     Rel(otel, prom, "Экспорт метрик", "HTTP :8889")
     Rel(otel, loki, "Экспорт логов", "HTTP :3100")
@@ -76,6 +81,7 @@ C4Deployment
 | **frontend / Vite** | node:24-alpine | SPA dev-сервер с HMR; `pnpm dev --host`; прокси `/api` → backend |
 | **backend / air** | golang:1.26-alpine | Модульный монолит; air пересобирает при изменении `.go` (`backend/.air.toml`) |
 | **postgres** | postgres:16-alpine | Единственное хранилище MVP; volume `postgres_data`, init-скрипт `deploy/postgres/init.sql` |
+| **hub-mock** | Go (сборка из `backend/cmd/mockhub`) | Стенд VEDO Hub: GraphQL read-only, онтология из `.ttl` (`traceability.ttl` → `/data/ontology.ttl`); `VEDO_HUB_API_URL=http://hub-mock:8081` |
 | **otel-collector** | otel/opentelemetry-collector-contrib | Приём OTLP, redaction PII (152-ФЗ), экспорт в 3 бэкенда |
 | **prometheus / loki / tempo / grafana** | — | Observability-стек provisioned as-code (`deploy/observability/`) |
 

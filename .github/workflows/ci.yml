@@ -98,6 +98,21 @@ jobs:
           cd tests/e2e/gui
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
+      - name: Build hub-mock image
+        run: |
+          docker build -t vedo-edutrack-mockhub:ci -f backend/Dockerfile.mockhub backend
+      - name: Smoke hub-mock GraphQL
+        run: |
+          docker run -d --name hub-mock-ci -p 8081:8081 \
+            -e ONTOLOGY_FILE=/data/ontology.ttl \
+            -v "${{ github.workspace }}/traceability.ttl:/data/ontology.ttl:ro" \
+            vedo-edutrack-mockhub:ci
+          sleep 3
+          curl -sS -X POST localhost:8081/graphql \
+            -H "Authorization: Bearer test" \
+            -d '{"query":"{ classes(ontologyId:\"traceability\", perPage: 5) { total items { id label } } }"}' \
+            | grep -q '"total"' && echo "hub-mock smoke OK"
+          docker rm -f hub-mock-ci
       - name: Run test gates
         run: bash deploy/ci/run-gates.sh --trigger ci --group test --out-format json
       - name: Upload Playwright report (on failure)

@@ -51,7 +51,8 @@ services:
     networks: [edutrack-net]
 
   # Dev backend: Go source mounted, air hot-reload inside the container.
-  # Production image: backend/Dockerfile (distroless, no air).
+  # Production image: backend/Dockerfile (distroless, no air) — unified
+  # binary serving API + embedded SPA from one port (M0.3, T18).
   backend:
     image: golang:1.26-alpine
     working_dir: /app
@@ -61,9 +62,13 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-edutrack}:${POSTGRES_PASSWORD:-edutrack}@postgres:5432/${POSTGRES_DB:-edutrack}?sslmode=disable
       # Dynamic runtime config (ADR-DES.INFRA.dynamic-config-injection)
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
-      VEDO_HUB_API_URL: ${VEDO_HUB_API_URL:-http://localhost:8081}
+      VEDO_HUB_API_URL: ${VEDO_HUB_API_URL:-http://hub-mock:8081}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_SAMPLING_RATIO: ${OTEL_SAMPLING_RATIO:-0.1}
+      # JWT dev auth (T5)
+      JWKS_URL: ${JWKS_URL:-http://localhost:8080/.well-known/jwks.json}
+      JWT_ISSUER: ${JWT_ISSUER:-vedo-edutrack}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-vedo-edutrack}
     volumes:
       - ../backend:/app
     command: >
@@ -84,11 +89,14 @@ services:
       retries: 5
       start_period: 30s
 
-  # Dev frontend: Vite dev server with HMR. VITE_PROXY_TARGET is consumed by
-  # frontend/vite.config.ts (T11) so /api proxying works inside the container.
+  # Dev frontend (OPTIONAL — hot-reload workflow): Vite dev server with HMR.
+  # Production: the SPA is served by the unified backend binary from one port
+  # (M0.3 embed unification), so this service runs only with the frontend-dev
+  # profile: `docker compose --profile frontend-dev up`.
   frontend:
     image: node:24-alpine
     working_dir: /app
+    profiles: ["frontend-dev"]
     environment:
       VITE_PROXY_TARGET: http://backend:8080
     volumes:
@@ -170,6 +178,28 @@ services:
       - tempo
     networks: [edutrack-net]
 
+  # Mock VEDO Hub — GraphQL stand-in for the ontology service (M0.3 T25,
+  # ADR-DES.INFRA.mock-hub-strategy). Test-only, not shipped.
+  hub-mock:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.mockhub
+    image: vedo-edutrack-mockhub:local
+    environment:
+      PORT: 8081
+      ONTOLOGY_FILE: /data/ontology.ttl
+    volumes:
+      - ../traceability.ttl:/data/ontology.ttl:ro
+    ports:
+      - "${HUB_MOCK_PORT:-8081}:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8081/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks: [edutrack-net]
+
   # Reverse-proxy edge: 80/443 ingress + dashboard (host 8082 — backend owns 8080).
   traefik:
     image: traefik:v3.1.2
@@ -184,7 +214,6 @@ services:
       - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
     depends_on:
       - backend
-      - frontend
     networks:
       - edutrack-net
       - edutrack-public
