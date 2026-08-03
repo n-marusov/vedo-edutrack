@@ -37,7 +37,7 @@ VEDO EduTrack is an educational route service built **on top of the VEDO Hub** o
 > **Status: выбран (ПРИНЯТО, 2026-08-02)** — зафиксирован в ADR T3–T5: `ADR-DES.STACK.language-vs-vs`, `ADR-DES.STACK.framework-vs-vs`, `ADR-DES.DATA.storage-strategy`, `ADR-DES.API.communication-patterns`, `ADR-IMPL.PROCESS.repository-structure`, `ADR-DES.SECURITY.rbac-model`, `ADR-IMPL.PROCESS.development-tooling`. CLI-интерфейс: единый бинарник с cobra-подкомандами — `ADR-DES.API.cli-interface` (2026-08-03).
 
 - **Programming language:** Go (бэкенд) + TypeScript (фронтенд) — `ADR-DES.STACK.language-vs-vs`
-- **Framework:** chi + oapi-codegen (бэкенд, OpenAPI-first); React + TS (фронт, SPA) — `ADR-DES.STACK.framework-vs-vs`; frontend routing — react-router v8 (единый пакет `react-router`; v7-dom заменён из-за уязвимости GHSA-qwww-vcr4-c8h2)
+- **Framework:** chi + oapi-codegen (бэкенд, OpenAPI-first); React + TS (фронт, SPA) — `ADR-DES.STACK.framework-vs-vs`; frontend routing — react-router v8 (единый пакет `react-router`; v7-dom заменён из-за уязвимости GHSA-qwww-vcr4-c8h2); graph visualization — React Flow (`@xyflow/react`, M2, knowledge map)
 - **Database:** PostgreSQL (learner/plan/progress data; knowledge graph lives in VEDO Hub, queried via SPARQL API)
 - **Data access / migrations:** sqlc + Atlas (drift-детекция)
 - **DI / logging / i18n:** wire · zap + OTel · go-i18n
