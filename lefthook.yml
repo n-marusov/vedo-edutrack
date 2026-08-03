@@ -13,7 +13,9 @@ assert_lefthook_installed: true
 min_version: 2.1.10
 
 pre-commit:
-  parallel: true
+  # Keep hooks sequential: Lefthook 2.1.10 parallel progress rendering can
+  # hang embedded Windows pseudo-TTYs while jobs have already finished.
+  parallel: false
   jobs:
     # --- Frontend: Biome (format + lint + organize imports, auto-fix) ---
     # root: frontend/ — biome resolves biome.json from CWD; {staged_files}
