@@ -19,9 +19,11 @@ RUN go mod download
 # Build the single binary (cobra CLI tree — ADR-DES.API.cli-interface).
 COPY . .
 ARG VERSION=0.1.0
+# Dynamic build-version injection (ADR-DES.INFRA.dynamic-config-injection):
+# the version is baked via ldflags and reported by `vedo-edutrack version`.
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -trimpath \
-    -ldflags="-s -w" \
+    -ldflags="-s -w -X vedo-edutrack/backend/internal/platform/config.Version=${VERSION}" \
     -o /out/vedo-edutrack \
     ./cmd/vedo-edutrack
 

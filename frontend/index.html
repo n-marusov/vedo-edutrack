@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="VEDO EduTrack — сервис образовательных маршрутов" />
     <title>VEDO EduTrack</title>
+    <!-- Runtime config (version, env, URLs) — injected at deploy time; see
+         ADR-DES.INFRA.dynamic-config-injection. Must load before the app. -->
+    <script src="/config.js"></script>
   </head>
   <body>
     <div id="root"></div>

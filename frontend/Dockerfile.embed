@@ -32,6 +32,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -41,25 +42,44 @@ import (
 //go:embed all:dist
 var assets embed.FS
 
-func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+// envOr reads a runtime env var with a default (dynamic config injection —
+// ADR-DES.INFRA.dynamic-config-injection: one build, many environments).
+func envOr(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
 	}
+	return def
+}
+
+func main() {
+	port := envOr("PORT", "8080")
 	sub, err := fs.Sub(assets, "dist")
 	if err != nil {
 		log.Fatalf("[FATAL] [spa-embed] fs.Sub: %v", err)
 	}
 	fileServer := http.FileServer(http.FS(sub))
 	// SPA fallback: unknown paths serve index.html (client-side routing).
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	spaHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, err := fs.Stat(sub, r.URL.Path[1:]); err != nil {
 			r.URL.Path = "/"
 		}
 		fileServer.ServeHTTP(w, r)
 	})
+
+	mux := http.NewServeMux()
+	// Runtime config endpoint: /config.js is generated from env vars at runtime
+	// and must take precedence over the static dist/config.js (index.html loads
+	// it before the app bundle).
+	mux.HandleFunc("/config.js", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/javascript")
+		w.Header().Set("Cache-Control", "no-store")
+		fmt.Fprintf(w, "window.APP_CONFIG = { version: %q, env: %q, apiBaseUrl: %q };\n",
+			envOr("APP_VERSION", "dev"), envOr("APP_ENV", "production"), envOr("API_BASE_URL", "/api"))
+	})
+	mux.Handle("/", spaHandler)
+
 	log.Printf("[INFO] [spa-embed] listening on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
 EOF
 # Minimal module — the embed server uses stdlib only.

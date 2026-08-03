@@ -2313,3 +2313,18 @@ tr:c4-deployment-enterprise a tr:C4Diagram ;
 tr:c4-deployment-dev tr:relatesTo tr:c4-container-overview .
 tr:c4-deployment-saas tr:relatesTo tr:c4-container-overview .
 tr:c4-deployment-enterprise tr:relatesTo tr:c4-container-overview .
+
+
+# ── 2026-08-03: dynamic config injection ADR (version + URLs, runtime env) ──
+
+tr:adr-des-infra-dynamic-config-injection a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-DES.INFRA.dynamic-config-injection" ;
+  tr:hasFilePath "specs/adr/ADR-DES.INFRA.dynamic-config-injection.md" ;
+  tr:derivesFrom tr:nfr-infra-compliance-environment-isolation, tr:nfr-ops-release-deployment-verification, tr:nfr-ops-compliance-support-sla, tr:nfr-ops-observability-log-level-config, tr:nfr-security-compliance-owasp-application-security .
+
+# Deployment artifacts implementing dynamic config injection now conform to
+# this ADR in addition to the development-tooling ADR they already derive from.
+tr:dep-backend-dockerfile tr:derivesFrom tr:adr-des-infra-dynamic-config-injection .
+tr:dep-frontend-embed-dockerfile tr:derivesFrom tr:adr-des-infra-dynamic-config-injection .
+tr:dep-frontend-nginx-dockerfile tr:derivesFrom tr:adr-des-infra-dynamic-config-injection .
+tr:dep-docker-compose tr:derivesFrom tr:adr-des-infra-dynamic-config-injection .

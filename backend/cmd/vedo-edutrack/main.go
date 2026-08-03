@@ -15,8 +15,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+
+	"vedo-edutrack/backend/internal/platform/config"
 )
 
 func main() {
@@ -30,7 +33,28 @@ func main() {
 
 // run is the placeholder for the CLI dispatch (cobra Execute).
 // Kept separate from main so it can be unit-tested.
+//
+// The `version` subcommand is already functional: it prints the build version
+// injected via ldflags (ADR-DES.INFRA.dynamic-config-injection):
+//
+//	go build -ldflags "-X vedo-edutrack/backend/internal/platform/config.Version=1.2.3" ...
 func run(args []string) error {
+	if len(args) > 0 {
+		switch args[0] {
+		case "version", "--version", "-v":
+			fmt.Printf("vedo-edutrack %s (env %s)\n", config.Version, envOrDefault("APP_ENV", "development"))
+			return nil
+		}
+	}
 	log.Printf("[INFO] [vedo-edutrack] args=%v (CLI dispatch pending M0.3)", args)
 	return nil
+}
+
+// envOrDefault mirrors platform/config's helper for the version banner
+// (kept local to avoid an import cycle in the placeholder CLI).
+func envOrDefault(key, defaultVal string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return defaultVal
 }

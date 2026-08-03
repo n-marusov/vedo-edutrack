@@ -59,6 +59,9 @@ services:
       APP_ENV: dev
       LOG_LEVEL: ${LOG_LEVEL:-debug}
       DATABASE_URL: postgres://${POSTGRES_USER:-edutrack}:${POSTGRES_PASSWORD:-edutrack}@postgres:5432/${POSTGRES_DB:-edutrack}?sslmode=disable
+      # Dynamic runtime config (ADR-DES.INFRA.dynamic-config-injection)
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      VEDO_HUB_API_URL: ${VEDO_HUB_API_URL:-http://localhost:8081}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_SAMPLING_RATIO: ${OTEL_SAMPLING_RATIO:-0.1}
     volumes:

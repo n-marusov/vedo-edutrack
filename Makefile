@@ -14,6 +14,11 @@ COMPOSE := docker compose -f $(COMPOSE_FILE)
 DATABASE_URL ?= postgres://edutrack:edutrack@localhost:5432/edutrack?sslmode=disable
 export DATABASE_URL
 
+# Build version — injected into the binary and the SPA fallback
+# (ADR-DES.INFRA.dynamic-config-injection). Derived from git; override with
+# VERSION=x.y.z make build.
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+
 # Load .env into make variables, then export them so `docker compose`
 # (a child process) sees them.
 -include .env
@@ -40,8 +45,8 @@ dev: up ## Dev mode: stack up + hot-reload (air in backend container, Vite in fr
 	@echo "  traefik  -> http://localhost:8082   (dashboard, dev only)"
 
 build: ## Production build check (Go binary + SPA)
-	cd backend && go build -ldflags="-s -w" -o bin/vedo-edutrack ./cmd/vedo-edutrack
-	cd frontend && pnpm build
+	cd backend && go build -ldflags="-s -w -X vedo-edutrack/backend/internal/platform/config.Version=$(VERSION)" -o bin/vedo-edutrack ./cmd/vedo-edutrack
+	cd frontend && VITE_APP_VERSION=$(VERSION) pnpm build
 
 test: ## All tests (unit + frontend + e2e) — red scaffolds fail by design at M0.2
 	cd backend && go test ./... -count=1
