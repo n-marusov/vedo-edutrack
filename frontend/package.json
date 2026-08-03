@@ -19,6 +19,7 @@
     "@opentelemetry/sdk-trace-base": "^2.10.0",
     "@opentelemetry/sdk-trace-web": "^2.10.0",
     "@opentelemetry/semantic-conventions": "^1.43.0",
+    "@xyflow/react": "^12.11.2",
     "jose": "^6.2.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
