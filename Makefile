@@ -43,19 +43,34 @@ else
 endif
 
 COMPOSE_FILE := deploy/docker-compose.yml
+TEST_COMPOSE_FILE := deploy/docker-compose.test.yml
 
 # Dev environment file — loaded for `make up/dev/...` and passed to compose.
 # Override with ENV_FILE=<path> make up. Falls back to the legacy root .env
 # so existing setups keep working. .env.dev is git-ignored (see .gitignore).
-ENV_FILE ?= .env.dev
+ENV_FILE ?= deploy/.env.dev
+# Test environment file — passed to the test compose stack by `make test-up`
+# / deploy/ci/e2e-run.sh.
+TEST_ENV_FILE ?= deploy/.env.test
 
 # Pass the env file to compose interpolation when it exists; otherwise let
 # compose fall back to the process environment (exported below) and defaults.
 ifneq ($(wildcard $(ENV_FILE)),)
 COMPOSE_ENV := --env-file $(ENV_FILE)
 endif
+ifneq ($(wildcard $(TEST_ENV_FILE)),)
+TEST_COMPOSE_ENV := --env-file $(TEST_ENV_FILE)
+endif
 
 COMPOSE := $(DOCKER) compose $(COMPOSE_ENV) -f $(COMPOSE_FILE)
+# Test stack (ADR-IMPL.INFRA.dev-test-compose-separation): isolated compose
+# project vedo-edutrack-test — no observability/traefik, separate volumes.
+TEST_COMPOSE := $(DOCKER) compose $(TEST_COMPOSE_ENV) -f $(TEST_COMPOSE_FILE)
+
+# Dev env vars exported below would otherwise leak into the test stack and win
+# over deploy/.env.test (shell env > --env-file). Unset them in test recipes so
+# the test values (warn / 0 / :58080) take effect.
+TEST_ENV_CLEAN := LOG_LEVEL OTEL_SAMPLING_RATIO PUBLIC_BASE_URL JWKS_URL
 
 # Default DB connection (overridable via .env.dev or environment).
 DATABASE_URL ?= postgres://edutrack:edutrack@localhost:5432/edutrack?sslmode=disable
@@ -96,7 +111,7 @@ define verdict
 	bash scripts/verdict.sh "$(1)" $(2)
 endef
 
-.PHONY: help up down dev build build-frontend bench test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-local docker-build-frontend-nginx docker-build-all clean
+.PHONY: help up down test-up test-down dev build build-frontend bench test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-local docker-build-frontend-nginx docker-build-all clean
 
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
@@ -131,6 +146,26 @@ down: ## Stop and remove the dev stack (incl. volumes) — idempotent
 		$(call verdict,PASS,"dev stack stopped and cleaned"); \
 	else \
 		$(call verdict,SKIP,"stack was not running (nothing to stop)"); \
+	fi
+
+test-up: ## Start the TEST stack (postgres + backend + hub-mock + frontend; no observability)
+	@$(call header,up,"start test stack")
+	@unset $(TEST_ENV_CLEAN); \
+	if $(TEST_COMPOSE) up -d --wait; then \
+		$(call verdict,PASS,"test stack up (4 services)"); \
+	else \
+		$(call verdict,FAIL,"test stack failed to start"); \
+		exit 1; \
+	fi
+
+test-down: ## Stop and remove the TEST stack (isolated project — never touches dev data)
+	@$(call header,down,"stop test stack")
+	@unset $(TEST_ENV_CLEAN); \
+	$(TEST_COMPOSE) down --volumes >/dev/null 2>&1; rc=$$?; \
+	if [ $$rc -eq 0 ]; then \
+		$(call verdict,PASS,"test stack stopped and cleaned"); \
+	else \
+		$(call verdict,SKIP,"test stack was not running (nothing to stop)"); \
 	fi
 
 dev: up ## Dev mode: stack up + hot-reload (air in backend container, Vite in frontend)

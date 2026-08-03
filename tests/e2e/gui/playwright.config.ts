@@ -13,8 +13,8 @@ export default defineConfig({
     ? [["html", { outputFolder: "playwright-report" }], ["github"]]
     : [["html", { outputFolder: "playwright-report" }]],
   use: {
-    // Vite dev server by default; prod embedded SPA via E2E_BASE_URL override.
-    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:5173",
+    // Test stack by default; dev stack via E2E_BASE_URL override.
+    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:55173",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "retain-on-failure",
@@ -25,14 +25,14 @@ export default defineConfig({
     { name: "firefox", use: { ...devices["Desktop Firefox"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
-  // Local runs auto-start the dev stack (reuse if already running); disabled
+  // Local runs auto-start the TEST stack (reuse if already running); disabled
   // under the gate runner (deploy/ci/e2e-run.sh manages the lifecycle).
   webServer: process.env.E2E_STACK_MANAGED
     ? undefined
     : {
-        command: "cd ../.. && make dev",
-        url: "http://localhost:5173",
+        command: "cd ../.. && make test-up",
+        url: "http://localhost:55173",
         reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        timeout: 180_000,
       },
 });

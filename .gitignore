@@ -34,7 +34,10 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
-!.env.dev.example
+# Non-secret dev/test stack env (committed defaults) — see deploy/README.md.
+!deploy/.env.dev
+!deploy/.env.test
+!backend/.env.example
 
 # ===== ОС =====
 .DS_Store
@@ -46,6 +49,9 @@ Thumbs.db
 backend/tmp/
 *.exe
 *.test
+!deploy/.env.test
 coverage.out
 backend-sbom.spdx.json
 .zed/settings.json
+deploy/.env.dev
+deploy/.env.test

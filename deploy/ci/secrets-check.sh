@@ -73,7 +73,7 @@ fi
 # ------------------------------------------------------------------
 echo ""
 echo "[4/4] .env files..."
-ENV_HITS="$(git ls-files '*.env' '.env*' ':!:.env.example' ':!:deploy/.env.example' ':!:**/.env.example' ':!:**/.env.test' 2>/dev/null || true)"
+ENV_HITS="$(git ls-files '*.env' '.env*' ':!:.env.example' ':!:deploy/.env.example' ':!:**/.env.example' ':!:**/.env.test' ':!:**/.env.dev' 2>/dev/null || true)"
 if [[ -n "$ENV_HITS" ]]; then
   echo "  [FAIL] .env files committed (only .env.example should be in the repo):"
   echo "$ENV_HITS" | sed 's/^/    /'

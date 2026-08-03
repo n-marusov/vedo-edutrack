@@ -85,7 +85,9 @@ C4Deployment
 | **otel-collector** | otel/opentelemetry-collector-contrib | Приём OTLP, redaction PII (152-ФЗ), экспорт в 3 бэкенда |
 | **prometheus / loki / tempo / grafana** | — | Observability-стек provisioned as-code (`deploy/observability/`) |
 
-**Особенности dev-контура:** браузер ходит напрямую на Vite (`localhost:5173`) и API через его прокси — Traefik не является обязательной точкой входа в dev; конфигурация `deploy/traefik/` актуальна для SaaS/staging. Сеть `edutrack-public` содержит только Traefik.
+**Особенности dev-контура:** браузер ходит напрямую на Vite (`localhost:5173`) и API через его прокси — Traefik не является обязательной точкой входа в dev; конфигурация `deploy/traefik/` актуальна для SaaS/staging. Сеть `edutrack-public` содержит только Traefik. Сервис `frontend` за профилем `frontend-dev` (`docker compose --profile frontend-dev up`) — он не нужен, если SPA берётся из unified backend-бинарника (M0.3).
+
+**Разделение стеков (ADR-IMPL.INFRA.dev-test-compose-separation):** этот стек — **dev-only**. Для E2E/интеграционных прогонов существует отдельный минимальный test-стек (`deploy/docker-compose.test.yml`, проект `vedo-edutrack-test`): postgres + backend (`go run`, без air) + hub-mock + frontend, без observability/traefik, тома изолированы — см. [deployment-test](deployment-test.md).
 
 ## Контекст
 
@@ -95,7 +97,7 @@ C4Deployment
 
 | Артефакт | Роль |
 |----------|------|
-| `deploy/docker-compose.yml` | Определяет весь dev-стек (T6) |
+| `deploy/docker-compose.yml` | Определяет dev-стек (T6); test-стек — отдельный `deploy/docker-compose.test.yml` (ADR-IMPL.INFRA.dev-test-compose-separation) |
 | `deploy/observability/` | Конфиги collector/prometheus/loki/tempo/grafana (T3) |
 | `deploy/traefik/` | Edge-конфиг для SaaS (T7) |
 | `deploy/postgres/init.sql` | Расширения и схема при первом старте (T3) |

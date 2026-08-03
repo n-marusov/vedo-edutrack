@@ -1,0 +1,128 @@
+# Docker Compose — VEDO EduTrack TEST stack (M1, T27b / e2e gates).
+#
+# Minimal stack for E2E tests (tests/e2e/api + tests/e2e/gui) and integration
+# runs: postgres + backend (no air — deterministic go run) + hub-mock + frontend
+# (Vite, needed by GUI scenarios). Deliberately EXCLUDES the observability
+# stack (otel-collector, prometheus, loki, tempo, grafana) and traefik — they
+# add startup cost and are irrelevant to tests.
+#
+# Lifecycle: `make test-up` / `make test-down` (or the e2e gate runner
+# deploy/ci/e2e-run.sh, which auto-starts and tears down this stack).
+# Project name is isolated (vedo-edutrack-test): volumes/networks never
+# collide with the dev stack (vedo-edutrack) — `make test-down --volumes`
+# can never destroy dev data.
+#
+# ADR: ADR-IMPL.INFRA.dev-test-compose-separation (split dev vs test stacks).
+# Variables: same deploy/.env defaults as the dev compose (see .env.example);
+# every variable has a sane default, so the file is optional.
+
+name: vedo-edutrack-test
+
+networks:
+  edutrack-test-net:
+    driver: bridge
+
+volumes:
+  postgres_test_data:
+  # Container-owned node_modules (same pattern as the dev stack) — keeps the
+  # host tree clean and avoids Linux/Windows binary clashes in the mounted
+  # frontend source.
+  frontend_node_modules:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-edutrack}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-edutrack}
+      POSTGRES_DB: ${POSTGRES_DB:-edutrack}
+    ports:
+      - "${POSTGRES_TEST_PORT:-55432}:5432" # +50000 offset from dev 5432 — no clash
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-edutrack} -d ${POSTGRES_DB:-edutrack}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks: [edutrack-test-net]
+
+  # Test backend: source mounted, compiled on start (no air — deterministic
+  # for tests). Telemetry disabled (OTEL_SAMPLING_RATIO=0) — observability is
+  # not part of the test stack. Host port 58080 (offset from dev 8080) so dev
+  # and test stacks can run side by side.
+  backend:
+    image: golang:1.26-alpine
+    working_dir: /app
+    environment:
+      APP_ENV: test
+      LOG_LEVEL: ${LOG_LEVEL:-warn}
+      DATABASE_URL: postgres://${POSTGRES_USER:-edutrack}:${POSTGRES_PASSWORD:-edutrack}@postgres:5432/${POSTGRES_DB:-edutrack}?sslmode=disable
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:58080}
+      VEDO_HUB_API_URL: ${VEDO_HUB_API_URL:-http://hub-mock:8081}
+      OTEL_SAMPLING_RATIO: "0" # no telemetry exporter in the test stack
+      JWKS_URL: ${JWKS_URL:-http://localhost:58080/.well-known/jwks.json}
+      JWT_ISSUER: ${JWT_ISSUER:-vedo-edutrack}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-vedo-edutrack}
+    volumes:
+      - ../backend:/app
+    command: sh -c "go run ./cmd/vedo-edutrack server"
+    ports:
+      - "${BACKEND_TEST_PORT:-58080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    networks: [edutrack-test-net]
+
+  # Mock VEDO Hub — GraphQL stand-in (ADR-DES.INFRA.mock-hub-strategy).
+  hub-mock:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.mockhub
+    image: vedo-edutrack-mockhub:local
+    environment:
+      PORT: 8081
+      ONTOLOGY_FILE: /data/ontology.ttl
+    volumes:
+      - ../traceability.ttl:/data/ontology.ttl:ro
+    ports:
+      - "${HUB_MOCK_TEST_PORT:-58081}:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8081/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks: [edutrack-test-net]
+
+  # SPA dev server for GUI scenarios (bdd-*.spec.ts). Host port 55173 (offset
+  # from dev 5173). In the test stack this service is NOT profile-gated — it
+  # is a required dependency.
+  frontend:
+    image: node:24-alpine
+    working_dir: /app
+    environment:
+      VITE_PROXY_TARGET: http://backend:8080
+    volumes:
+      - ../frontend:/app
+      - frontend_node_modules:/app/node_modules
+    command: sh -c "npm install --legacy-peer-deps --no-package-lock && npm run dev -- --host"
+    ports:
+      - "${FRONTEND_TEST_PORT:-55173}:5173"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:5173/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 90s # first start runs npm install
+    networks: [edutrack-test-net]

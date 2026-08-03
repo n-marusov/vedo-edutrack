@@ -10,7 +10,7 @@
 - **Frontend:** directories `kebab-case` (`execution-progress`, `ontology-port`); component files and exports `PascalCase.tsx` (`OntologyBrowser.tsx`, `RouteBuilder.tsx`); variables/functions `camelCase`; single quotes, width 100 (biome.json).
 - **SQL migrations:** `<NNNNNN>_<schema>_<desc>.sql` (e.g. `000002_planmanagement_init.sql`), one file per schema, embedded via `go:embed`.
 - **OpenAPI:** `backend/api/openapi/v1.yaml` is the single source of truth; JSON fields `snake_case` (`learner_id`, `goal_topic_id`); operation IDs `camelCase`; generated code is committed via `make gen` and never hand-edited.
-- **Environment variables:** `UPPER_SNAKE_CASE` with a `VEDO_` prefix for Hub-related config; document every new var in `.env.dev.example` (root) and `deploy/.env.example` in the same change.
+- **Environment variables:** `UPPER_SNAKE_CASE` with a `VEDO_` prefix for Hub-related config; document every new var in `deploy/.env.dev` (dev stack) and `deploy/.env.test` (test stack) in the same change.
 
 ## Module Structure
 
@@ -50,5 +50,5 @@
 - **Format/lint:** gofmt + golangci-lint (backend), Biome (frontend), enforced by Lefthook git hooks.
 - **Code generation:** `make gen` regenerates OpenAPI code via oapi-codegen (`types` + `chi-server`, excluding `issueToken`); committed generated files must match the spec (gen-consistency gate).
 - **Database:** Atlas-style migrations via the embedded runner (`vedo-edutrack migrate up/down/validate`); drift = 0 is the target.
-- **Dev env:** the compose stack reads `.env.dev` (root, git-ignored; template `.env.dev.example`); `make up` passes it with `--env-file .env.dev`.
+- **Dev env:** the compose stack reads `deploy/.env.dev` (committed, non-secret); `make up` passes it with `--env-file deploy/.env.dev`. Test stack reads `deploy/.env.test` (`make test-up`).
 - `pnpm validate:mermaid` — validates mermaid blocks in `specs/c4/*.md`; `pnpm validate:mermaid:all` — across all specs (used in CI / before committing C4 or DDD diagrams).

@@ -29,7 +29,6 @@ moved into the backend binary. `.dockerignore` files keep contexts lean.
 ## Dev Environment
 
 ```bash
-cp .env.dev.example .env.dev   # optional: copy dev env template (root)
 docker compose -f deploy/docker-compose.yml up -d --wait   # or: make up
 ```
 
@@ -41,12 +40,37 @@ Volumes: `postgres_data`, `grafana_data`, `loki_data`, `tempo_data`,
 
 Ports: backend `8080`, frontend `5173`, postgres `5432`, Grafana `3000`,
 Prometheus `9090`, Loki `3100`, Tempo `3200`, OTLP `4317/4318`, Traefik `80/443`
-(dashboard `8082`, dev only). Defaults are overridable via **`.env.dev`** (root,
-`ENV_FILE` in the Makefile): `make up` passes it to compose via
-`--env-file .env.dev` (template: `.env.dev.example`). When the file is absent,
+(dashboard `8082`, dev only). Defaults are overridable via **`deploy/.env.dev`**
+(committed, non-secret — `ENV_FILE` in the Makefile): `make up` passes it to
+compose via `--env-file deploy/.env.dev`. Adjust values there or override on
+the command line (process env wins over `--env-file`). When the file is absent,
 compose falls back to the process environment and per-variable defaults.
 Direct `docker compose` calls interpolate from `deploy/.env` (template:
 `deploy/.env.example`).
+
+## Test Environment (E2E / integration)
+
+**Split stacks** (`ADR-IMPL.INFRA.dev-test-compose-separation`): tests never
+run against the dev stack — they use a **minimal, isolated test stack**:
+
+```bash
+make test-up     # or: docker compose -f deploy/docker-compose.test.yml up -d --wait
+make test-down   # stop + remove (isolated project — never touches dev volumes)
+```
+
+`deploy/docker-compose.test.yml` — compose project **`vedo-edutrack-test`** —
+contains only what tests need: `postgres`, `backend` (deterministic `go run`,
+no air, telemetry off), `hub-mock`, `frontend` (Vite, for GUI scenarios).
+Deliberately **excluded**: observability (`otel-collector`, `prometheus`, `loki`,
+`tempo`, `grafana`) and `traefik` — they add startup cost and are irrelevant
+to tests. **All host ports are offset +50000 from dev** (backend `58080`,
+frontend `55173`, postgres `55432`, hub-mock `58081`), so dev and test stacks
+can run side by side without port clashes. Configuration: **`deploy/.env.test`**
+(committed, non-secret) — `make test-up` passes it via `--env-file deploy/.env.test`.
+
+The E2E gates auto-manage this stack: `deploy/ci/e2e-run.sh <gui|api>` brings
+it up, runs the Playwright suite, and tears it down (trap on failure). Local
+runs reuse an already-running stack.
 
 ## SaaS Deployment
 

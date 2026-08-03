@@ -2319,7 +2319,19 @@ tr:dep-gates-manifest a tr:DeploymentArtifact ;
 tr:doc-container-strategy a tr:Documentation ;
   tr:hasArtifactId "DOC.container-strategy" ;
   tr:hasFilePath "deploy/README.md" ;
-  tr:documents tr:dep-backend-dockerfile, tr:dep-frontend-embed-dockerfile, tr:dep-frontend-nginx-dockerfile, tr:dep-docker-compose, tr:dep-traefik-static, tr:dep-traefik-dynamic, tr:dep-observability-collector, tr:dep-observability-backends, tr:dep-ci-workflow .
+  tr:documents tr:dep-backend-dockerfile, tr:dep-frontend-embed-dockerfile, tr:dep-frontend-nginx-dockerfile, tr:dep-docker-compose, tr:dep-docker-compose-test, tr:dep-traefik-static, tr:dep-traefik-dynamic, tr:dep-observability-collector, tr:dep-observability-backends, tr:dep-ci-workflow .
+
+# --- Test stack (dev/test compose separation, ADR-IMPL.INFRA.dev-test-compose-separation) ---
+
+tr:dep-docker-compose-test a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.docker-compose-test" ;
+  tr:hasFilePath "deploy/docker-compose.test.yml" ;
+  tr:derivesFrom tr:adr-impl-infra-dev-test-compose-separation, tr:adr-des-infra-mock-hub-strategy, tr:nfr-process-dev-test-coverage, tr:nfr-infra-compliance-environment-isolation .
+
+tr:dep-e2e-run a tr:DeploymentArtifact ;
+  tr:hasArtifactId "DEP.e2e-run" ;
+  tr:hasFilePath "deploy/ci/e2e-run.sh" ;
+  tr:derivesFrom tr:adr-impl-infra-dev-test-compose-separation, tr:adr-des-stack-e2e-testing-playwright-vs-cypress, tr:nfr-process-dev-test-coverage .
 
 # --- C4 Level 4 Deployment diagrams (per environment) ---
 
@@ -2402,13 +2414,20 @@ tr:adr-des-infra-mock-hub-strategy a tr:ArchitectureDecision ;
   tr:hasFilePath "specs/adr/ADR-DES.INFRA.mock-hub-strategy.md" ;
   tr:derivesFrom tr:fr-api-hub-read-ontology, tr:fr-api-hub-copy-subgraph, tr:nfr-api-availability-hub-dependency-sla, tr:nfr-process-dev-test-coverage, tr:adr-des-api-communication-patterns .
 
+# --- 2026-08-03: dev/test compose separation ADR (split stacks, isolated test project) ---
+
+tr:adr-impl-infra-dev-test-compose-separation a tr:ArchitectureDecision ;
+  tr:hasArtifactId "ADR-IMPL.INFRA.dev-test-compose-separation" ;
+  tr:hasFilePath "specs/adr/ADR-IMPL.INFRA.dev-test-compose-separation.md" ;
+  tr:derivesFrom tr:nfr-infra-compliance-environment-isolation, tr:nfr-process-dev-test-coverage, tr:nfr-ops-release-deployment-verification, tr:adr-impl-process-development-tooling, tr:adr-des-infra-mock-hub-strategy .
+
 # C4 Deployment — CI test environment (new diagram, T20).
 tr:c4-deployment-test a tr:C4Diagram ;
   tr:hasArtifactId "c4/deployment-test" ;
   tr:hasFilePath "specs/c4/deployment-test.md" ;
-  tr:derivesFrom tr:adr-des-infra-mock-hub-strategy .
+  tr:derivesFrom tr:dep-docker-compose-test, tr:dep-e2e-run, tr:adr-des-infra-mock-hub-strategy, tr:adr-impl-infra-dev-test-compose-separation, tr:nfr-process-dev-test-coverage .
 tr:c4-deployment-test tr:relatesTo tr:c4-deployment-dev .
-tr:c4-deployment-dev tr:derivesFrom tr:adr-des-infra-mock-hub-strategy .
+tr:c4-deployment-dev tr:derivesFrom tr:adr-des-infra-mock-hub-strategy, tr:adr-impl-infra-dev-test-compose-separation .
 
 # Contract tests of the Hub boundary (M1) use the mockhub httptest.Server.
 tr:test-hub-contract a tr:IntegrationTest ;
