@@ -132,7 +132,7 @@ push/PR → lint (biome ci + golangci-lint + gofmt)
 
 | Компонент | Решение |
 |-----------|---------|
-| **Образы** | Docker: Go-бэкенд — distroless (10–20 МБ), SPA — **Go embed** (один артефакт для on-prem) |
+| **Образы** | Docker: Go-бэкенд — distroless (10–20 МБ), SPA — **Go embed** (один артефакт для on-prem). Frontend SaaS/CDN-вариант (B) — **`nginxinc/nginx-unprivileged:1.27-alpine-slim`** (non-root UID 101, база ~5,5 МБ, порт 8080) |
 | **Dev-env** | docker-compose (одна команда: backend + frontend + PostgreSQL + OTel-стек) — M0.2 |
 | **SaaS MVP / on-prem** | docker-compose + **Traefik** (reverse-proxy, blue-green, TLS) |
 | **БД-бэкап** | `pg_dump` перед миграциями (автоматически в CI) |
@@ -245,6 +245,10 @@ PostgreSQL как data source для продуктовых метрик (NPS, �
 | **Только ручной процесс / без AI Factory** | ❌ | Стратегия проекта — вайбкодинг через AI Factory (§12); без формализованного контекста (спеки/ADR/RULES) AI генерирует вразнобой — качество падает |
 | **LaunchDarkly (feature flags)** | ⚠️ | На MVP достаточно env/config-флагов; внешний сервис — когда понадобится управление вне кода |
 | **Taskfile (go-task) / Justfile** | ⚠️ | Кросс-платформенные альтернативы Makefile (YAML, один бинарник, лучше Windows-native). Принят Makefile как де-факто стандарт + `make ci`-зеркало CI; Windows — через Git Bash/WSL. Переход на Taskfile возможен по факту боли (single binary, без GNU Make) |
+| **nginx-образ: `nginx:1.27-alpine` (база)** | ⚠️ | Официальный alpine-вариант, но master-процесс — root и база ~20 МБ (docs/дефолтные конфиги). Отклонён в пользу unprivileged + slim |
+| **nginx-образ: `nginx:1.27-alpine-slim`** | ⚠️ | Тот же размер-выигрыш (~5,5 МБ), но по-прежнему root. Подходит, только если non-root не требуется |
+| **nginx-образ: `nginxinc/nginx-unprivileged:1.27-alpine`** | ⚠️ | Non-root (UID 101, pid/temp в `/tmp`), но без slim-экономии (~20 МБ) |
+| **nginx-образ: `nginxinc/nginx-unprivileged:1.27-alpine-slim`** | ✅ | **Принят**: non-root (соответствует OWASP/позиции безопасности: бэкенд — distroless nonroot) + slim-база ~5,5 МБ; entrypoint envsubst-шаблоны для динамического runtime-конфига (`ADR-DES.INFRA.dynamic-config-injection`); порт 8080 |
 
 **Последствия:**
 
@@ -258,6 +262,7 @@ PostgreSQL как data source для продуктовых метрик (NPS, �
 - Biome требует пиннинга версии и периодического `biome migrate` → зафиксировано в правилах, хуки падают при дрейфе версии.
 - gremlins менее зрел, чем Stryker → spike M0.2 + компенсация арх-тестами/property-based.
 - Traefik + compose — не K8s: ручное масштабирование до роста → переход на managed K8s по триггеру (зафиксирован).
+- Non-root nginx (`nginxinc/nginx-unprivileged`) не может писать в `/usr/share/nginx/html` для envsubst-шаблонов → в `frontend/Dockerfile.nginx` выполнен `chown -R nginx:nginx` (USER root → chown → USER nginx) перед drop-back.
 - Wire генерирует код → сгенерированный `wire_gen.go` в репозитории, гейт на актуальность в CI.
 - Makefile требует GNU Make (Windows — Git Bash/WSL) → при реальной боли кросс-платформенности — миграция на Taskfile (зафиксирована как альтернатива).
 - AI Factory как основной процесс создаёт зависимость от качества контекста (спеки/ADR/RULES) → смягчение: контекст-артефакты обновляются вместе с кодом, `/aif-verify`/`/aif-review` страхуют, трассируемость обязательна.
