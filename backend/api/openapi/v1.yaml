@@ -7,8 +7,8 @@
 # See ADR-DES.API.communication-patterns (OpenAPI-first),
 # ADR-DES.STACK.framework-vs-vs (chi + oapi-codegen).
 #
-# TODO: Define full API contract (M0.3+).
-# The spec starts minimal — a health-check endpoint to validate the toolchain.
+# M0.3 surface: health, auth (dev token + JWKS), ontology stub, route stub,
+# and current-user introspection. Real domain endpoints land in M1+.
 
 openapi: "3.1.0"
 info:
@@ -17,7 +17,7 @@ info:
     Educational trajectory service API.
     EduTrack reads knowledge ontologies from VEDO Hub and provides
     route planning, plan execution, gap diagnosis, and visualization.
-  version: "0.1.0"
+  version: "0.3.0"
   contact:
     name: VEDO EduTrack Team
 
@@ -27,12 +27,29 @@ servers:
   - url: https://api.edutrack.example.com/api/v1
     description: Production server (placeholder)
 
+tags:
+  - name: Health
+    description: Liveness and readiness probes
+  - name: Auth
+    description: Dev token issuance and JWKS
+  - name: Ontology
+    description: Knowledge ontology reads (stub in M0.3)
+  - name: Routes
+    description: Route computation (stub in M0.3)
+  - name: User
+    description: Current-user introspection
+
+security:
+  - bearerAuth: []
+
 paths:
   /healthz:
     get:
+      tags: [Health]
       operationId: healthCheck
       summary: Health check
       description: Returns service health status. Used by Docker healthcheck and load balancers.
+      security: []
       responses:
         "200":
           description: Service is healthy
@@ -41,7 +58,178 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthResponse"
 
+  /readyz:
+    get:
+      tags: [Health]
+      operationId: readinessCheck
+      summary: Readiness check
+      description: |
+        Reports whether the service dependencies (PostgreSQL, identity provider)
+        are reachable. Overall status is "ok" only when all checks pass.
+      security: []
+      responses:
+        "200":
+          description: All dependencies reachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: At least one dependency is down
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+
+  /.well-known/jwks.json:
+    get:
+      tags: [Auth]
+      operationId: getJwks
+      summary: JSON Web Key Set
+      description: Serves the public RSA key used to verify locally-issued dev tokens (RS256).
+      security: []
+      responses:
+        "200":
+          description: JWKS document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwksResponse"
+
+  /auth/token:
+    post:
+      tags: [Auth]
+      operationId: issueToken
+      summary: Issue a dev token
+      description: |
+        Dev-only endpoint: mints a JWT for the given user ID and roles.
+        Not intended for production (real credential login lands post-MVP).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: Signed JWT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "400":
+          description: Invalid request (missing user_id)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /me:
+    get:
+      tags: [User]
+      operationId: getMe
+      summary: Current user
+      description: Returns the authenticated user's ID and roles (from the JWT).
+      responses:
+        "200":
+          description: User info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /routes/compute:
+    post:
+      tags: [Routes]
+      operationId: computeRoute
+      summary: Compute a learning route
+      description: |
+        Computes a personalized learning route from the learner's position to
+        a goal topic. M0.3 uses a hardcoded stub graph; real computation from
+        the VEDO Hub ontology lands in M1.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RouteComputeRequest"
+      responses:
+        "200":
+          description: Computed route
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteComputeResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Goal topic not found in the ontology
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ontology/concepts:
+    get:
+      tags: [Ontology]
+      operationId: getOntologyConcept
+      summary: Get an ontology concept
+      description: |
+        Returns a concept (topic) from the knowledge ontology with its linked
+        topics. M0.3 serves a hardcoded stub graph; real reads from VEDO Hub
+        land in M1.
+      parameters:
+        - name: topic_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Concept/topic identifier, e.g. "math-5-1".
+      responses:
+        "200":
+          description: Concept found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConceptResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Concept not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT signed with RS256, verified against the local JWKS.
+
   schemas:
     HealthResponse:
       type: object
@@ -51,7 +239,195 @@ components:
           type: string
           enum: [ok, degraded, down]
           description: Health status of the service.
-        database:
+        version:
           type: string
-          enum: [connected, disconnected]
-          description: PostgreSQL connection status.
+          description: Build version.
+        env:
+          type: string
+          description: Deployment environment.
+        uptime:
+          type: string
+          description: Process uptime (e.g. "1m30s").
+
+    ReadinessResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+          description: Overall readiness.
+        version:
+          type: string
+        env:
+          type: string
+        uptime:
+          type: string
+        checks:
+          type: object
+          description: Per-dependency check results.
+          properties:
+            database:
+              type: string
+              enum: [up, down]
+            identity_provider:
+              type: string
+              enum: [up, down]
+
+    JwksResponse:
+      type: object
+      required: [keys]
+      properties:
+        keys:
+          type: array
+          description: JSON Web Keys (RSA public keys).
+          items:
+            type: object
+            properties:
+              kid:
+                type: string
+              kty:
+                type: string
+                enum: [RSA]
+              n:
+                type: string
+                description: RSA modulus (base64url).
+              e:
+                type: string
+                description: RSA public exponent (base64url).
+              alg:
+                type: string
+                enum: [RS256]
+              use:
+                type: string
+                enum: [sig]
+
+    TokenRequest:
+      type: object
+      required: [user_id]
+      properties:
+        user_id:
+          type: string
+          description: Subject identifier to embed as the JWT sub claim.
+        roles:
+          type: array
+          items:
+            type: string
+          description: Roles to embed (defaults to ["learner"]).
+
+    TokenResponse:
+      type: object
+      required: [access_token, token_type, expires_in]
+      properties:
+        access_token:
+          type: string
+          description: Signed RS256 JWT.
+        token_type:
+          type: string
+          enum: [Bearer]
+        expires_in:
+          type: integer
+          format: int64
+          description: Token lifetime in seconds (24h).
+
+    UserInfo:
+      type: object
+      required: [user_id, roles]
+      properties:
+        user_id:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Machine-readable error code.
+        message:
+          type: string
+          description: Human-readable error detail.
+        endpoint:
+          type: string
+          description: Endpoint that produced the error (for 501 stubs).
+
+    RouteComputeRequest:
+      type: object
+      required: [learner_id, goal_topic_id]
+      properties:
+        learner_id:
+          type: string
+          description: Learner performing the request.
+        goal_topic_id:
+          type: string
+          description: Goal topic (e.g. "math-5-10").
+
+    RouteComputeResponse:
+      type: object
+      required: [route]
+      properties:
+        route:
+          type: array
+          description: Ordered list of topics forming the route.
+          items:
+            $ref: "#/components/schemas/RouterTopic"
+        metadata:
+          type: object
+          properties:
+            goal_topic_id:
+              type: string
+            learner_id:
+              type: string
+            computed_at:
+              type: string
+              format: date-time
+
+    RouterTopic:
+      type: object
+      required: [topic_id, order]
+      properties:
+        topic_id:
+          type: string
+        order:
+          type: integer
+          description: Position in the route (0-based).
+        link_type:
+          type: string
+          description: Link type from the parent in the route (e.g. hasStrictPrerequisite).
+
+    ConceptResponse:
+      type: object
+      required: [concept]
+      properties:
+        concept:
+          $ref: "#/components/schemas/Concept"
+
+    Concept:
+      type: object
+      required: [id, title]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        links:
+          type: array
+          description: Linked topics from the ontology graph.
+          items:
+            $ref: "#/components/schemas/ConceptLink"
+
+    ConceptLink:
+      type: object
+      required: [topic_id, link_type]
+      properties:
+        topic_id:
+          type: string
+        link_type:
+          type: string
+          enum: [hasStrictPrerequisite, hasSoftPrerequisite, enriches, appliesTo, isAnalogousTo]

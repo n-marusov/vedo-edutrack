@@ -1,0 +1,12 @@
+# oapi-codegen configuration — generates the chi server interface and
+# request/response types from backend/api/openapi/v1.yaml.
+# See T8 of the M0.3 plan and ADR-DES.STACK.framework-vs-vs (OpenAPI-first).
+package: api
+generate:
+  chi-server: true
+  models: true
+output: internal/api/server.gen.go
+output-types: internal/api/types.gen.go
+output-options:
+  skip-fmt: false
+  skip-prune: false
