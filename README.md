@@ -118,9 +118,14 @@ The `Makefile` is the single entry point. Run `make help` for the full list.
 | `make check` | Full delivery gate tier for task handoff |
 | `make migrate` / `make migrate-down` | Atlas migrations via the CLI |
 | `make hooks` | Install lefthook git hooks |
+| `make gates` | Run all delivery gates (`make check` synonym) |
+| `make gates-list` | List gates selected for the current phase and tier |
+| `make gates-json` | Delivery gates, machine-readable JSON output |
+| `make gates-<group>` | Per-group gates: `lint`, `typecheck`, `test`, `coverage`, `gen`, `db`, `validate`, `security`, `build` |
 | `make ci` | Full local CI run (mirrors GitHub Actions) |
 | `make clean` | Stop stack and remove build artifacts |
 
+Run `make gates-list` to see which gates apply to the current phase.
 Every target prints a colored verdict (`[PASS]` / `[FAIL]` / `[WARN]` / `[SKIP]`) — set `NO_COLOR=1` to disable colors (CI-safe).
 
 ## Quality gates
@@ -128,7 +133,8 @@ Every target prints a colored verdict (`[PASS]` / `[FAIL]` / `[WARN]` / `[SKIP]`
 All checks are declared in one manifest, `deploy/ci/gates.yaml`, and executed by `deploy/ci/run-gates.sh`:
 
 - **Fast tier** (`make dev-check`) — the dev loop: compile, typecheck, lint, format, touched-module tests, generated-code consistency, mermaid validation, secret scan. No Postgres/Docker/E2E.
-- **Delivery tier** (`make check`) — task handoff: everything in fast + full unit (race), integration (Postgres), Playwright E2E, distroless image build (≤ 20 MB), gosec, `pnpm audit`, Atlas migration validation, coverage.
+- **Delivery tier** (`make check` / `make gates`) — task handoff: everything in fast + full unit (race), integration (Postgres), Playwright E2E, distroless image build (≤ 20 MB), gosec, `pnpm audit`, Atlas migration validation, coverage.
+- **Per-group** (`make gates-<group>`) — run gates for a single group, e.g.: `make gates-lint`, `make gates-security`, `make gates-test`. Run `make gates-list` for the full list.
 
 A task is *ready for delivery* when the delivery tier completes with **zero blocking failures**.
 
