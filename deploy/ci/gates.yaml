@@ -105,6 +105,17 @@ gates:
     severity: blocking
     group: validate
 
+  - id: makefile-health
+    # Regression guard: 'make help' must exit 0, show real target names (not
+    # the makefile filename), and emit no parse-time $(shell) spawn errors on
+    # Windows GNU Make (see deploy/ci/makefile-health-check.sh).
+    command: bash deploy/ci/makefile-health-check.sh
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: validate
+    nfr: REQ-NFR-process.dev.engineering-gates
+
   - id: secrets-check
     command: bash deploy/ci/secrets-check.sh
     tier: fast

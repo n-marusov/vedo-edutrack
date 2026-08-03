@@ -45,12 +45,11 @@ endif
 COMPOSE_FILE := deploy/docker-compose.yml
 TEST_COMPOSE_FILE := deploy/docker-compose.test.yml
 
-# Dev environment file — loaded for `make up/dev/...` and passed to compose.
-# Override with ENV_FILE=<path> make up. Falls back to the legacy root .env
-# so existing setups keep working. .env.dev is git-ignored (see .gitignore).
+# Dev environment file (non-secret defaults, committed) — loaded for
+# `make up/dev/...` and passed to compose. Override with ENV_FILE=<path> make up.
 ENV_FILE ?= deploy/.env.dev
-# Test environment file — passed to the test compose stack by `make test-up`
-# / deploy/ci/e2e-run.sh.
+# Test environment file (non-secret defaults, committed) — passed to the test
+# compose stack by `make test-up` / deploy/ci/e2e-run.sh.
 TEST_ENV_FILE ?= deploy/.env.test
 
 # Pass the env file to compose interpolation when it exists; otherwise let
@@ -67,9 +66,9 @@ COMPOSE := $(DOCKER) compose $(COMPOSE_ENV) -f $(COMPOSE_FILE)
 # project vedo-edutrack-test — no observability/traefik, separate volumes.
 TEST_COMPOSE := $(DOCKER) compose $(TEST_COMPOSE_ENV) -f $(TEST_COMPOSE_FILE)
 
-# Dev env vars exported below would otherwise leak into the test stack and win
-# over deploy/.env.test (shell env > --env-file). Unset them in test recipes so
-# the test values (warn / 0 / :58080) take effect.
+# Dev env vars exported below (make-level) would otherwise leak into the test
+# stack and win over deploy/.env.test (shell env > --env-file). Unset them in
+# test recipes so the test values (warn / 0 / :58080) take effect.
 TEST_ENV_CLEAN := LOG_LEVEL OTEL_SAMPLING_RATIO PUBLIC_BASE_URL JWKS_URL
 
 # Default DB connection (overridable via .env.dev or environment).
@@ -82,14 +81,19 @@ export DATABASE_URL
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 
 # Load env files into make variables, then export them so `docker compose`
-# (a child process) sees them. .env.dev (last) wins over legacy .env.
+# (a child process) sees them. deploy/.env.dev (last) wins over legacy .env.
+# NOTE: variable names are extracted with $(file <) + text functions, NOT
+# $(shell sed ...) — GNU Make on Windows spawns sed directly at parse time
+# (no shell metacharacters → CreateProcess fast-path) and fails when sed is
+# not in the process PATH, breaking even `make help`. $(file <) spawns no
+# child process, so it cannot fail this way on any platform.
 -include .env
 -include $(ENV_FILE)
 ifneq ($(wildcard $(ENV_FILE)),)
-export $(shell sed 's/=.*//' $(ENV_FILE))
+export $(foreach _w,$(file < $(ENV_FILE)),$(if $(findstring =,$(_w)),$(firstword $(subst =, ,$(_w)))))
 endif
 ifneq ($(wildcard .env),)
-export $(shell sed 's/=.*//' .env)
+export $(foreach _w,$(file < .env),$(if $(findstring =,$(_w)),$(firstword $(subst =, ,$(_w)))))
 endif
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -116,13 +120,13 @@ endef
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
 		printf '\033[1m%s\033[0m\n' "VEDO EduTrack - available targets:"; \
-		grep -E '^[a-zA-Z0-9_%-]+:.*## ' $(MAKEFILE_LIST) | while IFS=':' read -r name desc; do \
+		grep -E '^[a-zA-Z0-9_%-]+:.*## ' $(firstword $(MAKEFILE_LIST)) | while IFS=':' read -r name desc; do \
 			desc="$${desc#*## }"; \
 			printf '  \033[1;36m%-14s\033[0m %s\n' "$$name" "$$desc"; \
 		done; \
 	else \
 		echo "VEDO EduTrack - available targets:"; \
-		grep -E '^[a-zA-Z0-9_%-]+:.*## ' $(MAKEFILE_LIST) | while IFS=':' read -r name desc; do \
+		grep -E '^[a-zA-Z0-9_%-]+:.*## ' $(firstword $(MAKEFILE_LIST)) | while IFS=':' read -r name desc; do \
 			desc="$${desc#*## }"; \
 			printf '  %-14s %s\n' "$$name" "$$desc"; \
 		done; \
