@@ -94,7 +94,11 @@ services:
     volumes:
       - ../frontend:/app
       - frontend_node_modules:/app/node_modules
-    command: sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm dev --host"
+    # npm is used inside the container instead of pnpm: the workspace
+    # config and lockfile live at the repo root, one level above the
+    # mounted frontend/ dir. --no-package-lock prevents leaking a
+    # package-lock.json onto the host filesystem (pnpm chokes on it).
+    command: sh -c "npm install --legacy-peer-deps --no-package-lock && npm run dev -- --host"
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     depends_on:
@@ -139,6 +143,9 @@ services:
   tempo:
     image: grafana/tempo:2.6.1
     command: ["-config.file=/etc/tempo/tempo-config.yaml"]
+    # user: root — tempo runs as non-root (10001) by default, but the named
+    # volume is owned by root. Writing traces to /tmp/tempo needs root.
+    user: root
     volumes:
       - ./observability/tempo-config.yaml:/etc/tempo/tempo-config.yaml:ro
       - tempo_data:/tmp/tempo

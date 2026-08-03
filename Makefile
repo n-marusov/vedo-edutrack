@@ -9,7 +9,15 @@
 # (PASS/FAIL/WARN/SKIP/INFO) via scripts/verdict.sh. Colors auto-disable when
 # stdout is not a TTY or NO_COLOR is set (CI-safe).
 
-SHELL := /bin/bash
+# Shell selection. POSIX recipes require bash. On Windows, native GNU make
+# honours SHELL set to the Git-for-Windows bash path (forward slashes are
+# required — backslash-escaped wildcard results produce broken paths).
+# (See ADR-IMPL.PROCESS.development-tooling §11.)
+ifeq ($(OS),Windows_NT)
+  SHELL := C:/Program Files/Git/bin/bash.exe
+else
+  SHELL := /bin/bash
+endif
 
 COMPOSE_FILE := deploy/docker-compose.yml
 COMPOSE := docker compose -f $(COMPOSE_FILE)
@@ -45,18 +53,18 @@ define verdict
 	bash scripts/verdict.sh "$(1)" $(2)
 endef
 
-.PHONY: help up down dev build test test-e2e lint format gen dev-check check migrate migrate-down hooks ci clean
+.PHONY: help up down dev build test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json clean
 
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
 		echo "VEDO EduTrack — available targets:"; \
-		grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | while IFS=':' read -r name desc; do \
+		grep -E '^[a-zA-Z0-9_%-]+:.*## ' $(MAKEFILE_LIST) | while IFS=':' read -r name desc; do \
 			desc="$${desc#*## }"; \
 			printf '  \033[1;36m%-14s\033[0m %s\n' "$$name" "$$desc"; \
 		done; \
 	else \
 		echo "VEDO EduTrack — available targets:"; \
-		grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | while IFS=':' read -r name desc; do \
+		grep -E '^[a-zA-Z0-9_%-]+:.*## ' $(MAKEFILE_LIST) | while IFS=':' read -r name desc; do \
 			desc="$${desc#*## }"; \
 			printf '  %-14s %s\n' "$$name" "$$desc"; \
 		done; \
@@ -208,6 +216,32 @@ ci: ## Full local CI run (mirrors GitHub Actions; delegates to the gate runner, 
 		$(call verdict,PASS,"ci: zero blocking failures"); \
 	else \
 		$(call verdict,FAIL,"ci: blocking failures found"); \
+		exit 1; \
+	fi
+
+##@ Gates (quality gates, T16)
+
+gates: ## Run all delivery gates
+	@$(call header,gates: tier delivery)
+	@if bash deploy/ci/run-gates.sh --tier delivery; then \
+		$(call verdict,PASS,"delivery gates: zero blocking failures"); \
+	else \
+		$(call verdict,FAIL,"delivery gates: blocking failures found"); \
+		exit 1; \
+	fi
+
+gates-list: ## List gates grouped by category with counts
+	@bash deploy/ci/run-gates.sh --tier delivery --list | bash deploy/ci/gates-list-formatted.sh
+
+gates-json: ## Run all delivery gates, machine-readable JSON output
+	@bash deploy/ci/run-gates.sh --tier delivery --out-format json
+
+gates-%: ## Run gates for a specific group (lint|typecheck|test|coverage|gen|db|validate|security|build)
+	@$(call header,gates: $* group)
+	@if bash deploy/ci/run-gates.sh --tier delivery --group $*; then \
+		$(call verdict,PASS,"$* gates: zero blocking failures"); \
+	else \
+		$(call verdict,FAIL,"$* gates: blocking failures found"); \
 		exit 1; \
 	fi
 

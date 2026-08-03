@@ -7,8 +7,9 @@ tmp_dir = "tmp"
 
 [build]
   cmd = "go build -o ./tmp/vedo-edutrack ./cmd/vedo-edutrack"
-  # air splits on spaces → runs the `server` subcommand (health endpoints).
-  bin = "./tmp/vedo-edutrack server"
+  # air v1.67: entrypoint replaces deprecated bin; args_bin for arguments.
+  entrypoint = "./tmp/vedo-edutrack"
+  args_bin = ["server"]
   include_ext = ["go"]
   include_dir = ["."]
   exclude_dir = ["tmp", "vendor", "mocks", "bin", "migrations", ".git"]
