@@ -60,7 +60,7 @@ func Middleware(key *rsa.PublicKey, kid string, issuer, audience string) func(ht
 
 			claims, err := validate(token, keySet, issuer, audience)
 			if err != nil {
-				writeUnauthorized(w, "invalid token: "+err.Error())
+				writeUnauthorized(w, "invalid jwt: "+err.Error())
 				return
 			}
 
