@@ -733,7 +733,7 @@ M0.3 transforms the M0.2 engineering scaffold (empty directories, platform stubs
   **Files:** N/A (verification task)
   **Logging:** INFO — log each RBAC verification step with result.
 
-- [ ] **T28: Run gate tiers and confirm green**
+- [x] **T28: Run gate tiers and confirm green**
 
   Run the gate runner to verify all automated checks pass.
 
