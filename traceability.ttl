@@ -2259,11 +2259,14 @@ tr:dep-backend-dockerfile a tr:DeploymentArtifact ;
 tr:dep-frontend-embed-dockerfile a tr:DeploymentArtifact ;
   tr:hasArtifactId "DEP.frontend-embed-dockerfile" ;
   tr:hasFilePath "frontend/Dockerfile.embed" ;
+  tr:retired "true" ;
+  tr:retiredSince "M0.3" ;
+  tr:supersededBy tr:dep-backend-dockerfile ;
   tr:derivesFrom tr:adr-des-infra-modular-monolith-approach, tr:adr-impl-process-development-tooling, tr:nfr-ops-compliance-support-sla .
 
 tr:dep-frontend-nginx-dockerfile a tr:DeploymentArtifact ;
   tr:hasArtifactId "DEP.frontend-nginx-dockerfile" ;
-  tr:hasFilePath "frontend/Dockerfile.nginx" ;
+  tr:hasFilePath "frontend/Dockerfile" ;
   tr:derivesFrom tr:adr-impl-process-development-tooling, tr:nfr-security-compliance-owasp-application-security, tr:nfr-infra-compliance-cicd-supply-chain-security .
 
 tr:dep-docker-compose a tr:DeploymentArtifact ;

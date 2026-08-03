@@ -1,6 +1,6 @@
 # C4 Level 4: Deployment Diagram — Enterprise On-Prem
 
-> Уровень 4 модели C4: физическое развёртывание. Сценарий — **Enterprise on-prem / private cloud**: минимальный контур (единый бинарник с embedded SPA + PostgreSQL), соответствует 242-ФЗ (данные в периметре). Первичный источник: `deploy/README.md` §Enterprise On-Prem (T8), `frontend/Dockerfile.embed` (T5), ADR-DES.INFRA.modular-monolith-approach §7–8.
+> Уровень 4 модели C4: физическое развёртывание. Сценарий — **Enterprise on-prem / private cloud**: минимальный контур (единый бинарник с embedded SPA + PostgreSQL), соответствует 242-ФЗ (данные в периметре). Первичный источник: `deploy/README.md` §Enterprise On-Prem (T8), `backend/Dockerfile` (T4–T5), ADR-DES.INFRA.modular-monolith-approach §7–8.
 
 ## Диаграмма
 
@@ -58,8 +58,7 @@ C4Deployment
 
 | Артефакт | Роль |
 |----------|------|
-| `frontend/Dockerfile.embed` | SPA build + embed-сервер (M0.2 placeholder; M0.3 — в backend-бинарник) (T5) |
-| `backend/Dockerfile` | Distroless-образ (T4) |
+| `backend/Dockerfile` | Distroless-образ с embedded SPA (T4–T5) |
 | `deploy/postgres/init.sql` | Расширения и схема (T3) |
 | [Container diagram](container-overview.md) | Логические контейнеры |
 

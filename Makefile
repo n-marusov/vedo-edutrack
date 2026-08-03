@@ -78,7 +78,7 @@ define verdict
 	bash scripts/verdict.sh "$(1)" $(2)
 endef
 
-.PHONY: help up down dev build build-frontend test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-local docker-build-frontend-embed docker-build-frontend-nginx docker-build-all clean
+.PHONY: help up down dev build build-frontend test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-local docker-build-frontend-nginx docker-build-all clean
 
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
@@ -287,16 +287,12 @@ docker-build-local: ## Build the unified image for the local arch (--load)
 		-f backend/Dockerfile .
 	@$(call verdict,PASS,"unified image built ($(VERSION), local arch)")
 
-docker-build-frontend-embed: ## (Retired M0.3) embed variant is part of the unified backend image
-	@$(call header,docker,"frontend-embed (retired)")
-	@$(call verdict,SKIP,"Dockerfile.embed retired — use docker-build-backend (unified image)")
-
 docker-build-frontend-nginx: ## Build production frontend image (nginx, SaaS/CDN)
 	@$(call header,docker,"frontend-nginx $(VERSION)")
 	@DOCKER_BUILDKIT=1 $(DOCKER) build \
 		--build-arg VERSION=$(VERSION) \
 		-t vedo-edutrack-nginx:$(VERSION) \
-		-f frontend/Dockerfile.nginx .
+		-f frontend/Dockerfile .
 	@$(call verdict,PASS,"frontend-nginx image ($(VERSION))")
 
 ##@ Gates (quality gates, T16)

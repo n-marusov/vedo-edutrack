@@ -99,7 +99,7 @@ C4Deployment
 | `deploy/observability/` | Конфиги collector/prometheus/loki/tempo/grafana (T3) |
 | `deploy/traefik/` | Edge-конфиг для SaaS (T7) |
 | `deploy/postgres/init.sql` | Расширения и схема при первом старте (T3) |
-| `backend/Dockerfile`, `frontend/Dockerfile.embed` | Production-образы (в dev не используются — hot-reload) |
+| `backend/Dockerfile` | Production-образ (в dev не используется — hot-reload) |
 | [Container diagram](container-overview.md) | Логические контейнеры этого развёртывания |
 
 ## Связанные артефакты

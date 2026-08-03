@@ -51,8 +51,7 @@ vedo-edutrack/
 │   ├── tests/             # Интеграционные (Go, testcontainers, кросс-модульные) — скаффолд T13
 │   └── go.mod
 ├── frontend/              # React SPA (Vite, pnpm-воркспейс)
-│   ├── Dockerfile.embed   # Go-embed вариант (prod/on-prem, M0.3: внедряется в backend-бинарник)
-│   ├── Dockerfile.nginx   # nginx вариант (SaaS/CDN)
+│   ├── Dockerfile          # nginx вариант (SaaS/CDN)
 │   ├── biome.json         # Линт/формат: single quotes, width 100, React-hooks правила
 │   ├── vitest.config.ts   # Vitest + RTL (jsdom, coverage v8, setup src/test/setup.ts)
 │   └── src/               # App, design/ (токены), features/ (10 модулей + __tests__), shared/, store/, styles/
@@ -98,7 +97,8 @@ vedo-edutrack/
 | `deploy/ci/run-gates.sh` | Двухуровневый раннер гейтов (T16): `--tier fast|delivery`, `--trigger`, `--group`, `--out-format table|json` (aif-gate-result v1); exit 1 при blocking-фейле |
 | `Makefile` | Build automation (T9): up/down/dev/build/test/lint/format/migrate/hooks (lefthook install) + dev-check (fast) / check (delivery) / ci |
 | `.github/workflows/ci.yml` | CI-пайплайн (T12): тонкие обёртки над run-gates.sh (lint → typecheck → test → coverage → security → build) |
-| `backend/Dockerfile` | distroless multi-stage образ бэкенда (T4); frontend: `Dockerfile.embed`/`Dockerfile.nginx` (T5) |
+| `backend/Dockerfile` | distroless multi-stage образ бэкенда (T4) — SPA embed встроен в backend-бинарник (M0.3) |
+| `frontend/Dockerfile` | nginx-образ SPA для SaaS/CDN (T5) |
 | `tests/e2e/gui/` | Playwright E2E (T15): config, placeholder.spec.ts (red), mvp-must-scenarios.spec.ts (M1–M10 стабы), fixtures/auth.ts |
 | `frontend/src/features/*/__tests__/` | Компонентные тест-скаффолды (T14, Vitest + RTL, red) — по одному на фичу (зеркало bounded contexts) |
 | `tests/` | System tests: `e2e/gui` (Playwright browser, M1–M10), `e2e/api` (Playwright API flows), `integration` (cross-layer, compose stack) |

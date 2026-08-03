@@ -18,14 +18,13 @@ all bounded contexts behind a single HTTP surface. Deployment follows the same s
 | Image | Dockerfile | Base → Runtime | Size | Purpose |
 |-------|------------|----------------|------|---------|
 | Unified backend (API + embedded SPA) | `backend/Dockerfile` | node SPA build → `golang:1.26-alpine` → `gcr.io/distroless/static-debian12:nonroot` | ~20 MB | Single binary serving API and SPA from one port (M0.3); multi-arch amd64+arm64 via buildx |
-| SPA (nginx) | `frontend/Dockerfile.nginx` | node build → `nginxinc/nginx-unprivileged:1.27-alpine-slim` | ~7 MB | SaaS/CDN-friendly variant B, non-root (UID 101), port 8080 |
+| SPA (nginx) | `frontend/Dockerfile` | node build → `nginxinc/nginx-unprivileged:1.27-alpine-slim` | ~7 MB | SaaS/CDN-friendly variant B, non-root (UID 101), port 8080 |
 | Frontend dev | — (no build) | `node:24-alpine` + Vite dev server | — | Hot-reload HMR, no Docker build needed |
 
 Build contexts: `backend/Dockerfile` → **repo root** (the pnpm workspace lockfile and
 `frontend/` live there; the backend image builds the SPA in a node stage and embeds
-the dist). `frontend/Dockerfile.embed` is **retired** (M0.3) — the embed mechanism
-moved into the backend binary; the file remains as a doc reference.
-`.dockerignore` files keep contexts lean.
+the dist). `frontend/Dockerfile.embed` was removed in M0.3 — the embed mechanism
+moved into the backend binary. `.dockerignore` files keep contexts lean.
 
 ## Dev Environment
 

@@ -136,11 +136,10 @@ Every target prints a colored verdict (`✅ [PASS]` / `❌ [FAIL]` / `⚠️ [WA
 
 | Target | What it builds | Image tag(s) | Dockerfile | Environment |
 |--------|----------------|--------------|------------|-------------|
-| `make docker-build` | Default production delivery: backend + SPA embedded into the Go binary | `vedo-edutrack:<VERSION>` · `vedo-edutrack-embed:<VERSION>` | `backend/Dockerfile` · `frontend/Dockerfile.embed` | Production — default; Enterprise on-prem single-binary path |
-| `make docker-build-all` | All production images, incl. the nginx frontend variant | `vedo-edutrack:<VERSION>` · `vedo-edutrack-embed:<VERSION>` · `vedo-edutrack-nginx:<VERSION>` | + `frontend/Dockerfile.nginx` | Production — both contours (Community SaaS + Enterprise on-prem) |
-| `make docker-build-backend` | Backend runtime image (distroless, nonroot, healthcheck) | `vedo-edutrack:<VERSION>` | `backend/Dockerfile` | Production — backend service |
-| `make docker-build-frontend-embed` | SPA built into a Go embed server — single-binary path | `vedo-edutrack-embed:<VERSION>` | `frontend/Dockerfile.embed` | Enterprise on-prem — from M0.3 embedded directly in the backend binary |
-| `make docker-build-frontend-nginx` | Static SPA served by unprivileged nginx (UID 101, port 8080) | `vedo-edutrack-nginx:<VERSION>` | `frontend/Dockerfile.nginx` | Community SaaS / CDN (variant B) |
+| `make docker-build` | Default production delivery: backend + SPA embedded into the Go binary | `vedo-edutrack:<VERSION>` | `backend/Dockerfile` | Production — default; Enterprise on-prem single-binary path |
+| `make docker-build-all` | All production images, incl. the nginx frontend variant | `vedo-edutrack:<VERSION>` · `vedo-edutrack-nginx:<VERSION>` | `backend/Dockerfile` · `frontend/Dockerfile` | Production — both contours (Community SaaS + Enterprise on-prem) |
+| `make docker-build-backend` | Backend runtime image with embedded SPA (distroless, nonroot, healthcheck) | `vedo-edutrack:<VERSION>` | `backend/Dockerfile` | Production — backend service |
+| `make docker-build-frontend-nginx` | Static SPA served by unprivileged nginx (UID 101, port 8080) | `vedo-edutrack-nginx:<VERSION>` | `frontend/Dockerfile` | Community SaaS / CDN (variant B) |
 
 ## Quality gates
 

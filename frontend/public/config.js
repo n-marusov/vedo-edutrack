@@ -6,14 +6,16 @@
 //
 // This file is the DEV default (served as-is by Vite from public/).
 // In deployed variants it is REPLACED at runtime:
-//   - nginx (Dockerfile.nginx): /etc/nginx/templates/config.js.template
+//   - nginx (frontend/Dockerfile): /etc/nginx/templates/config.js.template
 //     is env-substituted at container start (APP_VERSION, APP_ENV, API_BASE_URL)
-//   - Go embed (Dockerfile.embed): the embed server generates /config.js
+//   - Go embed (backend binary): the embed server generates /config.js
 //     from env vars at runtime
 //
 // `version` is intentionally omitted here — in dev it falls back to the
 // build-time/default ("dev") so local builds show their real VITE_APP_VERSION.
 window.APP_CONFIG = {
   env: 'development',
-  apiBaseUrl: '/api',
+  // The backend serves the API under /api/v1 (OpenAPI servers block); the
+  // Vite proxy forwards /api → backend without rewriting the path.
+  apiBaseUrl: '/api/v1',
 };

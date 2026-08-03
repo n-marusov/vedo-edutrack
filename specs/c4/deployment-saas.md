@@ -97,7 +97,7 @@ C4Deployment
 | `deploy/traefik/traefik.yml` | Static: entrypoints, ACME-резолвер, docker/file-провайдеры (T7) |
 | `deploy/traefik/dynamic.yml` | Routers api/spa, middlewares, weighted blue-green (T7) |
 | `backend/Dockerfile` | Distroless-образ бэкенда (T4) |
-| `frontend/Dockerfile.nginx` | nginx-вариант SPA (T5) |
+| `frontend/Dockerfile` | nginx-вариант SPA (T5) |
 | `.github/workflows/ci.yml` + `deploy/ci/` | Сборка и публикация образов (T12, T16) |
 | [Container diagram](container-overview.md) | Логические контейнеры |
 
