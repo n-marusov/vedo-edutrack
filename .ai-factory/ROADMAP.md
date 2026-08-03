@@ -85,6 +85,9 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   - Role-aware dashboard shells exist for MVP personas.
   - Ontology stub returns a small fixed module graph.
   - Route-computation stub demonstrates route calculation on the fixed graph via `POST /routes/compute`.
+  - SPA embed server unified with backend binary (`frontend/cmd/spa-embed` → `backend/cmd/vedo-edutrack`); single `go build` produces one binary serving both API and SPA from one port. `Dockerfile.embed` becomes a build stage inside `backend/Dockerfile`; the standalone embed image is retired.
+  - OpenTelemetry tracing wired across Go backend and Web frontend into the existing o11y stack (Collector → Tempo).
+  - Multi-arch Docker images (linux/amd64 + linux/arm64) with `ARG TARGETARCH` in Dockerfiles.
   - Landing page communicates the product value proposition and routes users toward registration.
   - Local environment reports healthy containers/services and scaffold-level tests pass.
 
@@ -110,6 +113,7 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   - Resource catalog is available for route modules.
   - MVP APIs expose route computation, progress, and FGOS coverage consistently; route computation uses `POST /routes/compute` or the final ADR-approved equivalent.
   - Contract tests protect the VEDO Hub API boundary.
+  - SBOM generation (syft SPDX) and container vulnerability scanning (Trivy/Grype) integrated into CI pipeline; images are attested and signed.
 
   **Dependencies:** M0.3, starter ontology readiness in VEDO Hub.
   **Business goals:** G1, G3.
@@ -175,6 +179,7 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   - Forecasting upgrades from binary readiness to green/yellow/red risk levels with target ±10% accuracy.
   - Content layer scales to 200+ stories and 100+ project ideas.
   - Qualities map (`develops` tagging) supports upbringing/qualities coverage.
+  - CDN integration (CloudFront/CloudFlare) for SaaS deployment: immutable asset URLs with cache invalidation on deploy.
 
   **Dependencies:** M1, M2, relevant enriched ontology fields/events from VEDO Hub.
   **Business goals:** G1, G3, G4.
@@ -238,6 +243,7 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   - Dedicated API endpoints and SLA model are available for enterprise customers.
   - SAP SuccessFactors integration is supported.
   - Private corporate ontology isolation works through VEDO Hub Enterprise boundaries.
+  - Static assets served from S3-compatible storage as fallback when SPA is not embedded in the single binary (optional enterprise contour).
   - Predictive analytics cover deficit forecasting and churn-risk scenarios where data is available.
 
   **Dependencies:** M7, M8, enterprise deployment requirements.
@@ -324,7 +330,7 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 | M0.0 | Requirements, acceptance criteria, traceability |
 | M0.1 | Architecture, domain model, RBAC, Hub/EduTrack boundary |
 | M0.2 | Dev platform, CI, test scaffold, containers |
-| M0.3 | App/API scaffold, auth shell, ontology stub, route stub |
+| M0.3 | App/API scaffold, auth shell, ontology stub, route stub, SPA embed unification, OTel tracing, multi-arch builds |
 | M1 | F0, F1, F2, F3, F6 |
 | M2 | F2, F4, F5 |
 | M3 | F1, F2, F4, F6 for corporate onboarding pilot |

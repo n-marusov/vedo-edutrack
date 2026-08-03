@@ -4,129 +4,50 @@
 # Build context: repository root (pnpm workspace lockfile lives at the root).
 #   docker build -f frontend/Dockerfile.embed .
 #
-# M0.2: proves the embed mechanism with a minimal standalone Go server.
+# M0.2: standalone embed server (proves the mechanism).
 # M0.3: the embed server moves into the backend binary
 #   (backend/cmd/vedo-edutrack wires the SPA handler) — this Dockerfile then
 #   becomes the SPA build stage consumed by the backend image, and the final
 #   distroless stage is dropped.
-# See ADR-DES.INFRA.modular-monolith-approach §7-8 and development-tooling §8.
+# See ADR-DES.INFRA.modular-monolith-approach and development-tooling §8.
 
 # --- Stage 1: build the SPA (Vite) ---
 FROM node:24-alpine AS spa-build
 WORKDIR /app
-# Workspace root files (lockfile + workspace manifest) before frontend sources
+# Workspace root files before frontend sources (cache-friendly layer).
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY frontend/package.json ./frontend/package.json
-RUN corepack enable && pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    corepack enable && pnpm install --frozen-lockfile
 COPY frontend/ ./frontend/
 RUN pnpm --filter @vedo-edutrack/frontend build
 
 # --- Stage 2: embed dist/ into a minimal Go server ---
 FROM golang:1.26-alpine AS embed-build
-WORKDIR /embed
+WORKDIR /src
+# Go module files for dependency caching.
+COPY frontend/cmd/spa-embed/go.mod ./
+RUN go mod download
+# Go sources + pre-built SPA dist.
+COPY frontend/cmd/spa-embed/ ./
 COPY --from=spa-build /app/frontend/dist ./dist
-# Minimal SPA embed server (placeholder for M0.3; then moved into
-# backend/cmd/vedo-edutrack and removed from here).
-RUN cat > main.go <<'EOF'
-package main
-
-import (
-	"embed"
-	"fmt"
-	"io"
-	"io/fs"
-	"log"
-	"net/http"
-	"os"
-	"time"
-)
-
-//go:embed all:dist
-var assets embed.FS
-
-// envOr reads a runtime env var with a default (dynamic config injection —
-// ADR-DES.INFRA.dynamic-config-injection: one build, many environments).
-func envOr(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return def
-}
-
-func main() {
-	port := envOr("PORT", "8080")
-
-	// Container HEALTHCHECK: `spa-embed health` probes /healthz over HTTP
-	// (distroless runtime has no curl/wget). Exit 0 on 200, 1 otherwise.
-	if len(os.Args) > 1 && os.Args[1] == "health" {
-		client := &http.Client{Timeout: 2 * time.Second}
-		resp, err := client.Get("http://127.0.0.1:" + port + "/healthz")
-		if err != nil {
-			log.Fatalf("[FATAL] [spa-embed] health probe: %v", err)
-		}
-		defer resp.Body.Close()
-		_, _ = io.Copy(io.Discard, resp.Body)
-		if resp.StatusCode != http.StatusOK {
-			log.Fatalf("[FATAL] [spa-embed] health probe: status %d", resp.StatusCode)
-		}
-		return
-	}
-
-	sub, err := fs.Sub(assets, "dist")
-	if err != nil {
-		log.Fatalf("[FATAL] [spa-embed] fs.Sub: %v", err)
-	}
-	fileServer := http.FileServer(http.FS(sub))
-	// SPA fallback: unknown paths serve index.html (client-side routing).
-	spaHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, err := fs.Stat(sub, r.URL.Path[1:]); err != nil {
-			r.URL.Path = "/"
-		}
-		fileServer.ServeHTTP(w, r)
-	})
-
-	mux := http.NewServeMux()
-	// Liveness: process is up (distroless has no shell for HEALTHCHECK).
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, `{"status":"ok","version":%q,"env":%q}`+"\n",
-			envOr("APP_VERSION", "dev"), envOr("APP_ENV", "production"))
-	})
-	// Runtime config endpoint: /config.js is generated from env vars at runtime
-	// and must take precedence over the static dist/config.js (index.html loads
-	// it before the app bundle).
-	mux.HandleFunc("/config.js", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/javascript")
-		w.Header().Set("Cache-Control", "no-store")
-		fmt.Fprintf(w, "window.APP_CONFIG = { version: %q, env: %q, apiBaseUrl: %q };\n",
-			envOr("APP_VERSION", "dev"), envOr("APP_ENV", "production"), envOr("API_BASE_URL", "/api"))
-	})
-	mux.Handle("/", spaHandler)
-
-	log.Printf("[INFO] [spa-embed] listening on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, mux))
-}
-EOF
-# Minimal module — the embed server uses stdlib only.
-RUN go mod init spa-embed
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/spa-embed .
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/spa-embed .
 
 # --- Stage 3: distroless static runtime ---
 FROM gcr.io/distroless/static-debian12:nonroot
 ARG VERSION=0.1.0
 ARG SOURCE=https://github.com/vedo-edutrack/vedo-edutrack
 LABEL org.opencontainers.image.title="vedo-edutrack-spa" \
-      org.opencontainers.image.description="VEDO EduTrack SPA (Go embed variant — M0.2 placeholder; M0.3: embedded in the backend binary)" \
+      org.opencontainers.image.description="VEDO EduTrack SPA (Go embed variant — M0.2; M0.3: embedded in the backend binary)" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.source="${SOURCE}" \
       org.opencontainers.image.licenses="MIT"
 COPY --from=embed-build /out/spa-embed /spa-embed
 USER nonroot:nonroot
 EXPOSE 8080
-
 # Liveness probe via the binary's own `health` subcommand (distroless runtime
-# has no shell/curl/wget). Probes GET /healthz over HTTP.
+# has no shell/curl/wget).
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD ["/spa-embed", "health"]
-
 ENTRYPOINT ["/spa-embed"]
