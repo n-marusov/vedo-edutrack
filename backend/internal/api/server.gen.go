@@ -20,18 +20,42 @@ type ServerInterface interface {
 	// Health check
 	// (GET /healthz)
 	HealthCheck(w http.ResponseWriter, r *http.Request)
+	// Prioritized deficit list
+	// (GET /learners/{learner_id}/coverage/deficits)
+	GetDeficitList(w http.ResponseWriter, r *http.Request, learnerId string)
 	// Live FGOS coverage
 	// (GET /learners/{learner_id}/coverage/fgos)
 	GetFgosCoverage(w http.ResponseWriter, r *http.Request, learnerId string)
+	// Binary readiness forecast
+	// (GET /learners/{learner_id}/forecast)
+	GetLearnerForecast(w http.ResponseWriter, r *http.Request, learnerId string)
 	// Diagnose learner gaps
 	// (GET /learners/{learner_id}/gaps)
 	DiagnoseGaps(w http.ResponseWriter, r *http.Request, learnerId string, params DiagnoseGapsParams)
+	// Record module mastery
+	// (POST /learners/{learner_id}/module-mastered)
+	RecordModuleMastered(w http.ResponseWriter, r *http.Request, learnerId string)
+	// Plan-vs-actual progress report
+	// (GET /learners/{learner_id}/progress)
+	GetLearnerProgress(w http.ResponseWriter, r *http.Request, learnerId string)
+	// Project idea suggestions
+	// (GET /learners/{learner_id}/recommended-projects)
+	GetRecommendedProjects(w http.ResponseWriter, r *http.Request, learnerId string)
+	// Story recommendations at mastery
+	// (GET /learners/{learner_id}/recommended-stories)
+	GetRecommendedStories(w http.ResponseWriter, r *http.Request, learnerId string)
 	// Current user
 	// (GET /me)
 	GetMe(w http.ResponseWriter, r *http.Request)
+	// Project ideas for a module
+	// (GET /modules/{module_id}/projects)
+	GetModuleProjects(w http.ResponseWriter, r *http.Request, moduleId string)
 	// List resources bound to a module
 	// (GET /modules/{module_id}/resources)
 	ListModuleResources(w http.ResponseWriter, r *http.Request, moduleId string)
+	// Stories for a module
+	// (GET /modules/{module_id}/stories)
+	GetModuleStories(w http.ResponseWriter, r *http.Request, moduleId string)
 	// Get an ontology concept
 	// (GET /ontology/concepts)
 	GetOntologyConcept(w http.ResponseWriter, r *http.Request, params GetOntologyConceptParams)
@@ -68,9 +92,21 @@ func (_ Unimplemented) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Prioritized deficit list
+// (GET /learners/{learner_id}/coverage/deficits)
+func (_ Unimplemented) GetDeficitList(w http.ResponseWriter, r *http.Request, learnerId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Live FGOS coverage
 // (GET /learners/{learner_id}/coverage/fgos)
 func (_ Unimplemented) GetFgosCoverage(w http.ResponseWriter, r *http.Request, learnerId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Binary readiness forecast
+// (GET /learners/{learner_id}/forecast)
+func (_ Unimplemented) GetLearnerForecast(w http.ResponseWriter, r *http.Request, learnerId string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -80,15 +116,51 @@ func (_ Unimplemented) DiagnoseGaps(w http.ResponseWriter, r *http.Request, lear
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Record module mastery
+// (POST /learners/{learner_id}/module-mastered)
+func (_ Unimplemented) RecordModuleMastered(w http.ResponseWriter, r *http.Request, learnerId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Plan-vs-actual progress report
+// (GET /learners/{learner_id}/progress)
+func (_ Unimplemented) GetLearnerProgress(w http.ResponseWriter, r *http.Request, learnerId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Project idea suggestions
+// (GET /learners/{learner_id}/recommended-projects)
+func (_ Unimplemented) GetRecommendedProjects(w http.ResponseWriter, r *http.Request, learnerId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Story recommendations at mastery
+// (GET /learners/{learner_id}/recommended-stories)
+func (_ Unimplemented) GetRecommendedStories(w http.ResponseWriter, r *http.Request, learnerId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Current user
 // (GET /me)
 func (_ Unimplemented) GetMe(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Project ideas for a module
+// (GET /modules/{module_id}/projects)
+func (_ Unimplemented) GetModuleProjects(w http.ResponseWriter, r *http.Request, moduleId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // List resources bound to a module
 // (GET /modules/{module_id}/resources)
 func (_ Unimplemented) ListModuleResources(w http.ResponseWriter, r *http.Request, moduleId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Stories for a module
+// (GET /modules/{module_id}/stories)
+func (_ Unimplemented) GetModuleStories(w http.ResponseWriter, r *http.Request, moduleId string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -165,6 +237,37 @@ func (siw *ServerInterfaceWrapper) HealthCheck(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
+// GetDeficitList operation middleware
+func (siw *ServerInterfaceWrapper) GetDeficitList(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "learner_id" -------------
+	var learnerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "learner_id", chi.URLParam(r, "learner_id"), &learnerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "learner_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetDeficitList(w, r, learnerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetFgosCoverage operation middleware
 func (siw *ServerInterfaceWrapper) GetFgosCoverage(w http.ResponseWriter, r *http.Request) {
 
@@ -187,6 +290,37 @@ func (siw *ServerInterfaceWrapper) GetFgosCoverage(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetFgosCoverage(w, r, learnerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLearnerForecast operation middleware
+func (siw *ServerInterfaceWrapper) GetLearnerForecast(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "learner_id" -------------
+	var learnerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "learner_id", chi.URLParam(r, "learner_id"), &learnerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "learner_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLearnerForecast(w, r, learnerId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -245,6 +379,130 @@ func (siw *ServerInterfaceWrapper) DiagnoseGaps(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
+// RecordModuleMastered operation middleware
+func (siw *ServerInterfaceWrapper) RecordModuleMastered(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "learner_id" -------------
+	var learnerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "learner_id", chi.URLParam(r, "learner_id"), &learnerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "learner_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RecordModuleMastered(w, r, learnerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLearnerProgress operation middleware
+func (siw *ServerInterfaceWrapper) GetLearnerProgress(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "learner_id" -------------
+	var learnerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "learner_id", chi.URLParam(r, "learner_id"), &learnerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "learner_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLearnerProgress(w, r, learnerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetRecommendedProjects operation middleware
+func (siw *ServerInterfaceWrapper) GetRecommendedProjects(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "learner_id" -------------
+	var learnerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "learner_id", chi.URLParam(r, "learner_id"), &learnerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "learner_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetRecommendedProjects(w, r, learnerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetRecommendedStories operation middleware
+func (siw *ServerInterfaceWrapper) GetRecommendedStories(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "learner_id" -------------
+	var learnerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "learner_id", chi.URLParam(r, "learner_id"), &learnerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "learner_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetRecommendedStories(w, r, learnerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetMe operation middleware
 func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request) {
 
@@ -256,6 +514,37 @@ func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetMe(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetModuleProjects operation middleware
+func (siw *ServerInterfaceWrapper) GetModuleProjects(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "module_id" -------------
+	var moduleId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "module_id", chi.URLParam(r, "module_id"), &moduleId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "module_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetModuleProjects(w, r, moduleId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -287,6 +576,37 @@ func (siw *ServerInterfaceWrapper) ListModuleResources(w http.ResponseWriter, r 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListModuleResources(w, r, moduleId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetModuleStories operation middleware
+func (siw *ServerInterfaceWrapper) GetModuleStories(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "module_id" -------------
+	var moduleId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "module_id", chi.URLParam(r, "module_id"), &moduleId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "module_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetModuleStories(w, r, moduleId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -626,16 +946,40 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/healthz", wrapper.HealthCheck)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/learners/{learner_id}/coverage/deficits", wrapper.GetDeficitList)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/learners/{learner_id}/coverage/fgos", wrapper.GetFgosCoverage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/learners/{learner_id}/forecast", wrapper.GetLearnerForecast)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/learners/{learner_id}/gaps", wrapper.DiagnoseGaps)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/learners/{learner_id}/module-mastered", wrapper.RecordModuleMastered)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/learners/{learner_id}/progress", wrapper.GetLearnerProgress)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/learners/{learner_id}/recommended-projects", wrapper.GetRecommendedProjects)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/learners/{learner_id}/recommended-stories", wrapper.GetRecommendedStories)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/me", wrapper.GetMe)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/modules/{module_id}/projects", wrapper.GetModuleProjects)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/modules/{module_id}/resources", wrapper.ListModuleResources)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/modules/{module_id}/stories", wrapper.GetModuleStories)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/ontology/concepts", wrapper.GetOntologyConcept)

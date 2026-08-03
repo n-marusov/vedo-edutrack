@@ -404,6 +404,255 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /learners/{learner_id}/coverage/deficits:
+    get:
+      tags: [Coverage]
+      operationId: getDeficitList
+      summary: Prioritized deficit list
+      description: |
+        Uncovered FGOS requirements ranked by priority
+        (strict-prerequisite > essential core > optional), used for
+        attestation readiness planning (REQ-FR-execute.coverage.deficit-list).
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Prioritized deficit list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeficitListResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /learners/{learner_id}/progress:
+    get:
+      tags: [Execution]
+      operationId: getLearnerProgress
+      summary: Plan-vs-actual progress report
+      description: |
+        Compares the fixed plan snapshot against actual mastery records,
+        computing per-module deviation in days and deviation reason
+        (REQ-FR-execute.progress.plan-vs-actual).
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Plan-vs-actual progress report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgressResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /learners/{learner_id}/forecast:
+    get:
+      tags: [Execution]
+      operationId: getLearnerForecast
+      summary: Binary readiness forecast
+      description: |
+        Computes the binary on-track / not-on-track readiness forecast for
+        the learner's plan based on current pace and remaining workload
+        (REQ-FR-execute.forecast.binary-readiness).
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Readiness forecast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForecastResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /learners/{learner_id}/module-mastered:
+    post:
+      tags: [Execution]
+      operationId: recordModuleMastered
+      summary: Record module mastery
+      description: |
+        Records a ModuleMastered event for the learner, triggering
+        plan-vs-actual re-comparison, coverage refresh, and story/project
+        recommendations (REQ-FR-execute.progress.plan-vs-actual).
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MasteryRecordRequest"
+      responses:
+        "201":
+          description: Mastery recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasteryRecordResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /modules/{module_id}/stories:
+    get:
+      tags: [Practice]
+      operationId: getModuleStories
+      summary: Stories for a module
+      description: |
+        Returns contextual stories linked to the module via appliesTo/enriches
+        graph links (REQ-FR-practice.stories.context-delivery).
+      parameters:
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Story list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StoryResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /modules/{module_id}/projects:
+    get:
+      tags: [Practice]
+      operationId: getModuleProjects
+      summary: Project ideas for a module
+      description: |
+        Returns cross-subject project ideas linked to the module
+        (REQ-FR-practice.projects.suggest-cross-subject).
+      parameters:
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Project idea list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectIdeaResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /learners/{learner_id}/recommended-stories:
+    get:
+      tags: [Practice]
+      operationId: getRecommendedStories
+      summary: Story recommendations at mastery
+      description: |
+        Returns stories recommended at module mastery via appliesTo/enriches
+        links, deduplicated within a module
+        (REQ-FR-practice.stories.recommend-at-mastery).
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recommended stories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StoryResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /learners/{learner_id}/recommended-projects:
+    get:
+      tags: [Practice]
+      operationId: getRecommendedProjects
+      summary: Project idea suggestions
+      description: |
+        Returns project ideas where ≥ 80% of required modules are mastered or
+        available (REQ-FR-practice.projects.suggest-cross-subject).
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Suggested project ideas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectIdeaResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /sparql:
     get:
       tags: [SPARQL]
@@ -787,6 +1036,168 @@ components:
         requirement_id:
           type: string
         blocking_module_id:
+          type: string
+
+    DeficitListResponse:
+      type: object
+      required: [deficits, total]
+      properties:
+        deficits:
+          type: array
+          description: Deficits sorted by priority (strict > essential > optional).
+          items:
+            $ref: "#/components/schemas/PrioritizedDeficit"
+        total:
+          type: integer
+          description: Total number of uncovered requirements.
+
+    PrioritizedDeficit:
+      type: object
+      required: [requirement_id, priority]
+      properties:
+        requirement_id:
+          type: string
+        priority:
+          type: string
+          enum: [strict_prerequisite, essential, optional]
+        status:
+          type: string
+          enum: [missing, partial, requires_route_extension]
+        linked_module_ids:
+          type: array
+          items:
+            type: string
+        effort_estimate:
+          type: string
+
+    ProgressResponse:
+      type: object
+      required: [learner_id, modules]
+      properties:
+        learner_id:
+          type: string
+        plan_id:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        modules:
+          type: array
+          description: Per-module plan-vs-actual comparison.
+          items:
+            $ref: "#/components/schemas/ModuleProgressItem"
+
+    ModuleProgressItem:
+      type: object
+      required: [module_id, status]
+      properties:
+        module_id:
+          type: string
+        status:
+          type: string
+          enum: [not_started, in_progress, mastered, skipped]
+        planned_date:
+          type: string
+          format: date
+        actual_date:
+          type: string
+          format: date
+        deviation_days:
+          type: integer
+        deviation_cause:
+          type: string
+          enum: [acceleration, more_practice, break, volume_change, unspecified]
+
+    ForecastResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [on-track, not-on-track]
+        velocity:
+          type: number
+          description: Modules completed per day.
+        remaining_modules:
+          type: integer
+        expected_date:
+          type: string
+          format: date
+        key_risks:
+          type: array
+          items:
+            type: string
+        data_confidence:
+          type: string
+          enum: [high, low]
+
+    MasteryRecordRequest:
+      type: object
+      required: [module_id, status]
+      properties:
+        module_id:
+          type: string
+        status:
+          type: string
+          enum: [in_progress, mastered, skipped]
+        score:
+          type: number
+          description: Optional mastery score 0..1.
+
+    MasteryRecordResponse:
+      type: object
+      required: [learner_id, module_id, status]
+      properties:
+        learner_id:
+          type: string
+        module_id:
+          type: string
+        status:
+          type: string
+        recorded_at:
+          type: string
+          format: date-time
+
+    StoryResponse:
+      type: object
+      required: [id, title]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        text:
+          type: string
+        linked_modules:
+          type: array
+          items:
+            type: string
+        subjects:
+          type: array
+          items:
+            type: string
+        real_world:
+          type: string
+          description: Real-world application section.
+        reading_minutes:
+          type: integer
+
+    ProjectIdeaResponse:
+      type: object
+      required: [id, title]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        modules:
+          type: array
+          items:
+            type: string
+        difficulty_level:
+          type: string
+          enum: [basic, medium, advanced]
+        expected_outcome:
           type: string
 
     SparqlResponse:

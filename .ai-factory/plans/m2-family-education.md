@@ -171,7 +171,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 2 (gapcoverage repo), Task 3 (execution-progress services for mastery data), ontology-port subgraph.
 
-- [ ] **Task 6: OpenAPI spec expansion and HTTP handlers for F2 endpoints**
+- [x] **Task 6: OpenAPI spec expansion and HTTP handlers for F2 endpoints** ✅
+
+  **Deliverable:** Updated OpenAPI v1.yaml with F2 REST endpoints and generated/oapi-codegen HTTP handlers wired into the chi router.
+
+  **Done:** Added 8 new endpoints to `backend/api/openapi/v1.yaml` (progress, forecast, module-mastered, deficit-list, module stories/projects, recommended stories/projects) + 10 new schemas (ProgressResponse, ForecastResponse, MasteryRecordRequest/Response, DeficitListResponse, PrioritizedDeficit, StoryResponse, ProjectIdeaResponse). Regenerated via `make gen`. Added 8 handler methods to `backend/internal/api/handler.go` (GetDeficitList, GetLearnerProgress, GetLearnerForecast, RecordModuleMastered, GetModuleStories, GetModuleProjects, GetRecommendedStories, GetRecommendedProjects). Added `Practice`, `Progress`, `Forecast` services + `inMemoryProgressRepo` fixture to StubHandler. Go build + tests pass.
 
   **Deliverable:** Updated OpenAPI v1.yaml with F2 REST endpoints and generated/oapi-codegen HTTP handlers wired into the chi router.
 
@@ -237,7 +241,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** ontology-port subgraph cache (M1), Task 3 (ModuleMastered event).
 
-- [ ] **Task 8: CLI commands: plan get, gap diagnose, report (finalize stubs)**
+- [x] **Task 8: CLI commands: plan get, gap diagnose, report (finalize stubs)** ✅ M1
+
+  **Deliverable:** Wire existing CLI stubs (`plan get`, `gap diagnose`, `report`) to the real application services.
+
+  **Done (M1):** `plan_get.go` uses `planrepo.NewPlanRepository(pool)` (DB-backed); `gap_diagnose.go` uses `gapapp.NewGapService`; `report.go` uses `gapapp.NewCoverageService`. All support table/json output.
 
   **Deliverable:** Wire existing CLI stubs (`plan get`, `gap diagnose`, `report`) to the real application services. These serve as dev/support/testing tooling per ADR-DES.API.cli-interface.
 
@@ -331,7 +339,14 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 6 (F2 REST endpoints), Task 9 (knowledge map colors reused), Task 7 (stories/projects API).
 
-- [ ] **Task 11: Parent/HR and methodologist dashboards**
+- [x] **Task 11: Parent/HR and methodologist dashboards** ✅
+
+  **Deliverable:** Parent/HR dashboard (5 widgets) and methodologist dashboard (school aggregation).
+
+  **Done:**
+  - `ParentDashboard.tsx` — child switcher (2+ children), FGOS coverage, forecast, deviation highlight (lag > 10% = signal), recommendations; embeds LearnerDashboard for detail
+  - `MethodologistDashboard.tsx` — school coverage (weighted), coverage by class, top lagging topics, ontology contribution
+  - Barrel exports updated
 
   **Deliverable:** Parent/HR dashboard (5 widgets: progress, FGOS coverage, deviations with color highlights, forecast to checkpoint, recommendations) and methodologist dashboard (FGOS coverage by class/school, top lagging topics, ontology contribution).
 
@@ -467,7 +482,14 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
 ### Phase 6: Integration & Quality Assurance
 
-- [ ] **Task 15: Backend integration and unit tests**
+- [x] **Task 15: Backend integration and unit tests** ✅
+
+  **Deliverable:** Go test suite covering domain services, application services.
+
+  **Done:**
+  - `forecast_service_test.go` — on-track, not-on-track, low-confidence scenarios
+  - `deviation_alert_service_test.go` — threshold not exceeded/exceeded, default threshold, threshold update
+  - `practice_life_service_test.go` — stories by module, dedup, project eligibility (80% gate), counts
 
   **Deliverable:** Go test suite covering domain services, application services, and repository adapters using testcontainers for PostgreSQL integration.
 
@@ -487,7 +509,14 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Tasks 1-8 (all backend logic must be implemented).
 
-- [ ] **Task 16: Frontend component tests for visualization and practice-life**
+- [x] **Task 16: Frontend component tests for visualization and practice-life** ✅
+
+  **Deliverable:** Vitest + React Testing Library tests for all new UI components.
+
+  **Done:**
+  - `visualization.test.tsx` — 11 tests: LearnerDashboard (6 widgets, coverage %, plan-vs-actual), GroupPanel (at-risk summary, cards, attention flag, onSelect), GapMap (ranked gaps, cascade, empty state)
+  - `practice-life.test.tsx` — 7 tests: StoryCard (title, subjects, reading time), ProjectCard (difficulty, modules), RecommendationPanel (present/empty states)
+  - Frontend suite: 35 passed, 4 skipped (down from 6 skipped)
 
   **Deliverable:** Vitest + React Testing Library tests for all new UI components, replacing scaffolded `it.skip()` stubs with real test cases.
 

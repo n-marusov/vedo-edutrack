@@ -5,6 +5,8 @@ package api
 
 import (
 	"time"
+
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 const (
@@ -18,6 +20,18 @@ const (
 	HasSoftPrerequisite   ConceptLinkLinkType = "hasSoftPrerequisite"
 	HasStrictPrerequisite ConceptLinkLinkType = "hasStrictPrerequisite"
 	IsAnalogousTo         ConceptLinkLinkType = "isAnalogousTo"
+)
+
+// Defines values for ForecastResponseDataConfidence.
+const (
+	High ForecastResponseDataConfidence = "high"
+	Low  ForecastResponseDataConfidence = "low"
+)
+
+// Defines values for ForecastResponseStatus.
+const (
+	NotOnTrack ForecastResponseStatus = "not-on-track"
+	OnTrack    ForecastResponseStatus = "on-track"
 )
 
 // Defines values for GapDiagnosisResponseStatus.
@@ -46,6 +60,51 @@ const (
 // Defines values for JwksResponseKeysUse.
 const (
 	Sig JwksResponseKeysUse = "sig"
+)
+
+// Defines values for MasteryRecordRequestStatus.
+const (
+	MasteryRecordRequestStatusInProgress MasteryRecordRequestStatus = "in_progress"
+	MasteryRecordRequestStatusMastered   MasteryRecordRequestStatus = "mastered"
+	MasteryRecordRequestStatusSkipped    MasteryRecordRequestStatus = "skipped"
+)
+
+// Defines values for ModuleProgressItemDeviationCause.
+const (
+	Acceleration ModuleProgressItemDeviationCause = "acceleration"
+	Break        ModuleProgressItemDeviationCause = "break"
+	MorePractice ModuleProgressItemDeviationCause = "more_practice"
+	Unspecified  ModuleProgressItemDeviationCause = "unspecified"
+	VolumeChange ModuleProgressItemDeviationCause = "volume_change"
+)
+
+// Defines values for ModuleProgressItemStatus.
+const (
+	ModuleProgressItemStatusInProgress ModuleProgressItemStatus = "in_progress"
+	ModuleProgressItemStatusMastered   ModuleProgressItemStatus = "mastered"
+	ModuleProgressItemStatusNotStarted ModuleProgressItemStatus = "not_started"
+	ModuleProgressItemStatusSkipped    ModuleProgressItemStatus = "skipped"
+)
+
+// Defines values for PrioritizedDeficitPriority.
+const (
+	Essential          PrioritizedDeficitPriority = "essential"
+	Optional           PrioritizedDeficitPriority = "optional"
+	StrictPrerequisite PrioritizedDeficitPriority = "strict_prerequisite"
+)
+
+// Defines values for PrioritizedDeficitStatus.
+const (
+	Missing                PrioritizedDeficitStatus = "missing"
+	Partial                PrioritizedDeficitStatus = "partial"
+	RequiresRouteExtension PrioritizedDeficitStatus = "requires_route_extension"
+)
+
+// Defines values for ProjectIdeaResponseDifficultyLevel.
+const (
+	Advanced ProjectIdeaResponseDifficultyLevel = "advanced"
+	Basic    ProjectIdeaResponseDifficultyLevel = "basic"
+	Medium   ProjectIdeaResponseDifficultyLevel = "medium"
 )
 
 // Defines values for ReadinessResponseChecksDatabase.
@@ -129,6 +188,15 @@ type Deficit struct {
 	RequirementId    string  `json:"requirement_id"`
 }
 
+// DeficitListResponse defines model for DeficitListResponse.
+type DeficitListResponse struct {
+	// Deficits Deficits sorted by priority (strict > essential > optional).
+	Deficits []PrioritizedDeficit `json:"deficits"`
+
+	// Total Total number of uncovered requirements.
+	Total int `json:"total"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Endpoint Endpoint that produced the error (for 501 stubs).
@@ -140,6 +208,24 @@ type ErrorResponse struct {
 	// Message Human-readable error detail.
 	Message *string `json:"message,omitempty"`
 }
+
+// ForecastResponse defines model for ForecastResponse.
+type ForecastResponse struct {
+	DataConfidence   *ForecastResponseDataConfidence `json:"data_confidence,omitempty"`
+	ExpectedDate     *openapi_types.Date             `json:"expected_date,omitempty"`
+	KeyRisks         *[]string                       `json:"key_risks,omitempty"`
+	RemainingModules *int                            `json:"remaining_modules,omitempty"`
+	Status           ForecastResponseStatus          `json:"status"`
+
+	// Velocity Modules completed per day.
+	Velocity *float32 `json:"velocity,omitempty"`
+}
+
+// ForecastResponseDataConfidence defines model for ForecastResponse.DataConfidence.
+type ForecastResponseDataConfidence string
+
+// ForecastResponseStatus defines model for ForecastResponse.Status.
+type ForecastResponseStatus string
 
 // GapDiagnosisResponse defines model for GapDiagnosisResponse.
 type GapDiagnosisResponse struct {
@@ -194,6 +280,42 @@ type JwksResponseKeysKty string
 // JwksResponseKeysUse defines model for JwksResponse.Keys.Use.
 type JwksResponseKeysUse string
 
+// MasteryRecordRequest defines model for MasteryRecordRequest.
+type MasteryRecordRequest struct {
+	ModuleId string `json:"module_id"`
+
+	// Score Optional mastery score 0..1.
+	Score  *float32                   `json:"score,omitempty"`
+	Status MasteryRecordRequestStatus `json:"status"`
+}
+
+// MasteryRecordRequestStatus defines model for MasteryRecordRequest.Status.
+type MasteryRecordRequestStatus string
+
+// MasteryRecordResponse defines model for MasteryRecordResponse.
+type MasteryRecordResponse struct {
+	LearnerId  string     `json:"learner_id"`
+	ModuleId   string     `json:"module_id"`
+	RecordedAt *time.Time `json:"recorded_at,omitempty"`
+	Status     string     `json:"status"`
+}
+
+// ModuleProgressItem defines model for ModuleProgressItem.
+type ModuleProgressItem struct {
+	ActualDate     *openapi_types.Date               `json:"actual_date,omitempty"`
+	DeviationCause *ModuleProgressItemDeviationCause `json:"deviation_cause,omitempty"`
+	DeviationDays  *int                              `json:"deviation_days,omitempty"`
+	ModuleId       string                            `json:"module_id"`
+	PlannedDate    *openapi_types.Date               `json:"planned_date,omitempty"`
+	Status         ModuleProgressItemStatus          `json:"status"`
+}
+
+// ModuleProgressItemDeviationCause defines model for ModuleProgressItem.DeviationCause.
+type ModuleProgressItemDeviationCause string
+
+// ModuleProgressItemStatus defines model for ModuleProgressItem.Status.
+type ModuleProgressItemStatus string
+
 // PlanResponse defines model for PlanResponse.
 type PlanResponse struct {
 	Checkpoints     *[]Checkpoint `json:"checkpoints,omitempty"`
@@ -215,6 +337,43 @@ type PlanStep struct {
 	PlannedStart *time.Time `json:"planned_start,omitempty"`
 	Position     int        `json:"position"`
 }
+
+// PrioritizedDeficit defines model for PrioritizedDeficit.
+type PrioritizedDeficit struct {
+	EffortEstimate  *string                    `json:"effort_estimate,omitempty"`
+	LinkedModuleIds *[]string                  `json:"linked_module_ids,omitempty"`
+	Priority        PrioritizedDeficitPriority `json:"priority"`
+	RequirementId   string                     `json:"requirement_id"`
+	Status          *PrioritizedDeficitStatus  `json:"status,omitempty"`
+}
+
+// PrioritizedDeficitPriority defines model for PrioritizedDeficit.Priority.
+type PrioritizedDeficitPriority string
+
+// PrioritizedDeficitStatus defines model for PrioritizedDeficit.Status.
+type PrioritizedDeficitStatus string
+
+// ProgressResponse defines model for ProgressResponse.
+type ProgressResponse struct {
+	GeneratedAt *time.Time `json:"generated_at,omitempty"`
+	LearnerId   string     `json:"learner_id"`
+
+	// Modules Per-module plan-vs-actual comparison.
+	Modules []ModuleProgressItem `json:"modules"`
+	PlanId  *string              `json:"plan_id,omitempty"`
+}
+
+// ProjectIdeaResponse defines model for ProjectIdeaResponse.
+type ProjectIdeaResponse struct {
+	DifficultyLevel *ProjectIdeaResponseDifficultyLevel `json:"difficulty_level,omitempty"`
+	ExpectedOutcome *string                             `json:"expected_outcome,omitempty"`
+	Id              string                              `json:"id"`
+	Modules         *[]string                           `json:"modules,omitempty"`
+	Title           string                              `json:"title"`
+}
+
+// ProjectIdeaResponseDifficultyLevel defines model for ProjectIdeaResponse.DifficultyLevel.
+type ProjectIdeaResponseDifficultyLevel string
 
 // ReadinessResponse defines model for ReadinessResponse.
 type ReadinessResponse struct {
@@ -310,6 +469,19 @@ type SparqlResponse struct {
 	} `json:"results"`
 }
 
+// StoryResponse defines model for StoryResponse.
+type StoryResponse struct {
+	Id             string    `json:"id"`
+	LinkedModules  *[]string `json:"linked_modules,omitempty"`
+	ReadingMinutes *int      `json:"reading_minutes,omitempty"`
+
+	// RealWorld Real-world application section.
+	RealWorld *string   `json:"real_world,omitempty"`
+	Subjects  *[]string `json:"subjects,omitempty"`
+	Text      *string   `json:"text,omitempty"`
+	Title     string    `json:"title"`
+}
+
 // TokenRequest defines model for TokenRequest.
 type TokenRequest struct {
 	// Roles Roles to embed (defaults to ["learner"]).
@@ -374,6 +546,9 @@ type SparqlQueryParams struct {
 
 // IssueTokenJSONRequestBody defines body for IssueToken for application/json ContentType.
 type IssueTokenJSONRequestBody = TokenRequest
+
+// RecordModuleMasteredJSONRequestBody defines body for RecordModuleMastered for application/json ContentType.
+type RecordModuleMasteredJSONRequestBody = MasteryRecordRequest
 
 // ComputeRouteJSONRequestBody defines body for ComputeRoute for application/json ContentType.
 type ComputeRouteJSONRequestBody = RouteComputeRequest

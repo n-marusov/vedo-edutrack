@@ -4,6 +4,15 @@
 export { KnowledgeMap } from './KnowledgeMap';
 export type { KnowledgeMapProps } from './KnowledgeMap';
 export { LearnerDashboard } from './LearnerDashboard';
+export { ParentDashboard } from './ParentDashboard';
+export type { ParentDashboardProps, ParentDashboardData, ChildOverview } from './ParentDashboard';
+export { MethodologistDashboard } from './MethodologistDashboard';
+export type {
+  MethodologistDashboardProps,
+  MethodologistDashboardData,
+  ClassCoverage,
+  LaggingTopic,
+} from './MethodologistDashboard';
 export { GapMap } from './GapMap';
 export { GroupPanel } from './GroupPanel';
 export * from './types';

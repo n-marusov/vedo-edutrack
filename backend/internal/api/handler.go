@@ -4,15 +4,22 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
+	openapi_types "github.com/oapi-codegen/runtime/types"
 	"go.uber.org/zap"
 
+	execapp "vedo-edutrack/backend/internal/modules/executionprogress/application"
+	execdomain "vedo-edutrack/backend/internal/modules/executionprogress/domain"
 	gapapp "vedo-edutrack/backend/internal/modules/gapcoverage/application"
 	gapdomain "vedo-edutrack/backend/internal/modules/gapcoverage/domain"
 	"vedo-edutrack/backend/internal/modules/integrations/adapters/sparql"
 	ontostub "vedo-edutrack/backend/internal/modules/ontologyport/adapters/stub"
+	practiceapp "vedo-edutrack/backend/internal/modules/practicelife/application"
+	practicedomain "vedo-edutrack/backend/internal/modules/practicelife/domain"
 	resourceapp "vedo-edutrack/backend/internal/modules/resources/application"
 	resourcedomain "vedo-edutrack/backend/internal/modules/resources/domain"
 	routestub "vedo-edutrack/backend/internal/modules/routeplanning/adapters/stub"
@@ -29,6 +36,9 @@ type StubHandler struct {
 	Resources *resourceapp.CatalogService
 	Gap       *gapapp.GapService
 	Coverage  *gapapp.CoverageService
+	Practice  *practiceapp.PracticeLifeService
+	Progress  *execapp.ProgressService
+	Forecast  *execapp.ForecastService
 	Logger    *zap.Logger
 	gapGraph  gapdomain.Graph
 }
@@ -51,12 +61,27 @@ func NewStubHandler() *StubHandler {
 		{SourceID: "solutions", TargetID: "chemistry", Type: gapdomain.LinkStrictPrerequisite},
 	}}
 
+	// M2 practice-life fixtures: stories linked via appliesTo/enriches graph
+	// links and cross-subject project ideas (REQ-FR-practice.*).
+	practiceStories := []practicedomain.Story{
+		{ID: "story-1", Title: "Проценты в жизни", Text: "Где встречаются проценты: скидки, банки, статистика.", LinkedModules: []string{"percent", "math-5-11"}, Subjects: []string{"Математика"}, RealWorld: "Проценты используются в банковских вкладах, скидках и социологии.", ReadingMinutes: 3},
+		{ID: "story-2", Title: "Растворы вокруг нас", Text: "Концентрация растворов в медицине и кулинарии.", LinkedModules: []string{"solutions"}, Subjects: []string{"Химия"}, RealWorld: "Физраствор, уксус, морская вода — все это растворы разной концентрации.", ReadingMinutes: 4},
+		{ID: "story-3", Title: "Химия и экология", Text: "Химические реакции в природе.", LinkedModules: []string{"chemistry"}, Subjects: []string{"Химия", "Биология"}, RealWorld: "Фотосинтез — это химическая реакция, происходящая в каждом листе.", ReadingMinutes: 5},
+	}
+	practiceProjects := []practicedomain.ProjectIdea{
+		{ID: "proj-1", Title: "Биохимическая лаборатория дома", Modules: []string{"solutions", "chemistry"}, DifficultyLevel: practicedomain.DifficultyMedium, ExpectedOutcome: "Провести серию опытов по концентрации растворов и описать результаты."},
+		{ID: "proj-2", Title: "Экология двора", Modules: []string{"chemistry", "percent"}, DifficultyLevel: practicedomain.DifficultyBasic, ExpectedOutcome: "Рассчитать процент загрязнения и предложить меры."},
+	}
+
 	return &StubHandler{
 		Ontology:  graph,
 		Routes:    routestub.NewComputer(graph),
 		Resources: resourceapp.NewCatalogService(catalog, logger),
 		Gap:       gapapp.NewGapService(logger),
 		Coverage:  gapapp.NewCoverageService(logger),
+		Practice:  practiceapp.NewPracticeLifeService(logger, practiceStories, practiceProjects),
+		Progress:  execapp.NewProgressService(logger),
+		Forecast:  execapp.NewForecastService(inMemoryProgressRepo{}, logger),
 		Logger:    logger,
 		gapGraph:  gapGraph,
 	}
@@ -209,6 +234,189 @@ func (h *StubHandler) DiagnoseGaps(w http.ResponseWriter, _ *http.Request, learn
 	writeJSONBody(w, http.StatusOK, GapDiagnosisResponse{Status: status, RootCauses: rootCauses})
 }
 
+// GetDeficitList returns the prioritized deficit list for a learner.
+func (h *StubHandler) GetDeficitList(w http.ResponseWriter, _ *http.Request, learnerID string) {
+	h.Logger.Info("deficit list query", zap.String("learner_id", learnerID))
+	bindings := []gapdomain.FgosBinding{
+		{ModuleID: "percent", RequirementID: "fgos-math-5"},
+		{ModuleID: "solutions", RequirementID: "fgos-chem-8"},
+		{ModuleID: "chemistry", RequirementID: "fgos-chem-8-1"},
+	}
+	report := h.Coverage.Coverage(bindings, gapdomain.Mastery{Modules: map[string]float64{"percent": 1.0}})
+
+	// Prioritize: strict-prerequisite > essential > optional (M2 F2.7 extension).
+	prioritized := make([]PrioritizedDeficit, 0, len(report.Deficits))
+	for _, deficit := range report.Deficits {
+		priority := PrioritizedDeficitPriority("optional")
+		if deficit.BlockingModuleID == "percent" {
+			priority = "strict_prerequisite"
+		} else if deficit.BlockingModuleID == "solutions" {
+			priority = "essential"
+		}
+		status := PrioritizedDeficitStatus("missing")
+		linked := []string{}
+		if deficit.BlockingModuleID != "" {
+			linked = append(linked, deficit.BlockingModuleID)
+		}
+		prioritized = append(prioritized, PrioritizedDeficit{
+			RequirementId:   deficit.RequirementID,
+			Priority:        priority,
+			Status:          &status,
+			LinkedModuleIds: &linked,
+		})
+	}
+	writeJSONBody(w, http.StatusOK, DeficitListResponse{Deficits: prioritized, Total: len(prioritized)})
+}
+
+// GetLearnerProgress returns the plan-vs-actual progress report.
+func (h *StubHandler) GetLearnerProgress(w http.ResponseWriter, _ *http.Request, learnerID string) {
+	h.Logger.Info("learner progress query", zap.String("learner_id", learnerID))
+
+	plan := execdomain.FixedPlan{
+		ID:        "plan-1",
+		LearnerID: learnerID,
+		Modules: []execdomain.PlannedModule{
+			{ModuleID: "percent", PlannedStart: time.Now().AddDate(0, -2, 0), PlannedEnd: time.Now().AddDate(0, -1, 0)},
+			{ModuleID: "solutions", PlannedStart: time.Now().AddDate(0, -1, 0), PlannedEnd: time.Now().AddDate(0, 0, 0)},
+		},
+	}
+	progress := []execdomain.ModuleProgress{
+		{ModuleID: "percent", Status: execdomain.StatusMastered, MasteredAt: ptrTime(time.Now().AddDate(0, 0, -5))},
+		{ModuleID: "solutions", Status: execdomain.StatusInProgress},
+	}
+	result := h.Progress.Compare(plan, progress)
+
+	// Map deviations back to per-module items.
+	items := make([]ModuleProgressItem, 0, len(plan.Modules))
+	deviationDays := map[string]int{}
+	for _, d := range result.Deviations {
+		deviationDays[d.ModuleID] = d.DeltaDays
+	}
+	for _, module := range plan.Modules {
+		item := ModuleProgressItem{ModuleId: module.ModuleID, Status: ModuleProgressItemStatus("not_started")}
+		for _, p := range progress {
+			if p.ModuleID == module.ModuleID {
+				item.Status = ModuleProgressItemStatus(p.Status)
+				if p.MasteredAt != nil {
+					item.ActualDate = ptrDate(*p.MasteredAt)
+				}
+			}
+		}
+		item.PlannedDate = ptrDate(module.PlannedEnd)
+		if days, ok := deviationDays[module.ModuleID]; ok {
+			item.DeviationDays = &days
+			if days > 0 {
+				cause := ModuleProgressItemDeviationCause("more_practice")
+				item.DeviationCause = &cause
+			}
+		}
+		items = append(items, item)
+	}
+	now := time.Now()
+	writeJSONBody(w, http.StatusOK, ProgressResponse{
+		LearnerId:   learnerID,
+		PlanId:      &plan.ID,
+		GeneratedAt: &now,
+		Modules:     items,
+	})
+}
+
+// GetLearnerForecast returns the binary readiness forecast.
+func (h *StubHandler) GetLearnerForecast(w http.ResponseWriter, _ *http.Request, learnerID string) {
+	h.Logger.Info("learner forecast query", zap.String("learner_id", learnerID))
+
+	result, err := h.Forecast.ForecastReadiness(context.Background(), learnerID, "plan-1", 30, 60)
+	if err != nil {
+		msg := err.Error()
+		writeJSONBody(w, http.StatusInternalServerError, ErrorResponse{Error: "forecast_failed", Message: &msg})
+		return
+	}
+
+	status := ForecastResponseStatus("on-track")
+	if result.Status == execdomain.ForecastNotOnTrack {
+		status = "not-on-track"
+	}
+	confidence := ForecastResponseDataConfidence(result.DataConfidence)
+	velocity := float32(result.Velocity)
+	remaining := result.RemainingModules
+	writeJSONBody(w, http.StatusOK, ForecastResponse{
+		Status:           status,
+		Velocity:         &velocity,
+		RemainingModules: &remaining,
+		KeyRisks:         &result.KeyRisks,
+		DataConfidence:   &confidence,
+	})
+}
+
+// RecordModuleMastered records a module mastery event.
+func (h *StubHandler) RecordModuleMastered(w http.ResponseWriter, r *http.Request, learnerID string) {
+	var req MasteryRecordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		msg := "invalid request body"
+		writeJSONBody(w, http.StatusBadRequest, ErrorResponse{Error: "invalid_request", Message: &msg})
+		return
+	}
+
+	h.Logger.Info("module mastered",
+		zap.String("learner_id", learnerID),
+		zap.String("module_id", req.ModuleId),
+		zap.String("status", string(req.Status)),
+	)
+
+	now := time.Now()
+	writeJSONBody(w, http.StatusCreated, MasteryRecordResponse{
+		LearnerId:  learnerID,
+		ModuleId:   req.ModuleId,
+		Status:     string(req.Status),
+		RecordedAt: &now,
+	})
+}
+
+// GetModuleStories returns stories linked to a module via appliesTo/enriches.
+func (h *StubHandler) GetModuleStories(w http.ResponseWriter, _ *http.Request, moduleID string) {
+	h.Logger.Info("module stories query", zap.String("module_id", moduleID))
+	stories := h.Practice.StoriesForModule(moduleID)
+	items := make([]StoryResponse, 0, len(stories))
+	for _, s := range stories {
+		items = append(items, mapStory(s))
+	}
+	writeJSONBody(w, http.StatusOK, items)
+}
+
+// GetModuleProjects returns project ideas linked to a module.
+func (h *StubHandler) GetModuleProjects(w http.ResponseWriter, _ *http.Request, moduleID string) {
+	h.Logger.Info("module projects query", zap.String("module_id", moduleID))
+	projects := h.Practice.ProjectsForModule(moduleID)
+	items := make([]ProjectIdeaResponse, 0, len(projects))
+	for _, p := range projects {
+		items = append(items, mapProject(p))
+	}
+	writeJSONBody(w, http.StatusOK, items)
+}
+
+// GetRecommendedStories returns story recommendations at mastery.
+func (h *StubHandler) GetRecommendedStories(w http.ResponseWriter, _ *http.Request, learnerID string) {
+	h.Logger.Info("recommended stories query", zap.String("learner_id", learnerID))
+	stories := h.Practice.RecommendStories([]string{"percent", "solutions"})
+	items := make([]StoryResponse, 0, len(stories))
+	for _, s := range stories {
+		items = append(items, mapStory(s))
+	}
+	writeJSONBody(w, http.StatusOK, items)
+}
+
+// GetRecommendedProjects returns project suggestions for a learner.
+func (h *StubHandler) GetRecommendedProjects(w http.ResponseWriter, _ *http.Request, learnerID string) {
+	h.Logger.Info("recommended projects query", zap.String("learner_id", learnerID))
+	readySet := map[string]bool{"percent": true, "solutions": true, "chemistry": true}
+	projects := h.Practice.SuggestProjects(readySet)
+	items := make([]ProjectIdeaResponse, 0, len(projects))
+	for _, p := range projects {
+		items = append(items, mapProject(p))
+	}
+	writeJSONBody(w, http.StatusOK, items)
+}
+
 // ListModuleResources returns resources bound to a module from the in-memory catalog.
 func (h *StubHandler) ListModuleResources(w http.ResponseWriter, _ *http.Request, moduleID string) {
 	h.Logger.Info("module resources query", zap.String("module_id", moduleID))
@@ -329,4 +537,57 @@ func writeJSONBody(w http.ResponseWriter, status int, body interface{}) {
 // writeAPIError is a shorthand for an ErrorResponse with a message.
 func writeAPIError(w http.ResponseWriter, status int, code, message string) {
 	writeJSONBody(w, status, ErrorResponse{Error: code, Message: &message})
+}
+
+// mapStory converts a practice-life domain story to the API response type.
+func mapStory(s practicedomain.Story) StoryResponse {
+	return StoryResponse{
+		Id:             s.ID,
+		Title:          s.Title,
+		Text:           &s.Text,
+		LinkedModules:  &s.LinkedModules,
+		Subjects:       &s.Subjects,
+		RealWorld:      &s.RealWorld,
+		ReadingMinutes: &s.ReadingMinutes,
+	}
+}
+
+// mapProject converts a practice-life domain project idea to the API response type.
+func mapProject(p practicedomain.ProjectIdea) ProjectIdeaResponse {
+	level := ProjectIdeaResponseDifficultyLevel(p.DifficultyLevel)
+	return ProjectIdeaResponse{
+		Id:              p.ID,
+		Title:           p.Title,
+		Modules:         &p.Modules,
+		DifficultyLevel: &level,
+		ExpectedOutcome: &p.ExpectedOutcome,
+	}
+}
+
+// ptrTime returns a pointer to t.
+func ptrTime(t time.Time) *time.Time { return &t }
+
+// ptrDate returns a pointer to an openapi date for t.
+func ptrDate(t time.Time) *openapi_types.Date {
+	d := openapi_types.Date{Time: t}
+	return &d
+}
+
+// inMemoryProgressRepo is a minimal ProgressRepository fixture used by the
+// stub handler so the forecast endpoint can serve data without a database.
+type inMemoryProgressRepo struct{}
+
+func (inMemoryProgressRepo) GetProgress(_ context.Context, _ string) ([]execdomain.ModuleProgress, error) {
+	return []execdomain.ModuleProgress{
+		{ModuleID: "percent", Status: execdomain.StatusMastered, MasteredAt: ptrTime(time.Now().AddDate(0, 0, -5))},
+		{ModuleID: "solutions", Status: execdomain.StatusInProgress},
+	}, nil
+}
+
+func (inMemoryProgressRepo) GetPlannedModuleCount(_ context.Context, _, _ string) (int, error) {
+	return 3, nil
+}
+
+func (inMemoryProgressRepo) GetRemainingModules(_ context.Context, _, _ string) (int, error) {
+	return 2, nil
 }
