@@ -4,16 +4,16 @@
 
 ## Current Focus
 
-**Now:** Phase 0 — Foundation (M0.0–M0.3 complete ✅)
-**Next milestone:** M1: Core Infrastructure
-**Blocking decision:** None — stack, architecture, and repository structure fixed (T3–T5)
-**External blocker:** Starter ontology readiness in VEDO Hub before M1/M2
+**Now:** Phase I — MVP (M1: Core Infrastructure complete ✅)
+**Next milestone:** M2: Family Education
+**Blocking decision:** None — stack, architecture, repository structure, and M1 core infrastructure fixed
+**External blocker:** Starter ontology readiness in VEDO Hub before M2 validation
 
 ## Milestone Status
 
 | Total | Completed | Current | Next |
 |-------|-----------|---------|------|
-| 14 | 4 (M0.0, M0.1, M0.2, M0.3) | Phase 0 done — Phase I: MVP | M1: Core Infrastructure |
+| 14 | 5 (M0.0, M0.1, M0.2, M0.3, M1) | Phase I: MVP in progress | M2: Family Education |
 
 ## External Dependencies
 
@@ -103,20 +103,21 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
 
 > Core product: route engine, visualization, family education app, corporate onboarding pilot, and integration layer.
 
-- [ ] **M1: Core Infrastructure (F0 + F1 + F2 + F3 + F6)**
+- [x] **M1: Core Infrastructure (F0 + F1 + F2 + F3 + F6)** ✅ completed 2026-08-03
   Replace scaffold stubs with real MVP infrastructure for reading VEDO Hub ontology data, computing routes, tracking plans/progress, diagnosing gaps, and exposing initial APIs.
 
   **Exit criteria:**
-  - EduTrack reads modules, links, FGOS bindings, resources, stories, and pedagogy concepts from VEDO Hub through approved APIs.
-  - Route engine supports MVP pathfinding using strict, soft, and `appliesTo` links.
-  - Route recomputes on progress and goal-change triggers.
-  - Plan snapshots, plan-vs-actual tracking, binary readiness forecast, and root-cause gap diagnosis are implemented.
-  - Resource catalog is available for route modules.
-  - MVP APIs expose route computation, progress, and FGOS coverage consistently; route computation uses `POST /routes/compute` or the final ADR-approved equivalent.
-  - Contract tests protect the VEDO Hub API boundary.
-  - SBOM generation (syft SPDX) and container vulnerability scanning (Trivy/Grype) integrated into CI pipeline; images are attested and signed.
+  - ✅ EduTrack reads modules, links, FGOS bindings, resources, stories, and pedagogy concepts from VEDO Hub through approved APIs (`ontologyport/adapters/hub` GraphQL client: `graphNeighborhood`, `classDescendants`/`classTree`, `properties`/`property`; `vedo-edutrack ontology sync` + versioned subgraph cache).
+  - ✅ Route engine supports MVP pathfinding using strict, soft, and `appliesTo` links (Dijkstra, weights 1/5/20, three horizons, essential core).
+  - ✅ Route recomputes on progress (>15% modules completed) and goal-change triggers (`RecomputeTrigger` + `RouteRecalculationNeeded` event).
+  - ✅ Plan snapshots (immutable, INSERT-only), plan-vs-actual tracking, binary readiness forecast, and root-cause gap diagnosis are implemented.
+  - ✅ Resource catalog is available for route modules (domain catalog, filters, module binding).
+  - ✅ MVP APIs expose route computation, progress, and FGOS coverage consistently via OpenAPI spec + regenerated handlers; route computation uses `POST /routes/compute`.
+  - ✅ Contract tests protect the VEDO Hub API boundary (`backend/tests/contract/hub_contract_test.go`: schema, timeout, error, auth, pagination).
+  - ✅ SBOM generation (syft SPDX), container vulnerability scanning (Trivy, blocking on CRITICAL), and cosign image attestation integrated into CI (gates.yaml + ci.yml).
+  - ✅ Quality gates green: Go unit/contract tests, 4 NFR-critical benchmarks (pathfinder/gap/catalog/hub-copy all under thresholds), testcontainers integration test, Playwright API contract tests (7/7), BDD GUI scenarios (5/5).
 
-  **Dependencies:** M0.3, starter ontology readiness in VEDO Hub.
+  **Dependencies:** M0.3, starter ontology readiness in VEDO Hub (external — required for M2 end-to-end validation; implementation verified against `hub-mock`).
   **Business goals:** G1, G3.
 
 - [ ] **M2: Family Education — «Дай пять» (F2 + F4 + F5)**
@@ -303,6 +304,7 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 | M0.1: Domain Model & Architecture Baseline | 2026-08-03 |
 | M0.2: Engineering Platform | 2026-08-03 |
 | M0.3: Runnable Product Scaffold | 2026-08-03 |
+| M1: Core Infrastructure | 2026-08-03 |
 
 ---
 

@@ -25,11 +25,14 @@ export default defineConfig({
     { name: "firefox", use: { ...devices["Desktop Firefox"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
-  // Local runs auto-start the dev stack (reuse if already running).
-  webServer: {
-    command: "cd ../.. && make dev",
-    url: "http://localhost:5173",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  // Local runs auto-start the dev stack (reuse if already running); disabled
+  // under the gate runner (deploy/ci/e2e-run.sh manages the lifecycle).
+  webServer: process.env.E2E_STACK_MANAGED
+    ? undefined
+    : {
+        command: "cd ../.. && make dev",
+        url: "http://localhost:5173",
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
 });

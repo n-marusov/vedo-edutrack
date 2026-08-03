@@ -20,18 +20,36 @@ type ServerInterface interface {
 	// Health check
 	// (GET /healthz)
 	HealthCheck(w http.ResponseWriter, r *http.Request)
+	// Live FGOS coverage
+	// (GET /learners/{learner_id}/coverage/fgos)
+	GetFgosCoverage(w http.ResponseWriter, r *http.Request, learnerId string)
+	// Diagnose learner gaps
+	// (GET /learners/{learner_id}/gaps)
+	DiagnoseGaps(w http.ResponseWriter, r *http.Request, learnerId string, params DiagnoseGapsParams)
 	// Current user
 	// (GET /me)
 	GetMe(w http.ResponseWriter, r *http.Request)
+	// List resources bound to a module
+	// (GET /modules/{module_id}/resources)
+	ListModuleResources(w http.ResponseWriter, r *http.Request, moduleId string)
 	// Get an ontology concept
 	// (GET /ontology/concepts)
 	GetOntologyConcept(w http.ResponseWriter, r *http.Request, params GetOntologyConceptParams)
+	// Get a fixed learning plan
+	// (GET /plans/{plan_id})
+	GetPlan(w http.ResponseWriter, r *http.Request, planId string)
 	// Readiness check
 	// (GET /readyz)
 	ReadinessCheck(w http.ResponseWriter, r *http.Request)
+	// List resource catalog
+	// (GET /resources)
+	ListResources(w http.ResponseWriter, r *http.Request, params ListResourcesParams)
 	// Compute a learning route
 	// (POST /routes/compute)
 	ComputeRoute(w http.ResponseWriter, r *http.Request)
+	// Read-only SPARQL query
+	// (GET /sparql)
+	SparqlQuery(w http.ResponseWriter, r *http.Request, params SparqlQueryParams)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -50,9 +68,27 @@ func (_ Unimplemented) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Live FGOS coverage
+// (GET /learners/{learner_id}/coverage/fgos)
+func (_ Unimplemented) GetFgosCoverage(w http.ResponseWriter, r *http.Request, learnerId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Diagnose learner gaps
+// (GET /learners/{learner_id}/gaps)
+func (_ Unimplemented) DiagnoseGaps(w http.ResponseWriter, r *http.Request, learnerId string, params DiagnoseGapsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Current user
 // (GET /me)
 func (_ Unimplemented) GetMe(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List resources bound to a module
+// (GET /modules/{module_id}/resources)
+func (_ Unimplemented) ListModuleResources(w http.ResponseWriter, r *http.Request, moduleId string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -62,15 +98,33 @@ func (_ Unimplemented) GetOntologyConcept(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Get a fixed learning plan
+// (GET /plans/{plan_id})
+func (_ Unimplemented) GetPlan(w http.ResponseWriter, r *http.Request, planId string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Readiness check
 // (GET /readyz)
 func (_ Unimplemented) ReadinessCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// List resource catalog
+// (GET /resources)
+func (_ Unimplemented) ListResources(w http.ResponseWriter, r *http.Request, params ListResourcesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Compute a learning route
 // (POST /routes/compute)
 func (_ Unimplemented) ComputeRoute(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Read-only SPARQL query
+// (GET /sparql)
+func (_ Unimplemented) SparqlQuery(w http.ResponseWriter, r *http.Request, params SparqlQueryParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -111,6 +165,86 @@ func (siw *ServerInterfaceWrapper) HealthCheck(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
+// GetFgosCoverage operation middleware
+func (siw *ServerInterfaceWrapper) GetFgosCoverage(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "learner_id" -------------
+	var learnerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "learner_id", chi.URLParam(r, "learner_id"), &learnerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "learner_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetFgosCoverage(w, r, learnerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DiagnoseGaps operation middleware
+func (siw *ServerInterfaceWrapper) DiagnoseGaps(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "learner_id" -------------
+	var learnerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "learner_id", chi.URLParam(r, "learner_id"), &learnerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "learner_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DiagnoseGapsParams
+
+	// ------------- Required query parameter "lag_module_id" -------------
+
+	if paramValue := r.URL.Query().Get("lag_module_id"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "lag_module_id"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "lag_module_id", r.URL.Query(), &params.LagModuleId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "lag_module_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DiagnoseGaps(w, r, learnerId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetMe operation middleware
 func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request) {
 
@@ -122,6 +256,37 @@ func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetMe(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListModuleResources operation middleware
+func (siw *ServerInterfaceWrapper) ListModuleResources(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "module_id" -------------
+	var moduleId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "module_id", chi.URLParam(r, "module_id"), &moduleId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "module_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListModuleResources(w, r, moduleId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -171,11 +336,107 @@ func (siw *ServerInterfaceWrapper) GetOntologyConcept(w http.ResponseWriter, r *
 	handler.ServeHTTP(w, r)
 }
 
+// GetPlan operation middleware
+func (siw *ServerInterfaceWrapper) GetPlan(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "plan_id" -------------
+	var planId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "plan_id", chi.URLParam(r, "plan_id"), &planId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "plan_id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPlan(w, r, planId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ReadinessCheck operation middleware
 func (siw *ServerInterfaceWrapper) ReadinessCheck(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ReadinessCheck(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListResources operation middleware
+func (siw *ServerInterfaceWrapper) ListResources(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListResourcesParams
+
+	// ------------- Optional query parameter "type" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "type", r.URL.Query(), &params.Type)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "type", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "format" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "format", r.URL.Query(), &params.Format)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "format", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "difficulty" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "difficulty", r.URL.Query(), &params.Difficulty)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "difficulty", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "offset", r.URL.Query(), &params.Offset)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offset", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListResources(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -196,6 +457,46 @@ func (siw *ServerInterfaceWrapper) ComputeRoute(w http.ResponseWriter, r *http.R
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ComputeRoute(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SparqlQuery operation middleware
+func (siw *ServerInterfaceWrapper) SparqlQuery(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SparqlQueryParams
+
+	// ------------- Required query parameter "query" -------------
+
+	if paramValue := r.URL.Query().Get("query"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "query"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "query", r.URL.Query(), &params.Query)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "query", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SparqlQuery(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -325,16 +626,34 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/healthz", wrapper.HealthCheck)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/learners/{learner_id}/coverage/fgos", wrapper.GetFgosCoverage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/learners/{learner_id}/gaps", wrapper.DiagnoseGaps)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/me", wrapper.GetMe)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/modules/{module_id}/resources", wrapper.ListModuleResources)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/ontology/concepts", wrapper.GetOntologyConcept)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/plans/{plan_id}", wrapper.GetPlan)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/readyz", wrapper.ReadinessCheck)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/resources", wrapper.ListResources)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/routes/compute", wrapper.ComputeRoute)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/sparql", wrapper.SparqlQuery)
 	})
 
 	return r

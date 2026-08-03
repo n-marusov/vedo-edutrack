@@ -1,3 +1,6 @@
+---
+archived: 2026-08-03
+---
 # Implementation Plan: M0.1 — Domain Model & Architecture Baseline
 
 Branch: none (git.create_branches=false)

@@ -14,7 +14,7 @@
 # Colors auto-disable when stdout is not a TTY or NO_COLOR is set (CI-safe).
 set -u
 
-KEY="${1:?header.sh: icon key required (up|down|dev|build|test|test-e2e|lint|format|gen|dev-check|check|migrate|migrate-down|hooks|ci|docker|gates|clean)}"
+KEY="${1:?header.sh: icon key required (up|down|dev|build|bench|test|test-e2e|lint|format|gen|dev-check|check|migrate|migrate-down|hooks|ci|docker|gates|clean)}"
 shift
 TEXT="$*"
 
@@ -23,6 +23,7 @@ case "$KEY" in
   down)         ICON="🛑" ;;
   dev)          ICON="🔄" ;;
   build)        ICON="🔨" ;;
+  bench)        ICON="📊" ;;
   test)         ICON="🧪" ;;
   test-e2e)     ICON="🎯" ;;
   lint)         ICON="🧹" ;;

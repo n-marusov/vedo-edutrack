@@ -30,5 +30,7 @@ const runtimeConfig: Partial<AppConfig> =
 export const appConfig: AppConfig = {
   version: runtimeConfig.version ?? import.meta.env.VITE_APP_VERSION ?? 'dev',
   env: runtimeConfig.env ?? import.meta.env.VITE_APP_ENV ?? 'development',
-  apiBaseUrl: runtimeConfig.apiBaseUrl ?? import.meta.env.VITE_API_BASE_URL ?? '/api',
+  // API lives under /api/v1 on the backend (OpenAPI servers block); the Vite
+  // proxy forwards /api → backend without rewriting the path.
+  apiBaseUrl: runtimeConfig.apiBaseUrl ?? import.meta.env.VITE_API_BASE_URL ?? '/api/v1',
 };

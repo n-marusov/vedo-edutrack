@@ -1,0 +1,1 @@
+export { ResourceCatalog } from './ResourceCatalog';

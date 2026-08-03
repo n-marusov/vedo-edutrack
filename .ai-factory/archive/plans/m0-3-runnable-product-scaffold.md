@@ -1,3 +1,6 @@
+---
+archived: 2026-08-03
+---
 # Implementation Plan: M0.3 — Runnable Product Scaffold
 
 Branch: main

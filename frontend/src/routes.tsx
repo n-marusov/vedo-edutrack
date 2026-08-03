@@ -15,6 +15,9 @@ const PlanView = lazy(() => import('./pages/PlanView').then((m) => ({ default: m
 const ProgressView = lazy(() =>
   import('./pages/ProgressView').then((m) => ({ default: m.ProgressView })),
 );
+const OntologyView = lazy(() =>
+  import('./pages/OntologyView').then((m) => ({ default: m.OntologyView })),
+);
 
 function withSuspense(node: React.ReactNode) {
   return <Suspense fallback={<LoadingSpinner />}>{node}</Suspense>;
@@ -53,6 +56,7 @@ export const router = createBrowserRouter([
           { path: 'route', element: withSuspense(<RouteView />) },
           { path: 'plan', element: withSuspense(<PlanView />) },
           { path: 'progress', element: withSuspense(<ProgressView />) },
+          { path: 'ontology', element: withSuspense(<OntologyView />) },
         ],
       },
     ],

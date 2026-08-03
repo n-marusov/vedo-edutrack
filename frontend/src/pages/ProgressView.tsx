@@ -1,15 +1,25 @@
-import { Card } from '../shared/components/Card';
+import { ProgressDashboard } from '../features/execution-progress';
+import type { PlanModuleProgress } from '../features/execution-progress';
+import { GapCoverage } from '../features/gap-coverage';
+import { ResourceCatalog } from '../features/resources';
 import { RoleGate } from '../shared/guards/RoleGate';
 
-/** ProgressView — "Progress" placeholder (protected, learner+). */
+const demoModules: PlanModuleProgress[] = [
+  { module_id: 'math-5-1', planned_end: '2026-09-01', mastered: true, deviationDays: 0 },
+  { module_id: 'math-5-2', planned_end: '2026-09-15', mastered: true, deviationDays: 3 },
+  { module_id: 'math-5-3', planned_end: '2026-10-01', mastered: false, deviationDays: 0 },
+];
+
+/** ProgressView — plan-vs-actual, gap diagnosis, FGOS coverage, resources. */
 export function ProgressView() {
   return (
     <RoleGate requiredRole={['learner', 'parent', 'teacher', 'methodologist', 'admin']}>
-      <Card title="Progress">
-        <p className="text-sm text-gray-600">
-          Plan vs actual progress tracking is coming soon (M1).
-        </p>
-      </Card>
+      <div className="space-y-6">
+        <h1 className="text-2xl font-semibold text-gray-900">Progress & coverage</h1>
+        <ProgressDashboard learnerId="cli-user" modules={demoModules} />
+        <GapCoverage learnerId="cli-user" lagModuleId="chemistry" />
+        <ResourceCatalog />
+      </div>
     </RoleGate>
   );
 }

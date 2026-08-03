@@ -53,16 +53,6 @@ func newMigrateCmd() *cobra.Command {
 	return migrateCmd
 }
 
-// stubNotImplemented returns a RunE that logs and prints "not yet implemented".
-// Used by commands whose implementation lands in later M1 phases.
-func stubNotImplemented(cmdPath string) func(*cobra.Command, []string) error {
-	return func(_ *cobra.Command, _ []string) error {
-		zapLogger.Info("stub subcommand invoked", zap.String("command", cmdPath))
-		fmt.Printf("%s: not yet implemented\n", cmdPath)
-		return nil
-	}
-}
-
 // runMigrateUp applies all pending embedded migrations.
 func runMigrateUp() error {
 	zapLogger.Info("[migrate] up started")

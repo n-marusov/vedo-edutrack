@@ -47,6 +47,49 @@ export interface ConceptResponse {
   concept: Concept;
 }
 
+/** Resource catalog entry (M1, F3). */
+export interface Resource {
+  id: string;
+  title?: string;
+  type: 'content' | 'enabling';
+  format?: string;
+  source?: string;
+  difficulty?: string;
+  duration_minutes?: number;
+  cost?: number;
+  uri?: string;
+}
+
+export interface ResourceListResponse {
+  items: Resource[];
+  total: number;
+}
+
+/** Root-cause gap diagnosis (M1, F2). */
+export interface RootCause {
+  module_id: string;
+  mastery?: number;
+  blocked_modules?: number;
+}
+
+export interface GapDiagnosisResponse {
+  status: 'root-causes-found' | 'no-root-cause-found';
+  root_causes: RootCause[];
+}
+
+export interface Deficit {
+  requirement_id: string;
+  blocking_module_id?: string;
+}
+
+export interface CoverageResponse {
+  covered: number;
+  total: number;
+  percent: number;
+  ready?: boolean;
+  deficits?: Deficit[];
+}
+
 export interface ApiErrorBody {
   error: string;
   message?: string;

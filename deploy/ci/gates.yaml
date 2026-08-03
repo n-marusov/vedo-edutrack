@@ -142,12 +142,27 @@ gates:
     nfr: REQ-NFR-process.dev.test-coverage
 
   - id: e2e-gui
-    command: cd tests/e2e/gui && pnpm install --ignore-workspace && pnpm test
+    command: bash deploy/ci/e2e-run.sh gui
     tier: delivery
     phase: m0.2
     severity: advisory # red placeholder at M0.2 (T15); blocking from M0.3
     group: test
-    needs: stack-up
+    nfr: REQ-NFR-process.dev.test-coverage
+
+  - id: e2e-api
+    command: bash deploy/ci/e2e-run.sh api
+    tier: delivery
+    phase: m0.2
+    severity: advisory # stack auto-managed by e2e-run.sh; blocking from M0.3
+    group: test
+    nfr: REQ-NFR-process.dev.test-coverage
+
+  - id: vitest
+    command: cd frontend && pnpm test
+    tier: delivery
+    phase: m0.2
+    severity: advisory # red placeholder scaffolds at M0.2 (T14); blocking from M0.3
+    group: test
     nfr: REQ-NFR-process.dev.test-coverage
 
   - id: coverage-check
@@ -167,6 +182,15 @@ gates:
     needs: docker
     tool: docker
     nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+
+  - id: perf-bench
+    command: make bench
+    tier: delivery
+    phase: m1
+    severity: advisory
+    group: build
+    nfr: REQ-NFR-process.dev.performance-regression
+    note: "advisory at M1 (T24) — NFR-critical pathfinder/gap/catalog/hub-copy thresholds; blocking from Phase II"
 
   - id: compose-health
     command: bash deploy/ci/compose-health-check.sh
@@ -213,6 +237,28 @@ gates:
     trigger: ci-main
     tool: syft
     nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+
+  - id: trivy-scan
+    command: trivy image --exit-code 1 --severity CRITICAL --ignore-unfixed vedo-edutrack:ci
+    tier: delivery
+    phase: m1
+    severity: blocking
+    group: security
+    needs: docker
+    tool: trivy
+    nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+    note: "container vulnerability scan; blocks on CRITICAL findings (T25)"
+
+  - id: cosign-attest
+    command: cosign verify --key /tmp/cosign.pub ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_SHA}
+    tier: delivery
+    phase: m1
+    severity: advisory
+    group: security
+    trigger: ci-main
+    tool: cosign
+    nfr: REQ-NFR-infra.compliance.cicd-supply-chain-security
+    note: "image attestation on main (T25); verify step is advisory, signing happens in ci.yml"
 
   - id: docker-push
     command: bash deploy/ci/push-images.sh

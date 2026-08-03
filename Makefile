@@ -43,9 +43,21 @@ else
 endif
 
 COMPOSE_FILE := deploy/docker-compose.yml
-COMPOSE := $(DOCKER) compose -f $(COMPOSE_FILE)
 
-# Default DB connection (overridable via .env or environment).
+# Dev environment file — loaded for `make up/dev/...` and passed to compose.
+# Override with ENV_FILE=<path> make up. Falls back to the legacy root .env
+# so existing setups keep working. .env.dev is git-ignored (see .gitignore).
+ENV_FILE ?= .env.dev
+
+# Pass the env file to compose interpolation when it exists; otherwise let
+# compose fall back to the process environment (exported below) and defaults.
+ifneq ($(wildcard $(ENV_FILE)),)
+COMPOSE_ENV := --env-file $(ENV_FILE)
+endif
+
+COMPOSE := $(DOCKER) compose $(COMPOSE_ENV) -f $(COMPOSE_FILE)
+
+# Default DB connection (overridable via .env.dev or environment).
 DATABASE_URL ?= postgres://edutrack:edutrack@localhost:5432/edutrack?sslmode=disable
 export DATABASE_URL
 
@@ -54,10 +66,16 @@ export DATABASE_URL
 # VERSION=x.y.z make build.
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 
-# Load .env into make variables, then export them so `docker compose`
-# (a child process) sees them.
+# Load env files into make variables, then export them so `docker compose`
+# (a child process) sees them. .env.dev (last) wins over legacy .env.
 -include .env
-export $(shell sed 's/=.*//' .env 2>/dev/null)
+-include $(ENV_FILE)
+ifneq ($(wildcard $(ENV_FILE)),)
+export $(shell sed 's/=.*//' $(ENV_FILE))
+endif
+ifneq ($(wildcard .env),)
+export $(shell sed 's/=.*//' .env)
+endif
 
 # ────────────────────────────────────────────────────────────────────────────
 # Colored output helpers
@@ -78,7 +96,7 @@ define verdict
 	bash scripts/verdict.sh "$(1)" $(2)
 endef
 
-.PHONY: help up down dev build build-frontend test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-local docker-build-frontend-nginx docker-build-all clean
+.PHONY: help up down dev build build-frontend bench test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-local docker-build-frontend-nginx docker-build-all clean
 
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
@@ -168,6 +186,17 @@ test-e2e: ## Playwright E2E (tests/e2e/gui, M1–M10 Must-scenarios)
 		$(call verdict,PASS,"e2e tests"); \
 	else \
 		$(call verdict,FAIL,"e2e tests failed"); \
+		exit 1; \
+	fi
+
+bench: ## NFR-critical performance benchmarks (advisory perf-bench gate, T24)
+	@$(call header,bench,"NFR-critical benchmarks")
+	@(cd backend && \
+		$(GO) test -run=^$$ -bench=. -benchtime=1x ./internal/modules/routeplanning/domain ./internal/modules/gapcoverage/domain ./internal/modules/resources/domain ./internal/modules/ontologyport/adapters/hub); b=$$?; \
+	if [ $$b -eq 0 ]; then \
+		$(call verdict,PASS,"benchmarks: zero failures"); \
+	else \
+		$(call verdict,FAIL,"benchmarks failed: $$b"); \
 		exit 1; \
 	fi
 

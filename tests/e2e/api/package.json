@@ -1,0 +1,15 @@
+{
+  "name": "@vedo-edutrack/e2e-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "VEDO EduTrack E2E API contract tests (Playwright request API, T27b). Not a workspace package — installed separately.",
+  "scripts": {
+    "test": "playwright test",
+    "install:browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^26.1.2"
+  }
+}

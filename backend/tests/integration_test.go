@@ -1,54 +1,245 @@
+//go:build integration
+
 package tests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	tc "github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
+	"go.uber.org/zap"
+
+	execdomain "vedo-edutrack/backend/internal/modules/executionprogress/domain"
+	gapdomain "vedo-edutrack/backend/internal/modules/gapcoverage/domain"
+	planrepo "vedo-edutrack/backend/internal/modules/planmanagement/adapters/repository"
+	plansqlc "vedo-edutrack/backend/internal/modules/planmanagement/adapters/repository/sqlc"
+	planapp "vedo-edutrack/backend/internal/modules/planmanagement/application"
+	routeapp "vedo-edutrack/backend/internal/modules/routeplanning/application"
+	routedomain "vedo-edutrack/backend/internal/modules/routeplanning/domain"
+	"vedo-edutrack/backend/internal/platform/migrate"
+	platformpostgres "vedo-edutrack/backend/internal/platform/postgres"
+	"vedo-edutrack/backend/migrations"
 )
 
-// TODO(M0.3): cross-module integration tests (testcontainers + PostgreSQL):
-//   - plan lifecycle across planmanagement / routeplanning / executionprogress
-//   - gap diagnosis events (UC-execute.gap.diagnose-root-cause, M2)
-//   - ontology sync via the ontologyport ACL (F0.2)
+// testLearnerID is a fixed UUID used across the flow (learner_id is uuid in the schema).
+const testLearnerID = "11111111-1111-1111-1111-111111111111"
+
+// TestCrossModuleM1HappyPath — M1 integration flow (T27a):
 //
-// Intentionally skipped at M0.2 (T13) — scaffold only. The helpers below are
-// referenced here so the scaffold stays lint-clean until real tests land.
-func TestCrossModuleIntegration(t *testing.T) {
-	spec := dockerContainerSpec{
-		Image:    "postgres:16-alpine",
-		Ports:    map[string]string{"5432/tcp": "5432"},
-		Env:      map[string]string{"POSTGRES_DB": "edutrack"},
-		ReadyCmd: "pg_isready -U edutrack",
+//	postgres (testcontainer) → migrations → route compute → plan fixation
+//	→ gap diagnosis → FGOS coverage → plan read-back.
+//
+// Uses the real domain/application layers and the pgx-backed plan repository
+// so the flow exercises the actual cross-module wiring.
+func TestCrossModuleM1HappyPath(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+
+	// 1. Start PostgreSQL testcontainer.
+	postgresC, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
+		ContainerRequest: tc.ContainerRequest{
+			Image:        "postgres:16-alpine",
+			ExposedPorts: []string{"5432/tcp"},
+			Env: map[string]string{
+				"POSTGRES_USER":     "edutrack",
+				"POSTGRES_PASSWORD": "edutrack",
+				"POSTGRES_DB":       "edutrack",
+			},
+			WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(60 * time.Second),
+		},
+		Started: true,
+	})
+	if err != nil {
+		t.Fatalf("start postgres testcontainer: %v", err)
 	}
-	startPostgresTestContainer(t, spec)
-	_ = waitForDB(context.Background(), "postgres://edutrack@localhost:5432/edutrack", time.Minute)
-	t.Skip("TODO: integration tests with testcontainers (backend/tests, M0.3+)")
+	t.Cleanup(func() { _ = postgresC.Terminate(context.Background()) })
+
+	host, err := postgresC.Host(ctx)
+	if err != nil {
+		t.Fatalf("postgres host: %v", err)
+	}
+	port, err := postgresC.MappedPort(ctx, "5432")
+	if err != nil {
+		t.Fatalf("postgres port: %v", err)
+	}
+	dsn := fmt.Sprintf("postgres://edutrack:edutrack@%s:%s/edutrack?sslmode=disable", host, port.Port())
+
+	pool, err := connectWithRetry(ctx, dsn)
+	if err != nil {
+		t.Fatalf("connect to test postgres: %v", err)
+	}
+	t.Cleanup(pool.Close)
+
+	// 2. Apply embedded migrations.
+	runner := migrate.NewRunner(migrations.FS, pool)
+	applied, err := runner.Up(ctx)
+	if err != nil {
+		t.Fatalf("apply migrations: %v", err)
+	}
+	if applied == 0 {
+		t.Fatal("expected at least one migration applied")
+	}
+
+	// 3. Route compute (pure domain over the M1 fixture graph).
+	graph := routedomain.OntologyGraph{
+		Modules: []routedomain.Module{{ID: "percent"}, {ID: "solutions"}, {ID: "chemistry"}},
+		Links: []routedomain.Link{
+			{SourceID: "percent", TargetID: "solutions", Type: routedomain.LinkStrictPrerequisite},
+			{SourceID: "solutions", TargetID: "chemistry", Type: routedomain.LinkStrictPrerequisite},
+		},
+	}
+	provider := staticGraphProvider{graph: graph}
+	compute := routeapp.NewComputeService(provider, routedomain.NewPathfinder(routedomain.DefaultWeightProfile()), zap.NewNop())
+	result, err := compute.Compute(ctx, routeapp.ComputeRequest{LearnerID: testLearnerID, PositionID: "percent", GoalID: "chemistry"})
+	if err != nil {
+		t.Fatalf("route compute: %v", err)
+	}
+	if len(result.Route.Steps) != 3 {
+		t.Fatalf("expected 3 route steps, got %d", len(result.Route.Steps))
+	}
+
+	// 4. Plan fixation (real pgx repository, INSERT-only).
+	repo := planrepo.NewPlanRepository(pool)
+	fixation := planapp.NewPlanFixationService(repositoryAdapter{repo: repo}, zap.NewNop())
+	plan, err := fixation.Fix(ctx, planapp.FixationRequest{
+		PlanID: "plan-1", LearnerID: testLearnerID, GoalID: "chemistry", OntologyVersion: "v1",
+		Route: result.Route, StartAt: time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC),
+	})
+	if err != nil {
+		t.Fatalf("plan fixation: %v", err)
+	}
+	if len(plan.Modules) != 3 {
+		t.Fatalf("expected 3 plan modules, got %d", len(plan.Modules))
+	}
+
+	// 5. Plan read-back through the repository (id is generated by the DB).
+	plans, err := repo.ListPlansByLearner(ctx, testLearnerID)
+	if err != nil {
+		t.Fatalf("plan read-back: %v", err)
+	}
+	if len(plans) != 1 {
+		t.Fatalf("expected 1 plan for learner, got %d", len(plans))
+	}
+	_, steps, checkpoints, err := repo.GetPlan(ctx, plans[0].ID)
+	if err != nil {
+		t.Fatalf("plan read-back details: %v", err)
+	}
+	if len(steps) != 3 || len(checkpoints) != 3 {
+		t.Fatalf("expected 3 steps and 3 checkpoints, got %d/%d", len(steps), len(checkpoints))
+	}
+
+	// 6. Gap diagnosis (pure domain).
+	gapGraph := gapdomain.Graph{
+		Modules: []gapdomain.Module{{ID: "percent"}, {ID: "solutions"}, {ID: "chemistry"}},
+		Links: []gapdomain.Link{
+			{SourceID: "percent", TargetID: "solutions", Type: gapdomain.LinkStrictPrerequisite},
+			{SourceID: "solutions", TargetID: "chemistry", Type: gapdomain.LinkStrictPrerequisite},
+		},
+	}
+	mastery := gapdomain.Mastery{Modules: map[string]float64{"percent": 0.7, "solutions": 0.2}}
+	gapResult := gapdomain.DiagnoseRootCause(gapGraph, mastery, "chemistry")
+	if gapResult.Status != gapdomain.DiagnosisFound || len(gapResult.RootCauses) == 0 {
+		t.Fatalf("expected root causes, got %+v", gapResult)
+	}
+	if gapResult.RootCauses[0].ModuleID != "percent" {
+		t.Fatalf("expected percent as top root cause, got %s", gapResult.RootCauses[0].ModuleID)
+	}
+
+	// 7. FGOS coverage (pure domain).
+	coverage := gapdomain.ComputeCoverage(
+		[]gapdomain.FgosBinding{{ModuleID: "percent", RequirementID: "fgos-math-5"}, {ModuleID: "solutions", RequirementID: "fgos-chem-8"}},
+		gapdomain.Mastery{Modules: map[string]float64{"percent": 1.0}},
+	)
+	if coverage.Percent != 50 {
+		t.Fatalf("expected 50%% coverage, got %.1f", coverage.Percent)
+	}
+
+	// 8. Progress deviation (pure domain).
+	comparison := execdomain.ComparePlanActual(
+		execdomain.FixedPlan{ID: "plan-1", Modules: []execdomain.PlannedModule{{ModuleID: "percent", PlannedStart: time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC), PlannedEnd: time.Date(2026, 9, 10, 0, 0, 0, 0, time.UTC)}}},
+		[]execdomain.ModuleProgress{{ModuleID: "percent", Status: execdomain.StatusMastered, MasteredAt: timePtr(time.Date(2026, 9, 12, 0, 0, 0, 0, time.UTC))}},
+	)
+	if len(comparison.Events) != 1 {
+		t.Fatalf("expected 1 deviation event (>15%% late), got %d", len(comparison.Events))
+	}
 }
 
-// dockerContainerSpec describes a testcontainer to launch (M0.3+).
-type dockerContainerSpec struct {
-	Image    string
-	Ports    map[string]string // containerPort -> hostPort
-	Env      map[string]string
-	ReadyCmd string // command run inside the container to detect readiness
+// staticGraphProvider serves a fixed graph for the route compute step.
+type staticGraphProvider struct {
+	graph routedomain.OntologyGraph
 }
 
-// startPostgresTestContainer launches a PostgreSQL testcontainer (M0.3+).
-func startPostgresTestContainer(t *testing.T, spec dockerContainerSpec) {
-	t.Helper()
-	// TODO(M0.3): implement with testcontainers-go:
-	//   - start postgres:16-alpine with the given spec
-	//   - wait for readiness (ReadyCmd)
-	//   - register cleanup via t.Cleanup
-	_ = spec
-	t.Skip("TODO: implement testcontainer lifecycle (M0.3+)")
+func (p staticGraphProvider) GraphForVersion(_ context.Context, _ string) (routedomain.OntologyGraph, error) {
+	return p.graph, nil
 }
 
-// waitForDB polls the DSN until it accepts connections or the timeout passes (M0.3+).
-func waitForDB(ctx context.Context, dsn string, timeout time.Duration) error {
-	_ = ctx
-	_ = dsn
-	_ = timeout
-	// TODO(M0.3): pgx ping loop with context cancellation.
-	return nil
+// repositoryAdapter adapts the pgx PlanRepository to the application PlanRepository interface.
+type repositoryAdapter struct {
+	repo *planrepo.PlanRepository
+}
+
+func (a repositoryAdapter) CreatePlan(ctx context.Context, plan planapp.LearningPlan) error {
+	// The application model is not yet mapped to sqlc rows; keep the interface
+	// contract honest by delegating to SavePlan with the mapped rows.
+	row, steps, checkpoints := mapLearningPlan(plan)
+	_, err := a.repo.SavePlan(ctx, row, steps, checkpoints)
+	return err
+}
+
+func connectWithRetry(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
+	var lastErr error
+	for attempt := 0; attempt < 30; attempt++ {
+		pool, err := platformpostgres.Connect(ctx, dsn)
+		if err == nil {
+			return pool, nil
+		}
+		lastErr = err
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(500 * time.Millisecond):
+		}
+	}
+	return nil, fmt.Errorf("connect after retries: %w", lastErr)
+}
+
+func timePtr(t time.Time) *time.Time { return &t }
+
+func mapLearningPlan(plan planapp.LearningPlan) (plansqlc.LearningPlanRow, []plansqlc.PlanStepRow, []plansqlc.PlanCheckpointRow) {
+	row := plansqlc.LearningPlanRow{
+		ID:              plan.ID,
+		LearnerID:       plan.LearnerID,
+		GoalModuleID:    plan.GoalID,
+		OntologyVersion: plan.OntologyVersion,
+		Status:          "active",
+		TimelineStart:   plan.StartAt,
+		TimelineEnd:     plan.EndAt,
+		Version:         int32(plan.Version),
+		CreatedAt:       plan.CreatedAt,
+	}
+	steps := make([]plansqlc.PlanStepRow, 0, len(plan.Modules))
+	for _, module := range plan.Modules {
+		steps = append(steps, plansqlc.PlanStepRow{
+			PlanID:       plan.ID,
+			ModuleID:     module.ModuleID,
+			Position:     int32(module.Order),
+			Horizon:      "far",
+			IsEssential:  module.Order == 0,
+			PlannedStart: module.StartAt,
+			PlannedEnd:   module.DueAt,
+		})
+	}
+	checkpoints := make([]plansqlc.PlanCheckpointRow, 0, len(plan.Checkpoints))
+	for _, checkpoint := range plan.Checkpoints {
+		checkpoints = append(checkpoints, plansqlc.PlanCheckpointRow{
+			PlanID:         plan.ID,
+			Name:           checkpoint.ID,
+			CheckpointDate: checkpoint.DueAt,
+		})
+	}
+	return row, steps, checkpoints
 }

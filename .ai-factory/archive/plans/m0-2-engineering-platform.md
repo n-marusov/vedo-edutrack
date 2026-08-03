@@ -1,3 +1,6 @@
+---
+archived: 2026-08-03
+---
 # Implementation Plan: M0.2 — Engineering Platform
 
 Branch: none

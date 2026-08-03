@@ -29,6 +29,7 @@ moved into the backend binary. `.dockerignore` files keep contexts lean.
 ## Dev Environment
 
 ```bash
+cp .env.dev.example .env.dev   # optional: copy dev env template (root)
 docker compose -f deploy/docker-compose.yml up -d --wait   # or: make up
 ```
 
@@ -40,8 +41,12 @@ Volumes: `postgres_data`, `grafana_data`, `loki_data`, `tempo_data`,
 
 Ports: backend `8080`, frontend `5173`, postgres `5432`, Grafana `3000`,
 Prometheus `9090`, Loki `3100`, Tempo `3200`, OTLP `4317/4318`, Traefik `80/443`
-(dashboard `8082`, dev only). Defaults are overridable via `deploy/.env`
-(template: `deploy/.env.example`).
+(dashboard `8082`, dev only). Defaults are overridable via **`.env.dev`** (root,
+`ENV_FILE` in the Makefile): `make up` passes it to compose via
+`--env-file .env.dev` (template: `.env.dev.example`). When the file is absent,
+compose falls back to the process environment and per-variable defaults.
+Direct `docker compose` calls interpolate from `deploy/.env` (template:
+`deploy/.env.example`).
 
 ## SaaS Deployment
 

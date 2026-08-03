@@ -36,9 +36,11 @@ type Config struct {
 	JWKSURL     string
 	// Runtime identity and URLs (dynamic env injection —
 	// ADR-DES.INFRA.dynamic-config-injection).
-	Environment   string // APP_ENV: development | staging | production
-	PublicBaseURL string // PUBLIC_BASE_URL: externally reachable base URL (webhooks, absolute links)
-	HubAPIURL     string // VEDO_HUB_API_URL: base URL of the VEDO Hub REST API (F0, read-only)
+	Environment    string // APP_ENV: development | staging | production
+	PublicBaseURL  string // PUBLIC_BASE_URL: externally reachable base URL (webhooks, absolute links)
+	HubAPIURL      string // VEDO_HUB_API_URL: base URL of the VEDO Hub REST API (F0, read-only)
+	HubGraphQLPath string // VEDO_HUB_GRAPHQL_PATH: ontology-service GraphQL path (default /graphql)
+	HubBearerToken string // VEDO_HUB_BEARER_TOKEN: optional read-only Hub API bearer token
 	// JWT issuer/audience for locally-issued dev tokens (T5).
 	JWTIssuer   string
 	JWTAudience string
@@ -49,15 +51,17 @@ type Config struct {
 // Load reads configuration from environment variables with defaults.
 func Load() (*Config, error) {
 	cfg := &Config{
-		DatabaseURL:   envOrDefault("DATABASE_URL", "postgres://edutrack:edutrack@localhost:5432/edutrack?sslmode=disable"),
-		LogLevel:      envOrDefault("LOG_LEVEL", "info"),
-		JWKSURL:       envOrDefault("JWKS_URL", "http://localhost:8080/.well-known/jwks.json"),
-		Environment:   envOrDefault("APP_ENV", "development"),
-		PublicBaseURL: envOrDefault("PUBLIC_BASE_URL", "http://localhost:8080"),
-		HubAPIURL:     envOrDefault("VEDO_HUB_API_URL", "http://localhost:8081"),
-		JWTIssuer:     envOrDefault("JWT_ISSUER", "vedo-edutrack"),
-		JWTAudience:   envOrDefault("JWT_AUDIENCE", "vedo-edutrack"),
-		JWTTokenTTL:   envDurationMinutes("JWT_TTL_MINUTES", 24*60),
+		DatabaseURL:    envOrDefault("DATABASE_URL", "postgres://edutrack:edutrack@localhost:5432/edutrack?sslmode=disable"),
+		LogLevel:       envOrDefault("LOG_LEVEL", "info"),
+		JWKSURL:        envOrDefault("JWKS_URL", "http://localhost:8080/.well-known/jwks.json"),
+		Environment:    envOrDefault("APP_ENV", "development"),
+		PublicBaseURL:  envOrDefault("PUBLIC_BASE_URL", "http://localhost:8080"),
+		HubAPIURL:      envOrDefault("VEDO_HUB_API_URL", "http://localhost:8081"),
+		HubGraphQLPath: envOrDefault("VEDO_HUB_GRAPHQL_PATH", "/graphql"),
+		HubBearerToken: os.Getenv("VEDO_HUB_BEARER_TOKEN"),
+		JWTIssuer:      envOrDefault("JWT_ISSUER", "vedo-edutrack"),
+		JWTAudience:    envOrDefault("JWT_AUDIENCE", "vedo-edutrack"),
+		JWTTokenTTL:    envDurationMinutes("JWT_TTL_MINUTES", 24*60),
 	}
 
 	portStr := envOrDefault("PORT", "8080")

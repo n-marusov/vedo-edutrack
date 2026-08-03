@@ -20,6 +20,12 @@ const (
 	IsAnalogousTo         ConceptLinkLinkType = "isAnalogousTo"
 )
 
+// Defines values for GapDiagnosisResponseStatus.
+const (
+	NoRootCauseFound GapDiagnosisResponseStatus = "no-root-cause-found"
+	RootCausesFound  GapDiagnosisResponseStatus = "root-causes-found"
+)
+
 // Defines values for HealthResponseStatus.
 const (
 	HealthResponseStatusDegraded HealthResponseStatus = "degraded"
@@ -60,10 +66,29 @@ const (
 	Ok       ReadinessResponseStatus = "ok"
 )
 
+// Defines values for ResourceType.
+const (
+	ResourceTypeContent  ResourceType = "content"
+	ResourceTypeEnabling ResourceType = "enabling"
+)
+
 // Defines values for TokenResponseTokenType.
 const (
 	Bearer TokenResponseTokenType = "Bearer"
 )
+
+// Defines values for ListResourcesParamsType.
+const (
+	ListResourcesParamsTypeContent  ListResourcesParamsType = "content"
+	ListResourcesParamsTypeEnabling ListResourcesParamsType = "enabling"
+)
+
+// Checkpoint defines model for Checkpoint.
+type Checkpoint struct {
+	Date                  time.Time `json:"date"`
+	Name                  string    `json:"name"`
+	TargetCoveragePercent *float32  `json:"target_coverage_percent,omitempty"`
+}
 
 // Concept defines model for Concept.
 type Concept struct {
@@ -89,6 +114,21 @@ type ConceptResponse struct {
 	Concept Concept `json:"concept"`
 }
 
+// CoverageResponse defines model for CoverageResponse.
+type CoverageResponse struct {
+	Covered  int        `json:"covered"`
+	Deficits *[]Deficit `json:"deficits,omitempty"`
+	Percent  float32    `json:"percent"`
+	Ready    *bool      `json:"ready,omitempty"`
+	Total    int        `json:"total"`
+}
+
+// Deficit defines model for Deficit.
+type Deficit struct {
+	BlockingModuleId *string `json:"blocking_module_id,omitempty"`
+	RequirementId    string  `json:"requirement_id"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Endpoint Endpoint that produced the error (for 501 stubs).
@@ -100,6 +140,15 @@ type ErrorResponse struct {
 	// Message Human-readable error detail.
 	Message *string `json:"message,omitempty"`
 }
+
+// GapDiagnosisResponse defines model for GapDiagnosisResponse.
+type GapDiagnosisResponse struct {
+	RootCauses []RootCause                `json:"root_causes"`
+	Status     GapDiagnosisResponseStatus `json:"status"`
+}
+
+// GapDiagnosisResponseStatus defines model for GapDiagnosisResponse.Status.
+type GapDiagnosisResponseStatus string
 
 // HealthResponse defines model for HealthResponse.
 type HealthResponse struct {
@@ -145,6 +194,28 @@ type JwksResponseKeysKty string
 // JwksResponseKeysUse defines model for JwksResponse.Keys.Use.
 type JwksResponseKeysUse string
 
+// PlanResponse defines model for PlanResponse.
+type PlanResponse struct {
+	Checkpoints     *[]Checkpoint `json:"checkpoints,omitempty"`
+	GoalModuleId    *string       `json:"goal_module_id,omitempty"`
+	LearnerId       string        `json:"learner_id"`
+	OntologyVersion *string       `json:"ontology_version,omitempty"`
+	PlanId          string        `json:"plan_id"`
+	Status          string        `json:"status"`
+	Steps           *[]PlanStep   `json:"steps,omitempty"`
+	TimelineEnd     time.Time     `json:"timeline_end"`
+	TimelineStart   time.Time     `json:"timeline_start"`
+}
+
+// PlanStep defines model for PlanStep.
+type PlanStep struct {
+	Horizon      *string    `json:"horizon,omitempty"`
+	ModuleId     string     `json:"module_id"`
+	PlannedEnd   *time.Time `json:"planned_end,omitempty"`
+	PlannedStart *time.Time `json:"planned_start,omitempty"`
+	Position     int        `json:"position"`
+}
+
 // ReadinessResponse defines model for ReadinessResponse.
 type ReadinessResponse struct {
 	// Checks Per-dependency check results.
@@ -168,6 +239,35 @@ type ReadinessResponseChecksIdentityProvider string
 
 // ReadinessResponseStatus Overall readiness.
 type ReadinessResponseStatus string
+
+// Resource defines model for Resource.
+type Resource struct {
+	Cost            *float32     `json:"cost,omitempty"`
+	Difficulty      *string      `json:"difficulty,omitempty"`
+	DurationMinutes *int         `json:"duration_minutes,omitempty"`
+	Format          *string      `json:"format,omitempty"`
+	Id              string       `json:"id"`
+	Source          *string      `json:"source,omitempty"`
+	Title           *string      `json:"title,omitempty"`
+	Type            ResourceType `json:"type"`
+	Uri             *string      `json:"uri,omitempty"`
+}
+
+// ResourceType defines model for Resource.Type.
+type ResourceType string
+
+// ResourceListResponse defines model for ResourceListResponse.
+type ResourceListResponse struct {
+	Items []Resource `json:"items"`
+	Total int        `json:"total"`
+}
+
+// RootCause defines model for RootCause.
+type RootCause struct {
+	BlockedModules *int     `json:"blocked_modules,omitempty"`
+	Mastery        *float32 `json:"mastery,omitempty"`
+	ModuleId       string   `json:"module_id"`
+}
 
 // RouteComputeRequest defines model for RouteComputeRequest.
 type RouteComputeRequest struct {
@@ -200,6 +300,16 @@ type RouterTopic struct {
 	TopicId string `json:"topic_id"`
 }
 
+// SparqlResponse defines model for SparqlResponse.
+type SparqlResponse struct {
+	Head struct {
+		Vars *[]string `json:"vars,omitempty"`
+	} `json:"head"`
+	Results struct {
+		Bindings *[]map[string]interface{} `json:"bindings,omitempty"`
+	} `json:"results"`
+}
+
 // TokenRequest defines model for TokenRequest.
 type TokenRequest struct {
 	// Roles Roles to embed (defaults to ["learner"]).
@@ -228,10 +338,38 @@ type UserInfo struct {
 	UserId string   `json:"user_id"`
 }
 
+// DiagnoseGapsParams defines parameters for DiagnoseGaps.
+type DiagnoseGapsParams struct {
+	LagModuleId string `form:"lag_module_id" json:"lag_module_id"`
+}
+
 // GetOntologyConceptParams defines parameters for GetOntologyConcept.
 type GetOntologyConceptParams struct {
 	// TopicId Concept/topic identifier, e.g. "math-5-1".
 	TopicId string `form:"topic_id" json:"topic_id"`
+}
+
+// ListResourcesParams defines parameters for ListResources.
+type ListResourcesParams struct {
+	// Type Resource kind filter.
+	Type *ListResourcesParamsType `form:"type,omitempty" json:"type,omitempty"`
+
+	// Format Resource format filter (e.g. video, text, interactive).
+	Format *string `form:"format,omitempty" json:"format,omitempty"`
+
+	// Difficulty Difficulty filter (e.g. basic, advanced).
+	Difficulty *string `form:"difficulty,omitempty" json:"difficulty,omitempty"`
+	Limit      *int    `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset     *int    `form:"offset,omitempty" json:"offset,omitempty"`
+}
+
+// ListResourcesParamsType defines parameters for ListResources.
+type ListResourcesParamsType string
+
+// SparqlQueryParams defines parameters for SparqlQuery.
+type SparqlQueryParams struct {
+	// Query Read-only SPARQL SELECT query.
+	Query string `form:"query" json:"query"`
 }
 
 // IssueTokenJSONRequestBody defines body for IssueToken for application/json ContentType.

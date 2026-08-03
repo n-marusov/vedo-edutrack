@@ -38,6 +38,16 @@ tags:
     description: Route computation (stub in M0.3)
   - name: User
     description: Current-user introspection
+  - name: Plans
+    description: Fixed learning plan snapshots
+  - name: Gap
+    description: Learner gap diagnosis
+  - name: Coverage
+    description: FGOS coverage and attestation readiness
+  - name: Resources
+    description: Resource catalog and module bindings
+  - name: SPARQL
+    description: Read-only ontology query endpoint (F6)
 
 security:
   - bearerAuth: []
@@ -217,6 +227,211 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Concept not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /resources:
+    get:
+      tags: [Resources]
+      operationId: listResources
+      summary: List resource catalog
+      description: Returns resources from the catalog, optionally filtered by format, type, difficulty, and source.
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [content, enabling]
+          description: Resource kind filter.
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Resource format filter (e.g. video, text, interactive).
+        - name: difficulty
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Difficulty filter (e.g. basic, advanced).
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Resource list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceListResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /modules/{module_id}/resources:
+    get:
+      tags: [Resources]
+      operationId: listModuleResources
+      summary: List resources bound to a module
+      responses:
+        "200":
+          description: Module-bound resources
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceListResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Module not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      parameters:
+        - name: module_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+  /plans/{plan_id}:
+    get:
+      tags: [Plans]
+      operationId: getPlan
+      summary: Get a fixed learning plan
+      description: Returns an immutable learning plan snapshot with its timeline, steps, and checkpoints.
+      responses:
+        "200":
+          description: Fixed plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Plan not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      parameters:
+        - name: plan_id
+          in: path
+          required: true
+          schema:
+            type: string
+
+  /learners/{learner_id}/gaps:
+    get:
+      tags: [Gap]
+      operationId: diagnoseGaps
+      summary: Diagnose learner gaps
+      description: Root-cause analysis of learner lag, ranked by cascade impact.
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lag_module_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Root-cause diagnosis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GapDiagnosisResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /learners/{learner_id}/coverage/fgos:
+    get:
+      tags: [Coverage]
+      operationId: getFgosCoverage
+      summary: Live FGOS coverage
+      description: FGOS coverage percentage with deficit list, computed from mastered modules.
+      parameters:
+        - name: learner_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: FGOS coverage report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoverageResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sparql:
+    get:
+      tags: [SPARQL]
+      operationId: sparqlQuery
+      summary: Read-only SPARQL query
+      description: Executes a read-only SPARQL query against the ontology (F6). Parameters are strict.
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Read-only SPARQL SELECT query.
+      responses:
+        "200":
+          description: SPARQL results (application/sparql-results+json)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SparqlResponse"
+        "400":
+          description: Malformed or non-read-only query
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
           content:
             application/json:
               schema:
@@ -431,3 +646,164 @@ components:
         link_type:
           type: string
           enum: [hasStrictPrerequisite, hasSoftPrerequisite, enriches, appliesTo, isAnalogousTo]
+
+    ResourceListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Resource"
+        total:
+          type: integer
+
+    Resource:
+      type: object
+      required: [id, type]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+          enum: [content, enabling]
+        format:
+          type: string
+        source:
+          type: string
+        difficulty:
+          type: string
+        duration_minutes:
+          type: integer
+        cost:
+          type: number
+        uri:
+          type: string
+
+    PlanResponse:
+      type: object
+      required: [plan_id, learner_id, status, timeline_start, timeline_end]
+      properties:
+        plan_id:
+          type: string
+        learner_id:
+          type: string
+        goal_module_id:
+          type: string
+        ontology_version:
+          type: string
+        status:
+          type: string
+        timeline_start:
+          type: string
+          format: date-time
+        timeline_end:
+          type: string
+          format: date-time
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanStep"
+        checkpoints:
+          type: array
+          items:
+            $ref: "#/components/schemas/Checkpoint"
+
+    PlanStep:
+      type: object
+      required: [module_id, position]
+      properties:
+        module_id:
+          type: string
+        position:
+          type: integer
+        horizon:
+          type: string
+        planned_start:
+          type: string
+          format: date-time
+        planned_end:
+          type: string
+          format: date-time
+
+    Checkpoint:
+      type: object
+      required: [name, date]
+      properties:
+        name:
+          type: string
+        date:
+          type: string
+          format: date-time
+        target_coverage_percent:
+          type: number
+
+    GapDiagnosisResponse:
+      type: object
+      required: [status, root_causes]
+      properties:
+        status:
+          type: string
+          enum: [root-causes-found, no-root-cause-found]
+        root_causes:
+          type: array
+          items:
+            $ref: "#/components/schemas/RootCause"
+
+    RootCause:
+      type: object
+      required: [module_id]
+      properties:
+        module_id:
+          type: string
+        mastery:
+          type: number
+        blocked_modules:
+          type: integer
+
+    CoverageResponse:
+      type: object
+      required: [covered, total, percent]
+      properties:
+        covered:
+          type: integer
+        total:
+          type: integer
+        percent:
+          type: number
+        ready:
+          type: boolean
+        deficits:
+          type: array
+          items:
+            $ref: "#/components/schemas/Deficit"
+
+    Deficit:
+      type: object
+      required: [requirement_id]
+      properties:
+        requirement_id:
+          type: string
+        blocking_module_id:
+          type: string
+
+    SparqlResponse:
+      type: object
+      required: [head, results]
+      properties:
+        head:
+          type: object
+          properties:
+            vars:
+              type: array
+              items:
+                type: string
+        results:
+          type: object
+          properties:
+            bindings:
+              type: array
+              items:
+                type: object

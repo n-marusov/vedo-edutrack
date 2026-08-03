@@ -144,9 +144,9 @@ jobs:
         run: bash deploy/ci/run-gates.sh --trigger ci --group coverage --out-format json
 
   security:
-    name: Security (SAST + SBOM + secret scan + audit)
+    name: Security (SAST + SBOM + vuln scan + secret scan + audit + attest)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -163,10 +163,42 @@ jobs:
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest
       - name: Install gitleaks
         run: go install github.com/gitleaks/gitleaks/v8@latest
+      - name: Install syft (SBOM)
+        run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+      - name: Install trivy (container vulnerability scan)
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.58.1
+      - name: Install cosign (image attestation)
+        run: |
+          curl -sSfL https://github.com/sigstore/cosign/releases/download/v2.4.1/cosign-linux-amd64 -o /usr/local/bin/cosign
+          chmod +x /usr/local/bin/cosign
       - name: Run security gates
         env:
           PATH: ${{ github.workspace }}/bin:$PATH
         run: bash deploy/ci/run-gates.sh --trigger ci --group security --out-format json
+      - name: Generate SBOM (SPDX, main only)
+        if: github.ref == 'refs/heads/main'
+        run: syft backend/cmd/vedo-edutrack -o spdx-json=backend-sbom.spdx.json
+      - name: Upload SBOM artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-sbom
+          path: backend-sbom.spdx.json
+          retention-days: 90
+      - name: Scan container image (blocking on CRITICAL)
+        run: |
+          docker build -t vedo-edutrack:ci -f backend/Dockerfile backend
+          trivy image --exit-code 1 --severity CRITICAL --ignore-unfixed vedo-edutrack:ci
+      - name: Attest image with cosign (main only)
+        if: github.ref == 'refs/heads/main'
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        run: |
+          docker tag vedo-edutrack:ci ghcr.io/${{ github.repository }}:${{ github.sha }}
+          echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > /tmp/cosign.key
+          COSIGN_PASSWORD="${{ secrets.COSIGN_PASSWORD }}" cosign sign --key /tmp/cosign.key --yes ghcr.io/${{ github.repository }}:${{ github.sha }}
+          rm -f /tmp/cosign.key
 
   build:
     name: Build + push images
