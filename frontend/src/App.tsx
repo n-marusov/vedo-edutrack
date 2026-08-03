@@ -1,22 +1,47 @@
-import type { FC } from 'react';
-import { appConfig } from './config';
+import { Component } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
+import { RouterProvider } from 'react-router';
+import { AuthProvider } from './features/identity-access';
+import { router } from './routes';
+import { ErrorFallback } from './shared/components';
+
+/** Root error boundary — catches render errors and shows a retry UI. */
+class RootErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[app] root error boundary', error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <ErrorFallback
+          error={this.state.error}
+          resetErrorBoundary={() => this.setState({ error: null })}
+        />
+      );
+    }
+    return this.props.children;
+  }
+}
 
 /**
  * VEDO EduTrack root application component.
  *
- * TODO: Add routing, layout, and feature modules (M0.3+).
- * The footer shows runtime-injected version/env (ADR-DES.INFRA.dynamic-config-injection).
+ * Wraps the router in the auth provider (token validation on mount) and a
+ * catch-all error boundary. Lazy pages render inside Suspense (see routes.tsx).
  */
-export const App: FC = () => {
+export function App() {
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">VEDO EduTrack</h1>
-        <p className="mt-4 text-lg text-gray-600">Сервис образовательных маршрутов</p>
-        <p className="mt-8 text-sm text-gray-400">
-          {appConfig.env} · v{appConfig.version}
-        </p>
-      </div>
-    </main>
+    <RootErrorBoundary>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </RootErrorBoundary>
   );
-};
+}
