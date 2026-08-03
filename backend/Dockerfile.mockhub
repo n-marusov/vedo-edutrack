@@ -23,8 +23,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
     -o /out/mockhub \
     ./cmd/mockhub
 
-# --- Runtime stage (distroless static, nonroot) ---
-FROM gcr.io/distroless/static-debian12:nonroot
+# --- Runtime stage (alpine — wget healthcheck; test-only, not in SBOM) ---
+FROM alpine:3.20
 ARG VERSION=0.1.0
 ARG SOURCE=https://github.com/vedo-edutrack/vedo-edutrack
 
@@ -36,11 +36,14 @@ LABEL org.opencontainers.image.title="vedo-edutrack-mockhub" \
 
 COPY --from=build /out/mockhub /usr/local/bin/mockhub
 
-USER nonroot:nonroot
+USER 65532:65532
 EXPOSE 8081
 
 # Ontology is mounted at runtime (ONTOLOGY_FILE=/data/ontology.ttl).
 ENV PORT=8081
 ENV ONTOLOGY_FILE=/data/ontology.ttl
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 \
+  CMD wget -q -O /dev/null http://localhost:8081/healthz || exit 1
 
 ENTRYPOINT ["/usr/local/bin/mockhub"]

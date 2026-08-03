@@ -21,7 +21,10 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 echo "docker-build-check: building backend image (tag=$TAG)..."
-docker build -q -t "$TAG" -f backend/Dockerfile backend/ >/dev/null
+# M0.3: the unified backend Dockerfile builds the SPA in a node stage and
+# embeds it — the build context is the REPO ROOT (pnpm workspace + frontend/),
+# not backend/.
+docker build -q -t "$TAG" -f backend/Dockerfile . >/dev/null
 
 SIZE_BYTES="$(docker image inspect --format='{{.Size}}' "$TAG")"
 SIZE_MB="$(awk -v b="$SIZE_BYTES" 'BEGIN { printf "%.1f", b / 1048576 }')"

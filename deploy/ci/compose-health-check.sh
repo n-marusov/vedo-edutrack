@@ -7,7 +7,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 COMPOSE_FILE="${COMPOSE_FILE:-deploy/docker-compose.yml}"
 
-echo "=== compose-health: starting dev stack (9 services) ==="
+echo "=== compose-health: starting dev stack (10 services) ==="
 if ! docker compose -f "$ROOT/$COMPOSE_FILE" up -d --wait 2>&1; then
   echo "[FAIL] docker compose up -d --wait failed"
   docker compose -f "$ROOT/$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Health}}" 2>&1 || true
@@ -20,7 +20,10 @@ docker compose -f "$ROOT/$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}
 
 echo ""
 FAIL=0
-SERVICES=(postgres backend frontend otel-collector prometheus loki tempo grafana traefik)
+# M0.3: frontend (Vite) is an optional dev profile (frontend-dev); the
+# production SPA is served by the unified backend binary. hub-mock is part of
+# the core stack.
+SERVICES=(postgres backend hub-mock otel-collector prometheus loki tempo grafana traefik)
 
 for svc in "${SERVICES[@]}"; do
   state="$(docker compose -f "$ROOT/$COMPOSE_FILE" ps --format '{{.State}}' "$svc" 2>/dev/null || echo "missing")"
@@ -51,4 +54,4 @@ if [[ "$FAIL" -ne 0 ]]; then
 fi
 
 echo ""
-echo "[PASS] all 9 services are running"
+echo "[PASS] all ${#SERVICES[@]} services are running"
