@@ -1,41 +1,43 @@
 # Research
 
-Updated: 2026-08-03 02:43
+Updated: 2026-08-03 03:45
 Status: active
 
 ## Active Summary (input for /aif-plan)
 <!-- aif:active-summary:start -->
-Topic: Gate automation for the agent pipeline — unified gate manifest + two-tier fast/delivery model
+Topic: VEDO Hub mock server — GraphQL-only, separate Docker container, for dev/test/CI
 
-Goal: Make the "task ready for delivery" decision executable: one gate manifest consumed by the dev loop (fast tier), the delivery handoff (full tier), CI, and agent skills; the agent must run the full tier before declaring a task done.
+Goal: Provide a minimal, realistic stand-in for the VEDO Hub ontology platform so EduTrack development, integration tests, e2e, and CI run against a controllable Hub instead of a dead/missing one. Serves the ontology (loaded in memory) over the Hub's GraphQL interface (ontology-service schema.graphql from the vedo-hub contracts).
 
 Constraints:
 - ui_language = ru, artifact_language = en, technical_terms = keep
-- Single source of truth: deploy/ci/gates.yaml; consumers (Makefile, CI T12, /aif-verify, pre-commit later) call the runner and never duplicate commands
-- Shared output contract: aif-gate-result JSON (schema v1: gate, status pass|warn|fail, blocking, blockers, affected_files, suggested_next)
-- Fast tier (dev loop): ≤ 2–3 min, no Postgres/Docker/E2E — go build, tsc --noEmit, gofmt/biome, golangci-lint, biome ci, unit of touched modules, gen-consistency (openapi/sqlc), validate:mermaid, gitleaks
-- Delivery tier (handoff): fast + full unit -race, integration (Postgres), e2e (phase <= current — regression: current + all previous phases), docker build ≤ 20 MB, gosec, pnpm audit, syft (ci-main), atlas validate, coverage-check, agent gates (TQS/RCS, docs/env/drift)
-- Severity: blocking = NFR acceptance criteria (lint 0 errors, format 0 diff); advisory escalates (coverage advisory on M0.2 → blocking on M1)
-- Traceability: gates reference NFR IDs (REQ-NFR-process.dev.engineering-gates P0, REQ-NFR-process.dev.test-coverage P1)
+- GraphQL interface ONLY initially (no REST / SPARQL / MCP channels in the mock)
+- Runs as a separate Docker container (hub-mock, :8081) in the dev stack AND in CI; the same http.Handler doubles as httptest.Server for in-process Go tests
+- Ontology is loaded into memory at startup from an arbitrary Turtle (.ttl) file; first seed: traceability.ttl (TBox only); any .ttl must be loadable (ONTOLOGY_FILE env / volume mount; ONTOLOGY_DIR later)
+- Stack: Go, same backend module — cmd/mockhub (thin entry) + backend/internal/testing/mockhub (mini-Turtle parser, in-memory model, gqlparser/v2 resolvers, handler). Documented exception to the single-binary ADR (test-only, not shipped)
+- Contract specs must be synced: F0 channel becomes GraphQL (REQ-FR-api.hub.read-ontology and ADR-DES.API.communication-patterns §6 currently say REST+MCP+SPARQL) — FR + ADR + traceability.ttl updates
+- C4 deployment artifacts: update deployment-dev.md (hub-mock node) + new deployment-test.md (CI)
 
 Decisions:
-1. Two-tier model: tier fast (feedback loop during implementation) and tier delivery (full set, mandatory before "ready for delivery"); fast ⊆ delivery
-2. Gate manifest + runner: deploy/ci/gates.yaml + deploy/ci/run-gates.sh; CI YAML becomes a skeleton calling the runner with --group; Makefile gains make dev-check (fast) and make check (delivery)
-3. Decision rule: task ready ⇔ delivery tier completes with zero blocking fails; then /aif-verify (semantic: drift, docs, context gates) → /aif-review → /aif-security-checklist → /aif-commit
-4. Wire into aif-implement: Step 3.4 → --tier fast after each task; Final Step → --tier delivery mandatory before /aif-verify
-5. Phase-aware regression: run all gates with phase <= current_phase (current phase from ROADMAP)
+1. Channel: GraphQL (vedo-hub ontology-service schema) — query-only by design; graphNeighborhood/classDescendants/classTree fit F0.2 copy-subgraph; REST (openapi.json) has NO traversal endpoint (only list/get by parent_id + SPARQL/Cypher POST)
+2. Stack: Go + vektah/gqlparser/v2 (one dependency). gqlgen rejected (codegen-heavy for a test stub); hand-rolled executor rejected (introspection/fragments/variables too fragile)
+3. Data: mini-Turtle parser → in-memory Ontology (classes, properties, subClassOf hierarchy); traceability.ttl mounted read-only (../traceability.ttl → /data/ontology.ttl, single source); arbitrary ttl via ONTOLOGY_FILE
+4. Deployment: hub-mock service in deploy/docker-compose.yml (edutrack-net, :8081, healthcheck GET /healthz, volume mount); fixes VEDO_HUB_API_URL default → http://hub-mock:8081 (container-to-container; the current localhost:8081 default is dead — nothing listens on it, and localhost inside backend ≠ host)
+5. GraphQL surface: POST /graphql; QueryRoot fields classes/class/classTree/classAncestors/classDescendants/properties/property/individuals/individual/graphNeighborhood/autocompleteClasses (+ _service { sdl }); pagination {items,total,page,perPage}; any Bearer token accepted, missing → error; GraphQL errors array
+6. CI: hub-mock as a GitHub Actions service container (sibling of the existing services.postgres) on localhost:8081; Go integration tests may use httptest.Server (fast path), contract/e2e use the container
 
 Open questions:
-- Plan task placement in m0-2-engineering-platform.md (new Phase 7 "Gate Automation" + T16 vs extending T12)
-- Manifest location: deploy/ci/gates.yaml vs .ai-factory (project convention: deploy/ci for infra)
-- Pre-commit hook scope (later, --trigger precommit, fast gates only)
-- Mutation testing (REQ-NFR-process.dev.test-coverage ≤ 15%): phase m1, advisory initially
+- ADR ID: proposed ADR-DES.INFRA.mock-hub-strategy (verify against existing ADRs per ADR README rule 5); final ADR file written in Russian (project convention)
+- Service name (hub-mock?) and GraphQL base path (/graphql — imitates ontology-service, not api-gateway)
+- ontologyId convention: fixed id (e.g. "traceability") vs derived from the file; unknown id → error
+- Stack ADR (framework-vs-vs): only a related-artifacts cross-reference, or a new section (accepted-ADR changes go through status/new-ADR per README rule 6)
+- REST/SPARQL/MCP mock channels: deferred — add only when the adapter calls them
 
 Success signals:
-- RESEARCH saved with the gate-automation design ✅
-- M0.2 plan updated with the gate-automation task (pending: /aif-improve)
+- RESEARCH saved with the full mock-hub design (session below) ✅
+- /aif-plan materializes: ADR file, C4 deployment-dev.md update + deployment-test.md, mock implementation (cmd/mockhub + internal/testing/mockhub + backend/Dockerfile.mockhub + compose service), spec updates (GraphQL channel)
 
-Next step: /aif-improve to add the gate-automation task (Phase 7, T16) to m0-2-engineering-platform.md
+Next step: /aif-plan to create the ADR, C4 diagrams, and the mock-hub implementation
 <!-- aif:active-summary:end -->
 
 ## Sessions
@@ -137,5 +139,132 @@ Links (paths):
 - .agents/skills/aif-verify/SKILL.md (Step 2/3, aif-gate-result contract)
 - .agents/skills/aif-test-quality/SKILL.md (TQS/RCS/B1–B7)
 - .agents/skills/aif-security-checklist/SKILL.md
+
+### 2026-08-03 03:45 — VEDO Hub mock server: GraphQL-only container for dev/test/CI
+
+What changed:
+Crystallized the design of a minimal VEDO Hub mock. Decision: a separate Docker container serving ONLY the Hub's GraphQL interface (ontology-service schema.graphql from the vedo-hub contracts), ontology loaded in memory from an arbitrary .ttl file (first seed: traceability.ttl). Used in the dev stack, Go integration/contract tests, e2e, and CI. Explore-mode constraint: ADR and C4 files are materialized by /aif-plan; drafts below are persisted here.
+
+Key notes:
+
+### Scope
+- GraphQL interface only; REST / SPARQL / MCP channels are deferred until the adapter needs them.
+- Runs as a separate container (dev + CI) for plausibility: the backend talks to it over the network exactly like to the real Hub.
+- Ontology in memory at startup; restart to reload. First seed traceability.ttl (TBox: ~22 classes, ~20 object/datatype properties, subClassOf hierarchy, no individuals); arbitrary .ttl must be loadable.
+
+### Design
+
+```
+traceability.ttl (TBox)
+   │ mini-Turtle parser (prefixes + Class/ObjectProperty/DatatypeProperty
+   │ + label/comment/subClassOf/domain/range), 0 deps
+   ▼
+Ontology (Go, in-memory: classes, properties, parents/children)
+   │ gqlparser/v2: parse queries + resolvers for QueryRoot fields
+   ▼
+POST /graphql (http.Handler)
+   ├── httptest.Server  → Go adapter/contract tests (in-process, fast)
+   └── hub-mock image   → compose service :8081 (dev) / GH Actions service (CI)
+```
+
+GraphQL surface (vedo-hub ontology-service): classes, class, classTree, classAncestors, classDescendants, properties, property, individuals, individual, graphNeighborhood, autocompleteClasses, _service{sdl}. Pagination {items,total,page,perPage} (default 20). Any Bearer accepted; missing token → error; GraphQL errors array.
+
+TBox mapping: tr:X a owl:Class → Class{id,label,comment,parents(from subClassOf),children,isAbstract:false,isDeprecated:false}; owl:ObjectProperty/DatatypeProperty → Property{propertyType OBJECT|DATATYPE, domains, ranges, xsdType, characteristics(functional from owl:FunctionalProperty)}; no individuals → empty connections; graphNeighborhood returns the node without edges until ABox appears (mock is data-driven).
+
+### ADR draft (proposed ADR-DES.INFRA.mock-hub-strategy; final file in Russian)
+
+**Статус:** ПРЕДЛОЖЕНО (draft) · **Дата:** 2026-08-03
+**Контекст:** EduTrack — сервис-слой над VEDO Hub (ontology-port ACL, F0); в dev-стеке Hub отсутствует (VEDO_HUB_API_URL=http://localhost:8081 указывает в никуда; из контейнера localhost — сам backend); контрактные тесты границы Hub (ROADMAP M1, REQ-NFR-api.availability.hub-dependency-sla) требуют управляемого стенда, CI — без живого Hub. GraphQL-интерфейс ontology-service (query-only) заточен под графовую навигацию (graphNeighborhood, classDescendants); REST-контракт не имеет эндпоинтов обхода графа.
+**Требование-источник:** REQ-FR-api.hub.read-ontology (F0.1), REQ-FR-api.hub.copy-subgraph (F0.2), REQ-NFR-api.availability.hub-dependency-sla, REQ-NFR-process.dev.test-coverage, ADR-DES.API.communication-patterns §6, ADR-DES.INFRA.docker-images-environments.
+**Решение:** мок VEDO Hub как отдельный Docker-контейнер (hub-mock) в том же Go-модуле: cmd/mockhub + backend/internal/testing/mockhub; только GraphQL (POST /graphql); онтология в памяти из произвольного .ttl (ONTOLOGY_FILE; первый сид traceability.ttl, read-only volume); исполнение gqlparser/v2 с резолверами QueryRoot; тот же хендлер — как httptest.Server для in-process тестов; образ backend/Dockerfile.mockhub (multi-stage, distroless/alpine); compose-сервис :8081 в edutrack-net + healthcheck /healthz; дефолт VEDO_HUB_API_URL → http://hub-mock:8081; в CI — service-контейнер рядом с postgres. Документированное исключение из single-binary (ADR-DES.API.cli-interface): тестовый инструмент, не поставляется, не в SBOM.
+**Рассмотренные альтернативы:** REST-only мок (отклонён — адаптер ходит в GraphQL, у REST нет обхода графа); WireMock/Prism/MockServer (тяжёлый рантайм JVM/Node, реальные данные из .ttl не отдать без своего кода); реальный triplestore Fuseki/GraphDB (отложен — Java, формат REST всё равно оборачивать; вернуться при сложных SPARQL в M1); gqlgen (кодоген для 11 резолверов избыточен); ручной GraphQL-исполнитель (introspection/фрагменты/переменные хрупки); только in-process fake (остаётся быстрым путём для application-тестов, но не закрывает адаптер/контракт/e2e/CI).
+**Последствия:** + детерминированный управляемый Hub для dev/test/CI, закрыта дыра :8081, один хендлер для in-process и контейнера, 0 влияния на прод; − новая зависимость gqlparser/v2 (пиннинг, SBOM dev-образов), правки контракта FR/ADR/traceability (канал GraphQL), второй cmd/ (документированное исключение).
+
+### Stack ADR clarification (ADR-DES.STACK.framework-vs-vs)
+- Мок использует тот же Go-стек; единственная новая зависимость — gqlparser/v2 (test-only).
+- По README rule 6 изменение принятого ADR — через статус/новый ADR; substantive-решение (стек мока) живёт в новом ADR (mock-hub-strategy), в framework-vs-vs достаточно cross-reference в «Связанные артефакты» (документационная правка).
+
+### C4 deployment-dev.md — update (add hub-mock)
+```mermaid
+C4Deployment
+    title Deployment — Dev Environment (docker-compose, localhost)
+    Deployment_Node(devHost, "Host (developer machine)", "macOS / Linux / Windows (Docker Desktop)") {
+        Deployment_Node(docker, "Docker Engine", "Docker Desktop / daemon") {
+            Deployment_Node(publicNet, "edutrack-public (bridge)") {
+                Deployment_Node(traefikNode, "traefik", "traefik:v3.1.2") {
+                    Container(traefik, "Traefik (edge)", "Go", "Reverse proxy: 80/443, dashboard :8080 (host 8082)")
+                }
+            }
+            Deployment_Node(devNet, "edutrack-net (bridge)") {
+                Deployment_Node(frontendNode, "frontend", "node:24-alpine") {
+                    Container(vite, "Vite dev server", "Node.js + Vite", "SPA HMR :5173; proxy /api → backend:8080")
+                }
+                Deployment_Node(backendNode, "backend", "golang:1.26-alpine") {
+                    Container(air, "air (hot-reload)", "Go", "Rebuild on .go change")
+                    Container(api, "API server (monolith)", "Go", "10 bounded contexts; :8080; VEDO_HUB_API_URL=http://hub-mock:8081")
+                }
+                Deployment_Node(mockHubNode, "hub-mock", "mockhub image (Go)") {
+                    Container(mockHub, "VEDO Hub mock (GraphQL)", "Go + gqlparser", "POST /graphql; ontology in memory from /data/ontology.ttl (volume ../traceability.ttl); :8081; /healthz")
+                }
+                Deployment_Node(pgNode, "postgres", "postgres:16-alpine") {
+                    ContainerDb(pg, "PostgreSQL", "SQL", "EduTrack data (volume postgres_data)")
+                }
+                Deployment_Node(otelNode, "otel-collector", "otel/opentelemetry-collector-contrib") {
+                    Container(otel, "OTel Collector", "Go", "OTLP 4317/4318 → Prometheus/Loki/Tempo")
+                }
+            }
+        }
+    }
+    Rel(traefik, vite, "Route edutrack.localhost → SPA", "HTTP :5173")
+    Rel(traefik, api, "Route api.edutrack.localhost → API", "HTTP :8080")
+    Rel(vite, api, "Proxy /api (dev, bypass edge)", "HTTP :8080")
+    Rel(air, api, "Restart on changes", "process")
+    Rel(api, mockHub, "Read ontology (F0), GraphQL", "HTTP :8081 POST /graphql")
+    Rel(api, pg, "Read/write", "SQL :5432")
+    Rel(api, otel, "OTLP", "gRPC/HTTP :4317/:4318")
+```
+(Финал — в конвенции C4 репозитория, русские подписи, легенда, контекст, связи с артефактами.)
+
+### C4 deployment-test.md — new (CI)
+```mermaid
+C4Deployment
+    title Deployment — Test Environment (GitHub Actions CI)
+    Deployment_Node(runner, "GH Actions runner", "ubuntu-latest") {
+        Deployment_Node(repo, "Repository checkout", "vedo-edutrack") {
+            Container(gates, "Gate runner", "bash", "deploy/ci/run-gates.sh --trigger ci --group <group>")
+        }
+        Deployment_Node(services, "Job service containers", "docker") {
+            Deployment_Node(pgNode, "postgres", "postgres:16-alpine") {
+                ContainerDb(pg, "PostgreSQL", "SQL", "Test DB :5432")
+            }
+            Deployment_Node(mockHubNode, "hub-mock", "mockhub image (Go)") {
+                Container(mockHub, "VEDO Hub mock (GraphQL)", "Go + gqlparser", "POST /graphql :8081; ontology in memory (traceability.ttl)")
+            }
+        }
+        Container(goTests, "Go tests (unit/integration)", "Go test + testify", "ontology-port adapter: httptest.Server (fast) or hub-mock container; contract tests")
+        Container(e2e, "Playwright e2e", "TypeScript", "tests/e2e/api + tests/e2e/gui against compose stack with hub-mock")
+    }
+    Rel(gates, goTests, "test group")
+    Rel(goTests, mockHub, "GraphQL (F0 contract tests)", "HTTP :8081")
+    Rel(goTests, pg, "SQL", ":5432")
+    Rel(e2e, mockHub, "GraphQL via backend", "HTTP")
+```
+
+### Traceability follow-ups
+- New ADR instance (tr:adr-des-infra-mock-hub-strategy), C4 deployment-test COMP, TEST instances (contract tests for the Hub boundary).
+- REQ-FR-api.hub.read-ontology + ADR-DES.API.communication-patterns §6: add GraphQL to the F0 channel wording; re-sync traceability.ttl (0 orphans rule).
+
+Links (paths):
+- vedo-hub contracts (workspace shared items): apps/services/api-gateway/docs/openapi.json (REST — not mocked initially), apps/services/ontology-service/schema.graphql (GraphQL — mocked)
+- vedo-edutrack/specs/requirements/REQ-FR-api.hub.read-ontology.md (F0.1 — channel wording to update)
+- vedo-edutrack/specs/requirements/REQ-FR-api.hub.copy-subgraph.md (F0.2 — graphNeighborhood/classDescendants fit)
+- vedo-edutrack/specs/requirements/REQ-NFR-api.availability.hub-dependency-sla.md (timeouts ≤3s, offline cache — mock used for contract/degradation tests)
+- vedo-edutrack/specs/adr/ADR-DES.API.communication-patterns.md (§6 boundary REST+MCP+SPARQL — to update)
+- vedo-edutrack/specs/adr/ADR-DES.STACK.framework-vs-vs.md (stack ADR — cross-reference for mock stack)
+- vedo-edutrack/specs/c4/deployment-dev.md (update: hub-mock node) + new deployment-test.md
+- vedo-edutrack/backend/internal/platform/config/config.go (VEDO_HUB_API_URL — compose default fix)
+- vedo-edutrack/deploy/docker-compose.yml (no hub service today; default http://localhost:8081 dead in-container)
+- vedo-edutrack/.github/workflows/ci.yml (test job uses services.postgres — hub-mock becomes a sibling service container)
+- vedo-edutrack/traceability.ttl (TBox seed; needs new ADR/C4/TEST instances)
 
 <!-- aif:sessions:end -->
