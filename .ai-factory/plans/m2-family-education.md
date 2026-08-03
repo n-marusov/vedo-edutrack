@@ -32,7 +32,7 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 - [x] Phase 4 — Frontend Visualization (F4): knowledge map, learner/parent/methodologist dashboards
 - [x] Phase 5 — Frontend VIZ + Practice Life (F5): gap map, group panel, stories/projects UI
 - [x] Phase 6 — Tests: Go unit + contract, Vitest component tests
-- [ ] Phase 7 — M2 completion gaps: launch content (50 stories / 30 projects), demo flow, page/route wiring
+- [x] Phase 7 — M2 completion gaps: launch content (50 stories / 30 projects) ✅, demo flow ✅, page/route wiring ✅ (all done 2026-08-03)
 
 ## Commit Plan
 - **Commit 1** (tasks 1-3): `feat(backend): add execution-progress and gap-coverage domain model, migrations, and plan-vs-actual service` ✅ `e1c7d3b` (partial) / `8df1e81` (fix)
@@ -273,7 +273,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 > These tasks close the three unmet M2 exit criteria: launch content volume,
 > demo flow, and end-to-end page/route wiring.
 
-- [ ] **Task 17: Launch content — seed 50+ stories and 30+ project ideas**
+- [x] **Task 17: Launch content — seed 50+ stories and 30+ project ideas** ✅ (2026-08-03)
+
+  **Deliverable:** Expand the practice-life content from in-memory fixtures (3 stories, 2 projects) to launch volume (≥50 stories, ≥30 project ideas) as seed data, covering grades 5-11 topics with cross-subject links and mandatory real-world sections.
+
+  **Actual state:** DONE — `backend/internal/modules/practicelife/application/seeddata.go` with 55 stories (math 8, biology 7, physics 7, chemistry 6, history 6, literature 5, geography 6, CS 5, social studies 5) and 31 projects (4 per domain + 7 flagship interdisciplinary). Wired into `NewStubHandler` via `practiceapp.LaunchStories()`/`LaunchProjects()`. Tests: `seeddata_test.go` (volume ≥50/30, story validity 1-3 modules + real-world, project validity ≥2 subjects + difficulty, unique IDs). Contract test updated for new story IDs.
 
   **Deliverable:** Expand the practice-life content from in-memory fixtures (3 stories, 2 projects) to launch volume (≥50 stories, ≥30 project ideas) as seed data, covering grades 5-11 topics with cross-subject links and mandatory real-world sections.
 
@@ -291,7 +295,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Task 7 (practice-life domain/adapters), M2 starter ontology in VEDO Hub (external).
 
-- [ ] **Task 18: Demo flow for product validation**
+- [x] **Task 18: Demo flow for product validation** ✅ (2026-08-03)
+
+  **Deliverable:** End-to-end demo scenario (demo data + demo route) so a parent can validate the product without custom customer setup.
+
+  **Actual state:** DONE — `frontend/src/pages/DemoPage.tsx` with 6-step guided flow (select learner → build route ≤5 min → learner dashboard → knowledge map → gaps/FGOS → stories/projects) using M2 components + demo fixtures; `/demo` route added to `routes.tsx` (public, LandingLayout).
 
   **Deliverable:** End-to-end demo scenario (demo data + demo route) so a parent can validate the product without custom customer setup: pick a learner → build a route ≤5 min → see knowledge map, FGOS coverage, gap diagnosis, stories/projects.
 
@@ -309,7 +317,11 @@ M2 requirements are fully specified in the formal requirement corpus (`specs/req
 
   **Dependencies:** Tasks 9-14 (components), Task 17 (content), existing page wiring.
 
-- [ ] **Task 19: Page wiring and routes for M2 dashboards**
+- [x] **Task 19: Page wiring and routes for M2 dashboards** ✅ (2026-08-03)
+
+  **Deliverable:** Create page components and routes for the already-built M2 components.
+
+  **Actual state:** DONE — created 6 pages (`LearnerDashboardPage`, `ParentDashboardPage`, `MethodologistDashboardPage`, `GapMapPage`, `GroupPanelPage`, `PracticePage`) with role guards + demo fixtures; added 6 routes (`/dashboard/learner`, `/dashboard/parent`, `/dashboard/methodologist`, `/dashboard/gaps`, `/dashboard/group`, `/dashboard/practice`) to `routes.tsx` (lazy-loaded, ProtectedRoute + MainLayout); updated pages barrel + visualization exports (LearnerDashboardData, RootGap, LearnerCard).
 
   **Deliverable:** Create page components and routes for the already-built M2 components: LearnerDashboardPage, ParentDashboardPage, MethodologistDashboardPage, GapMapPage, GroupPanelPage, PracticePage.
 

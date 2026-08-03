@@ -61,17 +61,11 @@ func NewStubHandler() *StubHandler {
 		{SourceID: "solutions", TargetID: "chemistry", Type: gapdomain.LinkStrictPrerequisite},
 	}}
 
-	// M2 practice-life fixtures: stories linked via appliesTo/enriches graph
-	// links and cross-subject project ideas (REQ-FR-practice.*).
-	practiceStories := []practicedomain.Story{
-		{ID: "story-1", Title: "Проценты в жизни", Text: "Где встречаются проценты: скидки, банки, статистика.", LinkedModules: []string{"percent", "math-5-11"}, Subjects: []string{"Математика"}, RealWorld: "Проценты используются в банковских вкладах, скидках и социологии.", ReadingMinutes: 3},
-		{ID: "story-2", Title: "Растворы вокруг нас", Text: "Концентрация растворов в медицине и кулинарии.", LinkedModules: []string{"solutions"}, Subjects: []string{"Химия"}, RealWorld: "Физраствор, уксус, морская вода — все это растворы разной концентрации.", ReadingMinutes: 4},
-		{ID: "story-3", Title: "Химия и экология", Text: "Химические реакции в природе.", LinkedModules: []string{"chemistry"}, Subjects: []string{"Химия", "Биология"}, RealWorld: "Фотосинтез — это химическая реакция, происходящая в каждом листе.", ReadingMinutes: 5},
-	}
-	practiceProjects := []practicedomain.ProjectIdea{
-		{ID: "proj-1", Title: "Биохимическая лаборатория дома", Modules: []string{"solutions", "chemistry"}, DifficultyLevel: practicedomain.DifficultyMedium, ExpectedOutcome: "Провести серию опытов по концентрации растворов и описать результаты."},
-		{ID: "proj-2", Title: "Экология двора", Modules: []string{"chemistry", "percent"}, DifficultyLevel: practicedomain.DifficultyBasic, ExpectedOutcome: "Рассчитать процент загрязнения и предложить меры."},
-	}
+	// M2 practice-life launch content: stories linked via appliesTo/enriches graph
+	// links and cross-subject project ideas (REQ-FR-practice.*). Loaded from the
+	// seed catalog (55 stories, 31 projects) — see seeddata.go.
+	practiceStories := practiceapp.LaunchStories()
+	practiceProjects := practiceapp.LaunchProjects()
 
 	return &StubHandler{
 		Ontology:  graph,

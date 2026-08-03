@@ -176,8 +176,18 @@ func TestContractModuleStories(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
-	if len(resp) != 1 || resp[0].Id != "story-1" {
-		t.Fatalf("expected story-1 for module percent, got %+v", resp)
+	if len(resp) == 0 {
+		t.Fatal("expected at least one story for module percent")
+	}
+	foundMathStory := false
+	for _, s := range resp {
+		if s.Id == "story-math-percent" {
+			foundMathStory = true
+			break
+		}
+	}
+	if !foundMathStory {
+		t.Fatalf("expected story-math-percent in %+v", resp)
 	}
 }
 
