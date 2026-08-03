@@ -128,7 +128,7 @@ The `Makefile` is the single entry point. Run `make help` for the full list.
 | `make clean` | Stop stack and remove build artifacts |
 
 Run `make gates-list` to see which gates apply to the current phase.
-Every target prints a colored verdict (`[PASS]` / `[FAIL]` / `[WARN]` / `[SKIP]`) — set `NO_COLOR=1` to disable colors (CI-safe).
+Every target prints a colored verdict (`✅ [PASS]` / `❌ [FAIL]` / `⚠️ [WARN]` / `⏭️ [SKIP]`) — set `NO_COLOR=1` to disable colors (CI-safe); emojis are kept so verdicts stay scannable in plain logs.
 
 ### Docker images
 

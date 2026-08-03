@@ -42,17 +42,27 @@ if [[ "$TIER" != "fast" && "$TIER" != "delivery" ]]; then
 fi
 
 # ---- colored output (unified verdict scheme with scripts/verdict.sh) ----
-# Colors auto-disable when stdout is not a TTY or NO_COLOR is set (CI-safe).
+# Emojis are kept in CI logs so verdicts stay scannable without color;
+# colors auto-disable when stdout is not a TTY or NO_COLOR is set.
 colorize_status() {
   local st="$1"
-  [[ -t 1 ]] || { printf '%s' "$st"; return; }
-  [[ -z "${NO_COLOR:-}" ]] || { printf '%s' "$st"; return; }
+  local icon=""
   case "$st" in
-    pass) printf '\033[1;32m%s\033[0m' "$st" ;;
-    fail) printf '\033[1;31m%s\033[0m' "$st" ;;
-    warn) printf '\033[1;33m%s\033[0m' "$st" ;;
-    skip) printf '\033[1;36m%s\033[0m' "$st" ;;
-    *)    printf '%s' "$st" ;;
+    pass) icon="✅" ;;
+    fail) icon="❌" ;;
+    warn) icon="⚠️"  ;;
+    skip) icon="⏭️"  ;;
+  esac
+  if [[ ! -t 1 || -n "${NO_COLOR:-}" ]]; then
+    printf '%s %s' "$icon" "$st"
+    return
+  fi
+  case "$st" in
+    pass) printf '\033[1;32m%s %s\033[0m' "$icon" "$st" ;;   # green
+    fail) printf '\033[1;37;41m%s %s\033[0m' "$icon" "$st" ;; # white-on-red badge
+    warn) printf '\033[1;33m%s %s\033[0m' "$icon" "$st" ;;   # yellow
+    skip) printf '\033[1;36m%s %s\033[0m' "$icon" "$st" ;;   # cyan
+    *)    printf '%s %s' "$icon" "$st" ;;
   esac
 }
 
@@ -227,7 +237,7 @@ print_summary_table() {
   if [[ ${#BLOCKERS[@]} -gt 0 ]]; then
     echo "BLOCKING FAILURES: $(colorize_status fail) — ${BLOCKERS[*]}"
   else
-    echo "No blocking failures."
+    echo "No blocking failures. $(colorize_status pass)"
   fi
 }
 
