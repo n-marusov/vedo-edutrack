@@ -62,16 +62,16 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   **Dependencies:** M0.0.
   **Business goals:** G1, G2, G3, G4, G5, G6.
 
-- [ ] **M0.2: Engineering Platform**
+- [x] **M0.2: Engineering Platform** ✅ completed 2026-08-03
   Create the technical foundation for local development, CI, testing, and containerized execution.
 
   **Exit criteria:**
-  - Repository layout follows the architecture baseline and bounded contexts.
-  - Development environment starts with one command.
-  - Build automation covers up, down, build, test, and lint workflows.
-  - CI pipeline runs lint, tests, coverage, E2E checks, and build gates.
-  - Unit, integration, and E2E test scaffolds exist with intentionally red or placeholder tests where implementation is pending.
-  - Container strategy is documented and aligned with selected stack.
+  - ✅ Repository layout follows the architecture baseline and bounded contexts.
+  - ✅ Development environment starts with one command (`make up` / `docker compose up -d --wait`).
+  - ✅ Build automation covers up, down, build, test, and lint workflows (Makefile).
+  - ✅ CI pipeline runs lint, tests, coverage, E2E checks, and build gates (GitHub Actions + gate runner).
+  - ✅ Unit, integration, and E2E test scaffolds exist with intentionally red or placeholder tests where implementation is pending.
+  - ✅ Container strategy is documented and aligned with selected stack (`deploy/README.md`).
 
   **Dependencies:** M0.1, stack ADR, repository-structure ADR.
   **Business goals:** Engineering enabler for all goals.
@@ -294,6 +294,7 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 |-----------|------|
 | M0.0: Requirements Baseline | 2026-08-02 |
 | M0.1: Domain Model & Architecture Baseline | 2026-08-03 |
+| M0.2: Engineering Platform | 2026-08-03 |
 
 ---
 
