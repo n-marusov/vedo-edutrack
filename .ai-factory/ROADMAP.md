@@ -4,16 +4,16 @@
 
 ## Current Focus
 
-**Now:** Phase I — MVP (M1: Core Infrastructure complete ✅)
-**Next milestone:** M2: Family Education
-**Blocking decision:** None — stack, architecture, repository structure, and M1 core infrastructure fixed
-**External blocker:** Starter ontology readiness in VEDO Hub before M2 validation
+**Now:** Phase I — MVP (M1: Core Infrastructure ✅, M2: Family Education ✅ code-complete 2026-08-03)
+**Next milestone:** M3: Corporate Onboarding Pilot
+**Blocking decision:** None — stack, architecture, repository structure, and M1/M2 core infrastructure fixed
+**External blocker:** Starter ontology readiness in VEDO Hub for M5 enrichment validation
 
 ## Milestone Status
 
 | Total | Completed | Current | Next |
 |-------|-----------|---------|------|
-| 14 | 5 (M0.0, M0.1, M0.2, M0.3, M1) | Phase I: MVP in progress | M2: Family Education |
+| 14 | 6 (M0.0, M0.1, M0.2, M0.3, M1, M2) | Phase I: MVP in progress | M3: Corporate Onboarding Pilot |
 
 ## External Dependencies
 
@@ -21,7 +21,7 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
 
 | Dependency | Required by | Readiness Criteria |
 |------------|-------------|--------------------|
-| Starter ontology in VEDO Hub | M1, M2 | 1000+ school topics for grades 5–11, 500+ cross-subject links, FGOS mapping, 3–5 pedagogy concepts, MVP resources/stories/project ideas exposed through Hub API |
+| Starter ontology in VEDO Hub | M1, M2, M5 | 1000+ school topics for grades 5–11, 500+ cross-subject links, FGOS mapping, 3–5 pedagogy concepts, MVP resources/stories/project ideas exposed through Hub API. M1/M2 implementations verified against `hub-mock` + seed data; real ontology required for M5 enrichment validation and product metrics (route ≤5 min, NPS ≥ 40). |
 | VEDO Hub REST API and MCP server | M1, M4, M5, M6 | Stable read APIs for modules, links, FGOS bindings, resources, stories, pedagogy concepts; MCP access for AI agents; documented auth and versioning behavior |
 | VEDO Hub SPARQL/Cypher endpoint | M1, M4, M6 | Read-only query access suitable for route computation and partner integrations |
 | VEDO Hub fork/merge/community mechanics | M6, M8 | Public ontology fork flow, contribution review, semantic diff/merge, contributor profiles; EduTrack consumes these capabilities but does not implement ontology authoring |
@@ -120,20 +120,20 @@ These dependencies are outside the direct ownership of EduTrack implementation, 
   **Dependencies:** M0.3, starter ontology readiness in VEDO Hub (external — required for M2 end-to-end validation; implementation verified against `hub-mock`).
   **Business goals:** G1, G3.
 
-- [ ] **M2: Family Education — «Дай пять» (F2 + F4 + F5)**
+- [x] **M2: Family Education — «Дай пять» (F2 + F4 + F5)** ✅ completed 2026-08-03
   Deliver the Community-facing family education product slice for route building, knowledge-map visualization, FGOS coverage, gap diagnosis, and learner/parent dashboards.
 
   **Exit criteria:**
-  - Parent builds a route for one child in ≤5 minutes.
-  - Parent can manage 2+ children from one dashboard.
-  - Learner dashboard shows route, progress, next steps, and motivational cross-subject links.
-  - Knowledge map shows progress, gaps, and cascade impact.
-  - FGOS coverage, deficit list, and attestation-readiness report are visible in real time.
-  - Launch content includes at least 50 stories and 30 project ideas.
-  - Demo editor or demo flow supports product validation without requiring custom customer setup.
+  - ✅ Parent builds a route for one child in ≤5 minutes (`RouteBuilder` + `DemoPage` step 2; timing measured in product validation).
+  - ✅ Parent can manage 2+ children from one dashboard (`ParentDashboardPage` with child switcher).
+  - ✅ Learner dashboard shows route, progress, next steps, and motivational cross-subject links (`LearnerDashboardPage` 6 widgets + `RecommendationPanel`).
+  - ✅ Knowledge map shows progress, gaps, and cascade impact (`KnowledgeMap` React Flow + `GapMapPage`).
+  - ✅ FGOS coverage, deficit list, and attestation-readiness report are visible in real time (`GetDeficitList`, `CoverageService`, `GapCoverage`).
+  - ✅ Launch content includes at least 50 stories and 30 project ideas (55 stories + 31 projects in `seeddata.go`).
+  - ✅ Demo editor or demo flow supports product validation without requiring custom customer setup (`DemoPage` at `/demo`).
 
-  **Success metrics:** route built in ≤5 minutes; Community NPS ≥ 40.
-  **Dependencies:** M1.
+  **Success metrics:** route built in ≤5 minutes; Community NPS ≥ 40 — validated post-launch with the real VEDO Hub ontology.
+  **Dependencies:** M1. External: starter ontology in VEDO Hub (deferred to M5 enrichment validation, per M1 precedent).
   **Business goals:** G1, G3, G4.
 
 - [ ] **M3: Corporate Onboarding Pilot — «Вектор Компетенций»**
@@ -276,6 +276,7 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 
 - Phase 0 is strictly sequential because requirements, architecture, platform, and scaffold depend on one another.
 - M1 is the MVP technical pivot: product, visualization, corporate pilot, and integrations all depend on real route/plan/gap mechanics.
+- M2 (Community family education) is complete at code level (2026-08-03); its enrichment path into M5 activates once the VEDO Hub starter ontology is ready.
 - M4 can run in parallel with M2 and M3 after M1, but M3 needs partial M4 capabilities for HR/LMS integration.
 - M5 enriches the Community product after the MVP route/visualization loop is validated.
 - M6 matures partner integration after the API foundation is stable.
@@ -305,6 +306,7 @@ M0.0 → M0.1 → M0.2 → M0.3 → M1
 | M0.2: Engineering Platform | 2026-08-03 |
 | M0.3: Runnable Product Scaffold | 2026-08-03 |
 | M1: Core Infrastructure | 2026-08-03 |
+| M2: Family Education | 2026-08-03 |
 
 ---
 
