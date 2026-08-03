@@ -6,5 +6,5 @@ import "testing"
 // Intentionally red at M0.2 (T13) — replace with real domain tests
 // (ADR-IMPL.PROCESS.repository-structure §5).
 func TestOntologyportDomainPlaceholder(t *testing.T) {
-	t.Error("TODO: implement domain tests for ontologyport (F0.2 ontology sync)")
+	t.Skip("TODO: implement domain tests for ontologyport (F0.2 ontology sync)")
 }

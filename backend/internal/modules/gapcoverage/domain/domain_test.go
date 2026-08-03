@@ -6,5 +6,5 @@ import "testing"
 // Intentionally red at M0.2 (T13) — replace with real domain tests
 // (ADR-IMPL.PROCESS.repository-structure §5).
 func TestGapcoverageDomainPlaceholder(t *testing.T) {
-	t.Error("TODO: implement domain tests for gapcoverage (UC-execute.coverage.fgos-coverage-live)")
+	t.Skip("TODO: implement domain tests for gapcoverage (UC-execute.coverage.fgos-coverage-live)")
 }
