@@ -1,0 +1,15 @@
+# Gitleaks configuration — VEDO EduTrack
+#
+# Allowlists for known false positives. See:
+#   https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+
+title = "VEDO EduTrack gitleaks config"
+
+[allowlist]
+  description = "Known false positives in the repository"
+
+  # Atlas migration checksums (h1:... hashes) — not API keys
+  # Atlas migration checksums (h1:... hashes) — not API keys
+  paths = [
+    "backend/migrations/atlas.sum",
+  ]

@@ -11,11 +11,21 @@ function getInitialTheme(): string {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-function CTAButton({ children }: { children?: ReactNode }) {
+function CTAButton({
+  children,
+  id,
+  className,
+  slot_4_258,
+}: {
+  children?: ReactNode;
+  id?: string;
+  className?: string;
+  slot_4_258?: ReactNode;
+}) {
   return (
-    <div className="component-4_257">
+    <div id={id} className={`component-4_257 ${className ?? ''}`.trim()}>
       <div className="Pixso-symbol-4_257">
-        {children ?? <p className="Pixso-paragraph-4_258">Начать бесплатно</p>}
+        {children ?? slot_4_258 ?? <p className="Pixso-paragraph-4_258">Начать бесплатно</p>}
         <div className="Pixso-frame-4_259">
           <div className="frame-content-4_259">
             <div className="Pixso-frame-4_260">
@@ -29,12 +39,22 @@ function CTAButton({ children }: { children?: ReactNode }) {
   );
 }
 
-function Eyebrow({ children }: { children?: ReactNode }) {
+function Eyebrow({
+  children,
+  id,
+  className,
+  slot_4_273,
+}: {
+  children?: ReactNode;
+  id?: string;
+  className?: string;
+  slot_4_273?: ReactNode;
+}) {
   return (
-    <div className="component-4_271">
+    <div id={id} className={`component-4_271 ${className ?? ''}`.trim()}>
       <div className="Pixso-symbol-4_271">
         <div className="Pixso-frame-4_272" />
-        {children ?? <p className="Pixso-paragraph-4_273">СЕКЦИЯ</p>}
+        {children ?? slot_4_273 ?? <p className="Pixso-paragraph-4_273">СЕКЦИЯ</p>}
       </div>
     </div>
   );
@@ -44,13 +64,27 @@ function SectionHeader({
   eyebrow,
   title,
   subtitle,
-}: { eyebrow?: ReactNode; title?: ReactNode; subtitle?: ReactNode }) {
+  id,
+  className,
+  slot_7_208,
+  slot_7_211,
+  slot_7_212,
+}: {
+  eyebrow?: ReactNode;
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  id?: string;
+  className?: string;
+  slot_7_208?: ReactNode;
+  slot_7_211?: ReactNode;
+  slot_7_212?: ReactNode;
+}) {
   return (
-    <div className="component-7_207">
+    <div id={id} className={`component-7_207 ${className ?? ''}`.trim()}>
       <div className="Pixso-symbol-7_207">
-        {eyebrow ?? <Eyebrow />}
-        {title ?? <p className="Pixso-paragraph-7_211">Заголовок секции</p>}
-        {subtitle ?? <p className="Pixso-paragraph-7_212">Подзаголовок секции</p>}
+        {eyebrow ?? slot_7_208 ?? <Eyebrow />}
+        {title ?? slot_7_211 ?? <p className="Pixso-paragraph-7_211">Заголовок секции</p>}
+        {subtitle ?? slot_7_212 ?? <p className="Pixso-paragraph-7_212">Подзаголовок секции</p>}
       </div>
     </div>
   );

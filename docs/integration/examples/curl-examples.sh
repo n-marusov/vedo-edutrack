@@ -4,7 +4,7 @@
 set -euo pipefail
 
 API_BASE="${API_BASE:-http://localhost:8080/api/v1}"
-TOKEN="${TOKEN:-}"
+TOKEN=${TOKEN:-}
 
 if [[ -z "$TOKEN" ]]; then
   TOKEN=$(curl -s -X POST "$API_BASE/auth/token" \

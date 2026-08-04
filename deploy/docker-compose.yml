@@ -54,7 +54,9 @@ services:
   # Production image: backend/Dockerfile (distroless, no air) — unified
   # binary serving API + embedded SPA from one port (M0.3, T18).
   backend:
-    image: golang:1.26-alpine
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
     working_dir: /app
     environment:
       APP_ENV: dev
@@ -71,9 +73,7 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-vedo-edutrack}
     volumes:
       - ../backend:/app
-    command: >
-      sh -c "go install github.com/air-verse/air@latest &&
-             air -c .air.toml"
+    command: ["air", "-c", ".air.toml"]
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     depends_on:

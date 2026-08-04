@@ -48,7 +48,7 @@ def main() -> int:
     print("Progress:", progress.json())
 
     # 3. Create a webhook subscription (https URL, 32+ char secret).
-    secret = "01234567890123456789012345678901"
+    secret = os.environ.get("WEBHOOK_SECRET", "unsafe")
     sub = requests.post(
         f"{API_BASE}/webhooks/subscriptions",
         headers=headers,

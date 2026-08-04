@@ -65,7 +65,7 @@ fi
 # ------------------------------------------------------------------
 echo ""
 echo "[3/4] hardcoded credentials..."
-CRED_HITS="$(git grep -n -iP '(password|secret|token|api_key|apikey)\s*[:=]\s*["\x27][^"'"'"'\x27]{8,}' -- ':!*.md' ':!*.yaml' ':!*.yml' ':!*.json' ':!*.lock' ':!specs/' ':!pnpm-lock.yaml' ':!go.sum' ':!vendor/' ':!*_test.go' ':!scripts/validate_traceability.py' "$SELF_EXCLUDE" || true)"
+CRED_HITS="$(git grep -n -iP '(password|secret|token|api_key|apikey)\s*[:=]\s*["\x27][^"'\''\x27]{8,}' -- ':!*.md' ':!*.yaml' ':!*.yml' ':!*.json' ':!*.lock' ':!specs/' ':!pnpm-lock.yaml' ':!go.sum' ':!vendor/' ':!*_test.go' ':!scripts/validate_traceability.py' "$SELF_EXCLUDE" || true)"
 # Allowlist: integration sandbox demo secret (local seed only, never production).
 CRED_HITS="$(printf '%s\n' "$CRED_HITS" | grep -v 'vedo-edutrack-integration-demo-secret-0123456789' || true)"
 if [[ -n "$CRED_HITS" ]]; then
