@@ -83,19 +83,23 @@ func (h *Handler) Query(w http.ResponseWriter, r *http.Request, query string, us
 	if err != nil {
 		switch {
 		case errors.Is(err, circuitbreaker.ErrOpen):
+			SparqlQueryDurationSeconds.WithLabelValues("hub_unavailable").Observe(time.Since(started).Seconds())
 			h.logger.Warn("QueryRejected", zap.String("userID", userID), zap.String("reason", "hub_down"))
 			writeJSONError(w, http.StatusServiceUnavailable, "hub_unavailable", "ontology service is temporarily unavailable")
 			return
 		case errors.Is(err, errHubTimeout):
+			SparqlQueryDurationSeconds.WithLabelValues("timeout").Observe(time.Since(started).Seconds())
 			h.logger.Warn("QueryRejected", zap.String("userID", userID), zap.String("reason", "timeout"))
 			writeJSONError(w, http.StatusGatewayTimeout, "sparql_timeout", "query execution timed out")
 			return
 		default:
+			SparqlQueryDurationSeconds.WithLabelValues("error").Observe(time.Since(started).Seconds())
 			h.logger.Error("HubUnreachable", zap.Error(err))
 			writeJSONError(w, http.StatusBadGateway, "sparql_execution_failed", "failed to execute query against the ontology service")
 			return
 		}
 	}
+	SparqlQueryDurationSeconds.WithLabelValues("success").Observe(time.Since(started).Seconds())
 
 	h.logger.Info("QueryExecuted",
 		zap.String("userID", userID),

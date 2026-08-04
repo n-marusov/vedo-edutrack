@@ -221,8 +221,16 @@ func newRouter(cfg *config.Config, a *auth.Auth, webhooks *api.WebhookServices) 
 	}
 
 	// API group — generated server interface (T8). Protected by the auth
-	// middleware when a is non-nil; the token endpoint stays public.
+	// middleware when a is non-nil; the token endpoint stays public. The body
+	// size limit (64KB) applies to all API bodies (REQ-NFR-security.compliance.
+	// owasp-application-security: input validation).
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(maxBodySizeMiddleware)
+		// API documentation (dev): raw spec + Swagger UI. Public so docs tools
+		// can fetch the contract without a token.
+		r.Get("/openapi.json", api.OpenAPISpecHandler)
+		r.Get("/docs", api.DocsHandler)
+
 		if a != nil {
 			// Public: dev token issuance.
 			r.Route("/auth", func(r chi.Router) {
@@ -363,4 +371,15 @@ func spaFallback() http.HandlerFunc {
 		}
 		http.ServeFileFS(w, r, fss, "index.html")
 	}
+}
+
+// maxBodySizeMiddleware limits request bodies to 64 KB (OWASP input
+// validation, REQ-NFR-security.compliance.owasp-application-security).
+func maxBodySizeMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Body != nil {
+			r.Body = http.MaxBytesReader(w, r.Body, 64*1024)
+		}
+		next.ServeHTTP(w, r)
+	})
 }

@@ -305,8 +305,12 @@ func TestContractWebhookSubscriptionLifecycle(t *testing.T) {
 
 // withUser injects auth claims (user id) into the request context, mimicking
 // the auth middleware for contract tests that exercise tenant-scoped routes.
+// The platform-integrator role is granted so webhook CRUD tests pass RBAC.
 func withUser(req *http.Request, userID string) *http.Request {
-	return req.WithContext(auth.WithClaims(req.Context(), &auth.Claims{UserID: userID}))
+	return req.WithContext(auth.WithClaims(req.Context(), &auth.Claims{
+		UserID: userID,
+		Roles:  []string{"platform-integrator"},
+	}))
 }
 
 func TestContractWebhookCreateRejectsInvalidPayload(t *testing.T) {

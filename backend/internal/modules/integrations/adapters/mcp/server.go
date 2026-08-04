@@ -216,6 +216,7 @@ func (s *Server) handleToolsCall(ctx context.Context, req *rpcRequest) {
 	}
 
 	s.logger.Debug("ToolCalled", zap.String("tool", params.Name), zap.Any("args", params.Args))
+	McpToolCallsTotal.WithLabelValues(params.Name).Inc()
 	result, err := tool.Handler(ctx, params.Args)
 	if err != nil {
 		s.logger.Error("ToolError", zap.String("tool", params.Name), zap.Error(err))

@@ -104,6 +104,10 @@ type DeliveryRecorder interface {
 	// RecordAttempt records one attempt. Returns duplicate=true when the
 	// (subscription, event) pair was already recorded (idempotency).
 	RecordAttempt(ctx context.Context, subID domain.SubscriptionID, eventID string, attempt int, status domain.DeliveryStatus, httpStatus int, responseBody, errMsg string) (duplicate bool, err error)
+	// AlreadyDelivered reports whether the (subscription, event) pair has a
+	// terminal (sent/permanent_failure) record — i.e. it must not be
+	// re-delivered. Retryable failed attempts do NOT count as delivered.
+	AlreadyDelivered(ctx context.Context, subID domain.SubscriptionID, eventID string) (bool, error)
 }
 
 // InMemoryDeliveryRecorder is an in-memory DeliveryRecorder for tests and the
@@ -140,6 +144,19 @@ func (r *InMemoryDeliveryRecorder) RecordAttempt(_ context.Context, subID domain
 		Error:          errMsg,
 	}
 	return false, nil
+}
+
+// AlreadyDelivered reports whether the (subscription, event) has a terminal
+// record (sent or permanent_failure — not a retryable failure).
+func (r *InMemoryDeliveryRecorder) AlreadyDelivered(_ context.Context, subID domain.SubscriptionID, eventID string) (bool, error) {
+	key := subID.String() + ":" + eventID
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	d, exists := r.rows[key]
+	if !exists {
+		return false, nil
+	}
+	return d.Status == domain.DeliverySent || d.Status == domain.DeliveryPermanentFail, nil
 }
 
 // ListBySubscription returns a subscription's deliveries (newest first),
@@ -215,10 +232,30 @@ func (r *PostgresDeliveryRecorder) RecordAttempt(ctx context.Context, subID doma
 	return tag.RowsAffected() == 0, nil
 }
 
+// AlreadyDelivered reports whether the (subscription, event) has a terminal
+// delivery record (sent or permanent_failure — retryable failures don't
+// count, so the event is re-attempted).
+func (r *PostgresDeliveryRecorder) AlreadyDelivered(ctx context.Context, subID domain.SubscriptionID, eventID string) (bool, error) {
+	var delivered bool
+	err := r.pool.QueryRow(ctx,
+		`SELECT EXISTS(
+			SELECT 1 FROM integrations.webhook_deliveries
+			WHERE subscription_id = $1 AND event_id = $2
+			  AND status IN ('sent', 'permanent_failure')
+		)`,
+		subID.String(), eventID,
+	).Scan(&delivered)
+	if err != nil {
+		return false, fmt.Errorf("check delivery dedup: %w", err)
+	}
+	return delivered, nil
+}
+
 // DeliveryWorker is the production webhook delivery worker: it polls the
 // outbox, fans each event out to matching active subscriptions with HMAC
 // signing, records attempts (idempotent), and applies the retry/deactivation
-// business rules.
+// business rules. MaxConcurrentDeliveries (default 10) limits the number of
+// in-flight HTTP deliveries.
 type DeliveryWorker struct {
 	worker     *Worker
 	outbox     OutboxRepository
@@ -228,7 +265,10 @@ type DeliveryWorker struct {
 	signer     *Signer
 	httpClient *http.Client
 	logger     *zap.Logger
+	sem        chan struct{}
 }
+
+const defaultMaxConcurrent = 10
 
 // SubscriptionFinder is the port for finding subscriptions by event type.
 type SubscriptionFinder interface {
@@ -242,13 +282,15 @@ type DeliveryWorkerConfig struct {
 	Deliveries    DeliveryRecorder
 	// Deactivate records a delivery failure on the subscription and reports
 	// whether it was deactivated (domain service).
-	Deactivate   func(ctx context.Context, subID domain.SubscriptionID) (bool, error)
-	PollInterval time.Duration
-	BatchSize    int
-	HTTPClient   *http.Client
+	Deactivate    func(ctx context.Context, subID domain.SubscriptionID) (bool, error)
+	MaxConcurrent int
+	PollInterval  time.Duration
+	BatchSize     int
+	HTTPClient    *http.Client
 }
 
-// NewDeliveryWorker builds the delivery worker (defaults: 1s poll, batch 10).
+// NewDeliveryWorker builds the delivery worker (defaults: 1s poll, batch 10,
+// max 10 concurrent deliveries).
 func NewDeliveryWorker(cfg DeliveryWorkerConfig, logger *zap.Logger) *DeliveryWorker {
 	if logger == nil {
 		logger = zap.NewNop()
@@ -257,6 +299,11 @@ func NewDeliveryWorker(cfg DeliveryWorkerConfig, logger *zap.Logger) *DeliveryWo
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: 10 * time.Second}
 	}
+	maxConcurrent := cfg.MaxConcurrent
+	if maxConcurrent <= 0 {
+		maxConcurrent = defaultMaxConcurrent
+	}
+
 	w := &DeliveryWorker{
 		outbox:     cfg.Outbox,
 		subs:       cfg.Subscriptions,
@@ -265,6 +312,7 @@ func NewDeliveryWorker(cfg DeliveryWorkerConfig, logger *zap.Logger) *DeliveryWo
 		signer:     NewSigner(),
 		httpClient: httpClient,
 		logger:     logger.Named("webhook.worker"),
+		sem:        make(chan struct{}, maxConcurrent),
 	}
 	opts := []WorkerOption{WithBatchSize(cfg.BatchSize)}
 	if cfg.PollInterval > 0 {
@@ -278,6 +326,12 @@ func NewDeliveryWorker(cfg DeliveryWorkerConfig, logger *zap.Logger) *DeliveryWo
 func (w *DeliveryWorker) Run(ctx context.Context) {
 	w.logger.Info("delivery worker started")
 	w.worker.Run(ctx)
+}
+
+// Deliver dispatches one outbox event to its matching subscriptions. It is
+// exported for tests and scripting (the poll loop calls the same path).
+func (w *DeliveryWorker) Deliver(ctx context.Context, event Event) error {
+	return w.deliverEvent(ctx, event)
 }
 
 // deliverEvent is the worker handler: fans one outbox event out to all active
@@ -319,16 +373,22 @@ func (w *DeliveryWorker) deliverEvent(ctx context.Context, event Event) error {
 
 // deliverOne delivers to a single subscription with dedup + HMAC signing.
 func (w *DeliveryWorker) deliverOne(ctx context.Context, sub domain.WebhookSubscription, event Event, payload []byte) error {
-	attempt := sub.Failures + 1
-	duplicate, err := w.deliveries.RecordAttempt(ctx, sub.ID, event.EventID, attempt, domain.DeliveryPending, 0, "", "")
+	// Idempotency: a terminal record (sent / permanent_failure) means this
+	// (subscription, event) must not be delivered again (ADR-§3). Retryable
+	// failures are NOT terminal, so a failed attempt is re-delivered.
+	already, err := w.deliveries.AlreadyDelivered(ctx, sub.ID, event.EventID)
 	if err != nil {
 		return err
 	}
-	if duplicate {
-		// Already delivered to this subscription — idempotency (ADR-§3).
+	if already {
 		w.logger.Debug("delivery dedup", zap.String("eventID", event.EventID), zap.String("subscriptionID", sub.ID.String()))
 		return nil
 	}
+
+	attempt := sub.Failures + 1
+	// Concurrency limit: acquire a slot (bounded by max concurrent deliveries).
+	w.sem <- struct{}{}
+	defer func() { <-w.sem }()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, sub.URL, bytes.NewReader(payload))
 	if err != nil {
@@ -352,22 +412,30 @@ func (w *DeliveryWorker) deliverOne(ctx context.Context, sub domain.WebhookSubsc
 }
 
 // recordDeliveryOutcome persists the attempt verdict and applies the
-// consecutive-failure deactivation rule.
+// consecutive-failure deactivation rule. Only terminal outcomes (sent,
+// permanent_failure) write the dedup row; retryable failures leave no row so
+// the event is re-attempted.
 func (w *DeliveryWorker) recordDeliveryOutcome(ctx context.Context, sub domain.WebhookSubscription, event Event, attempt int, status domain.DeliveryStatus, httpStatus int, responseBody, errMsg string) error {
-	if _, err := w.deliveries.RecordAttempt(ctx, sub.ID, event.EventID, attempt, status, httpStatus, responseBody, errMsg); err != nil {
-		return err
-	}
 	if status == domain.DeliveryFailed {
+		WebhookDeliveryTotal.WithLabelValues("failed").Inc()
 		if w.deactivate != nil {
 			deactivated, err := w.deactivate(ctx, sub.ID)
 			if err != nil {
 				w.logger.Warn("deactivate check failed", zap.Error(err))
 			} else if deactivated {
+				// Terminal: the subscription crossed the failure budget.
+				_, _ = w.deliveries.RecordAttempt(ctx, sub.ID, event.EventID, attempt, domain.DeliveryPermanentFail, httpStatus, responseBody, errMsg)
+				WebhookDeliveryTotal.WithLabelValues("permanent_failure").Inc()
 				w.logger.Error("PermanentFailure", zap.String("eventID", event.EventID), zap.String("subscriptionID", sub.ID.String()), zap.Int("attempts", attempt))
 			}
 		}
 		return fmt.Errorf("delivery failed (http=%d): %s", httpStatus, errMsg)
 	}
+	if _, err := w.deliveries.RecordAttempt(ctx, sub.ID, event.EventID, attempt, status, httpStatus, responseBody, errMsg); err != nil {
+		return err
+	}
+	WebhookDeliveryTotal.WithLabelValues("sent").Inc()
+	WebhookDeliveryDurationSeconds.WithLabelValues("sent").Observe(1) // placeholder; full timing in poll loop
 	w.logger.Info("Delivered", zap.String("eventID", event.EventID), zap.String("subscriptionID", sub.ID.String()), zap.Int("httpStatus", httpStatus), zap.Int("attempt", attempt))
 	return nil
 }

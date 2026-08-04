@@ -16,13 +16,16 @@ import (
 
 // newSeedCmd builds the `seed` subcommand — RBAC role catalog + demo data.
 func newSeedCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "seed",
 		Short: "Insert RBAC role catalog and demo data (idempotent)",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return runSeed()
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			integrationDemo, _ := cmd.Flags().GetBool("integration-demo")
+			return runSeed(integrationDemo)
 		},
 	}
+	cmd.Flags().Bool("integration-demo", false, "also create integration sandbox demo data (webhook subscriptions)")
+	return cmd
 }
 
 // roleSeed is one role instance from the role catalog
@@ -49,7 +52,8 @@ var roleCatalog = []roleSeed{
 
 // runSeed inserts the RBAC role catalog and the permission matrix rows,
 // then creates the default admin user. Idempotent (ON CONFLICT DO NOTHING).
-func runSeed() error {
+// When integrationDemo is true, sandbox webhook subscriptions are created too.
+func runSeed(integrationDemo bool) error {
 	zapLogger.Info("seed started")
 
 	cfg, err := config.Load()
@@ -87,6 +91,13 @@ func runSeed() error {
 	// 3. Default admin user with the admin role.
 	if err := insertAdminUser(ctx, tx); err != nil {
 		return err
+	}
+
+	// 4. Integration sandbox demo data (--integration-demo).
+	if integrationDemo {
+		if err := insertIntegrationDemoData(ctx, tx); err != nil {
+			return err
+		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
@@ -179,5 +190,50 @@ func insertAdminUser(ctx context.Context, tx pgx.Tx) error {
 		return fmt.Errorf("insert admin user: %w", err)
 	}
 	zapLogger.Info("default admin user ensured", zap.String("email", "admin@edutrack.local"))
+	return nil
+}
+
+// insertIntegrationDemoData creates sandbox webhook subscriptions for the
+// integration sandbox (--integration-demo). The demo uses the admin user's
+// tenant and a local webhook receiver URL; idempotent by tenant+url.
+func insertIntegrationDemoData(ctx context.Context, tx pgx.Tx) error {
+	// Demo subscriptions keyed on (tenant_id, url): admin demo receiver.
+	demoSubs := []struct {
+		tenantID   string
+		url        string
+		eventTypes []string
+	}{
+		{tenantID: "admin@edutrack.local", url: "http://localhost:9099/hooks/edutrack", eventTypes: []string{"module.mastered", "plan.deviated", "route.recalculated"}},
+		{tenantID: "admin@edutrack.local", url: "http://localhost:9099/hooks/edutrack-sparql", eventTypes: []string{"standard.risk_detected"}},
+	}
+
+	// Secret: fixed demo secret (32+ chars) — sandbox only, not production.
+	const demoSecret = "vedo-edutrack-integration-demo-secret-0123456789"
+
+	for _, s := range demoSubs {
+		var exists bool
+		// Check the subscription doesn't already exist for this tenant+url.
+		err := tx.QueryRow(ctx,
+			`SELECT EXISTS(SELECT 1 FROM integrations.webhook_subscriptions WHERE tenant_id = $1 AND url = $2)`,
+			s.tenantID, s.url,
+		).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("check demo subscription %s: %w", s.url, err)
+		}
+		if exists {
+			continue
+		}
+
+		_, err = tx.Exec(ctx,
+			`INSERT INTO integrations.webhook_subscriptions (tenant_id, url, event_types, signing_secret)
+			 VALUES ($1, $2, $3, $4)`,
+			s.tenantID, s.url, s.eventTypes, demoSecret,
+		)
+		if err != nil {
+			return fmt.Errorf("insert demo subscription %s: %w", s.url, err)
+		}
+		zapLogger.Info("integration demo subscription created", zap.String("tenant", s.tenantID), zap.String("url", s.url), zap.Strings("events", s.eventTypes))
+	}
+	zapLogger.Info("integration demo data ready (webhook subscriptions)")
 	return nil
 }

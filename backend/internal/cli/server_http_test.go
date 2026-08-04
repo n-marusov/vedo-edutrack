@@ -115,3 +115,30 @@ func TestMetricsEndpoint(t *testing.T) {
 		t.Error("metrics body missing prometheus default collectors output")
 	}
 }
+
+func TestDocsEndpoints(t *testing.T) {
+	cfg := &config.Config{Port: 8080, Environment: "test"}
+	r := newRouter(cfg, nil, nil)
+
+	// /api/v1/openapi.json serves the embedded OpenAPI spec.
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/openapi.json", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("openapi.json status = %d, want 200", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "openapi") {
+		t.Error("openapi.json body missing spec content")
+	}
+
+	// /api/v1/docs serves Swagger UI.
+	req = httptest.NewRequest(http.MethodGet, "/api/v1/docs", nil)
+	rec = httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("docs status = %d, want 200", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "swagger-ui") {
+		t.Error("docs body missing swagger-ui markup")
+	}
+}

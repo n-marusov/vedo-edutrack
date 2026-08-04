@@ -44,6 +44,20 @@ func (h *StubHandler) CreateWebhookSubscription(w http.ResponseWriter, r *http.R
 	}
 	tenantID := auth.GetUserID(r.Context())
 
+	// RBAC: only admin/methodologist/platform-integrator can configure webhooks.
+	if !auth.HasPermission(auth.GetRoles(r.Context()), auth.PermWebhookConfig) {
+		writeAPIError(w, http.StatusForbidden, "forbidden", "webhook configuration requires the 'platform-integrator' role or higher")
+		return
+	}
+
+	// Rate limit: 5 webhook subscriptions per hour per tenant.
+	if h.webhookCreateLimiter != nil {
+		if allowed, _ := h.webhookCreateLimiter.Allow(tenantID); !allowed {
+			writeAPIError(w, http.StatusTooManyRequests, "rate_limited", "too many webhook subscriptions (max 5 per hour)")
+			return
+		}
+	}
+
 	var body WebhookSubscriptionCreate
 	if err := decodeJSONBody(r, &body); err != nil {
 		writeAPIError(w, http.StatusBadRequest, "invalid_request", err.Error())

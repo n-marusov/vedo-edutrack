@@ -54,6 +54,8 @@ type StubHandler struct {
 	Bus       *eventbus.Bus
 	Logger    *zap.Logger
 	gapGraph  gapdomain.Graph
+	// webhookCreateLimiter limits subscription creation per tenant (5/hour).
+	webhookCreateLimiter *ratelimit.Limiter
 }
 
 // WebhookServices bundles the shared webhook subscription services so the
@@ -135,20 +137,21 @@ func NewStubHandler(cfg *config.Config, logger *zap.Logger, webhooks *WebhookSer
 	}
 
 	return &StubHandler{
-		Ontology:  graph,
-		Routes:    routestub.NewComputer(graph),
-		Resources: resourceapp.NewCatalogService(catalog, logger),
-		Gap:       gapapp.NewGapService(logger),
-		Coverage:  gapapp.NewCoverageService(logger),
-		Practice:  practiceapp.NewPracticeLifeService(logger, practiceStories, practiceProjects),
-		Progress:  execapp.NewProgressService(logger),
-		Forecast:  execapp.NewForecastService(inMemoryProgressRepo{}, logger),
-		Sparql:    sparqlHandler,
-		Webhooks:  webhookCmds,
-		WebhookQ:  webhookQueries,
-		Bus:       bus,
-		Logger:    logger,
-		gapGraph:  gapGraph,
+		Ontology:             graph,
+		Routes:               routestub.NewComputer(graph),
+		Resources:            resourceapp.NewCatalogService(catalog, logger),
+		Gap:                  gapapp.NewGapService(logger),
+		Coverage:             gapapp.NewCoverageService(logger),
+		Practice:             practiceapp.NewPracticeLifeService(logger, practiceStories, practiceProjects),
+		Progress:             execapp.NewProgressService(logger),
+		Forecast:             execapp.NewForecastService(inMemoryProgressRepo{}, logger),
+		Sparql:               sparqlHandler,
+		Webhooks:             webhookCmds,
+		WebhookQ:             webhookQueries,
+		Bus:                  bus,
+		Logger:               logger,
+		gapGraph:             gapGraph,
+		webhookCreateLimiter: ratelimit.NewLimiter(5.0/3600.0, 1, logger),
 	}
 }
 
