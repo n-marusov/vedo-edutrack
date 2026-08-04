@@ -2434,3 +2434,74 @@ tr:test-hub-contract a tr:IntegrationTest ;
   tr:hasArtifactId "contract/hub-boundary" ;
   tr:validates tr:fr-api-hub-read-ontology ;
   tr:derivesFrom tr:adr-des-infra-mock-hub-strategy .
+
+# ────────────────────────────────────────────────────────────────────────────
+# 9. ABox — M4 Integration & Webhook Layer (F6) COMP instances
+#    Added 2026-08-04. Code components realize the integration FRs in
+#    accordance with the communication-patterns and cli-interface ADRs.
+#    Chain: FR → COMP (code) → TEST (unit/integration/E2E).
+# ────────────────────────────────────────────────────────────────────────────
+
+# Read-only SPARQL endpoint: guard + Hub proxy client + handler
+# (backend/internal/modules/integrations/adapters/sparql/).
+tr:comp-sparql-endpoint a tr:Component ;
+  tr:hasArtifactId "COMP.integrations.sparql-endpoint" ;
+  tr:hasFilePath "backend/internal/modules/integrations/adapters/sparql/" ;
+  tr:realizes tr:fr-api-sparql-read-only ;
+  tr:conformsTo tr:adr-des-api-communication-patterns .
+
+# Webhook subscription management: domain service, application commands/
+# queries, HTTP handlers, OpenAPI contract
+# (backend/internal/modules/integrations/domain|application|adapters, backend/internal/api).
+tr:comp-webhook-subscriptions a tr:Component ;
+  tr:hasArtifactId "COMP.integrations.webhook-subscriptions" ;
+  tr:hasFilePath "backend/internal/modules/integrations/" ;
+  tr:realizes tr:fr-api-webhooks-module-mastered, tr:fr-api-webhooks-plan-deviated, tr:fr-api-webhooks-idempotency ;
+  tr:conformsTo tr:adr-des-api-communication-patterns, tr:adr-des-api-cli-interface .
+
+# Transactional outbox + delivery worker (HMAC signing, retry, deactivation)
+# (backend/internal/modules/integrations/adapters/webhook/).
+tr:comp-webhook-outbox a tr:Component ;
+  tr:hasArtifactId "COMP.integrations.webhook-outbox" ;
+  tr:hasFilePath "backend/internal/modules/integrations/adapters/webhook/" ;
+  tr:realizes tr:fr-api-webhooks-idempotency ;
+  tr:conformsTo tr:adr-des-infra-modular-monolith-approach, tr:adr-des-api-communication-patterns .
+
+# In-process event bus → webhook outbox bridge
+# (backend/internal/platform/eventbus/ + event_subscriber.go).
+tr:comp-event-bus-subscriber a tr:Component ;
+  tr:hasArtifactId "COMP.integrations.event-bus-subscriber" ;
+  tr:hasFilePath "backend/internal/platform/eventbus/" ;
+  tr:realizes tr:fr-api-webhooks-module-mastered, tr:fr-api-webhooks-plan-deviated ;
+  tr:conformsTo tr:adr-des-api-communication-patterns .
+
+# MCP server over stdio (JSON-RPC 2.0: initialize / tools/list / tools/call)
+# (backend/internal/modules/integrations/adapters/mcp/ + backend/internal/cli/mcp.go).
+tr:comp-mcp-server a tr:Component ;
+  tr:hasArtifactId "COMP.integrations.mcp-server" ;
+  tr:hasFilePath "backend/internal/modules/integrations/adapters/mcp/" ;
+  tr:realizes tr:fr-api-mcp-server ;
+  tr:conformsTo tr:adr-des-api-cli-interface .
+
+# Shared integration infrastructure: token-bucket rate limiter + VEDO Hub
+# circuit breaker (backend/internal/platform/ratelimit|circuitbreaker).
+tr:comp-rate-limit-circuit-breaker a tr:Component ;
+  tr:hasArtifactId "COMP.integrations.rate-limit-circuit-breaker" ;
+  tr:hasFilePath "backend/internal/platform/ratelimit/" ;
+  tr:realizes tr:fr-api-sparql-read-only, tr:fr-api-webhooks-idempotency ;
+  tr:conformsTo tr:adr-des-api-communication-patterns .
+
+# SPARQL end-to-end integration test against the mock VEDO Hub.
+tr:test-sparql-integration a tr:IntegrationTest ;
+  tr:hasArtifactId "integration/sparql" ;
+  tr:hasFilePath "backend/tests/sparql_integration_test.go" ;
+  tr:validates tr:fr-api-sparql-read-only ;
+  tr:derivesFrom tr:adr-des-infra-mock-hub-strategy, tr:comp-sparql-endpoint .
+
+# Webhook E2E contract tests: idempotency, signing, retry, deactivation,
+# event-type filtering, multi-subscription fan-out.
+tr:test-webhook-e2e a tr:IntegrationTest ;
+  tr:hasArtifactId "integration/webhook-e2e" ;
+  tr:hasFilePath "backend/tests/webhook_e2e_test.go" ;
+  tr:validates tr:fr-api-webhooks-idempotency, tr:fr-api-webhooks-module-mastered, tr:fr-api-webhooks-plan-deviated ;
+  tr:derivesFrom tr:comp-webhook-outbox, tr:comp-webhook-subscriptions .

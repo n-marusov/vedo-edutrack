@@ -164,6 +164,7 @@ This project is developed with the **AI Factory** agent toolchain: requirements,
 | [`specs/`](specs/) | Requirements (60 FR + 54 NFR), use cases, user stories, ADRs, DDD, C4 diagrams |
 | [`specs/c4/`](specs/c4/) | C4 architecture: system context, containers, components, deployment |
 | [`deploy/README.md`](deploy/README.md) | Container & deployment strategy (Community SaaS vs Enterprise on-prem) |
+| [`docs/integration/`](docs/integration/) | Integration guides: quickstart, SPARQL, webhooks, MCP + code examples (M4) |
 | [`traceability.ttl`](traceability.ttl) | OWL 2 DL traceability model |
 
 ## License

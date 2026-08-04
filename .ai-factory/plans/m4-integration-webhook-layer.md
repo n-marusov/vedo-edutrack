@@ -298,7 +298,7 @@ Decisions carried over:
 
 ### Phase 4: API Documentation & Validation
 
-- [ ] **Task 12: Complete OpenAPI spec and generate API documentation**
+- [x] **Task 12: Complete OpenAPI spec and generate API documentation**
   Finalize the OpenAPI 3.1 specification and set up API documentation.
 
   **OpenAPI spec** (`backend/api/openapi/v1.yaml`):
@@ -316,7 +316,7 @@ Decisions carried over:
 
   **Files:** `backend/api/openapi/v1.yaml`
 
-- [ ] **Task 13: Create integration examples and sandbox demo data**
+- [x] **Task 13: Create integration examples and sandbox demo data**
   Create ready-to-use integration examples and demo data for early API partners.
 
   **Integration examples** (`docs/integration/`):
@@ -338,7 +338,7 @@ Decisions carried over:
 
   **Files:** `docs/integration/`, `backend/internal/cli/seed.go` (extend)
 
-- [ ] **Task 14: Webhook E2E contract tests**
+- [x] **Task 14: Webhook E2E contract tests**
   Write end-to-end contract tests for the webhook system.
 
   **Tests** (`tests/e2e/api/webhook_contract_test.go` or `tests/integration/webhook_e2e_test.go`):
@@ -359,7 +359,7 @@ Decisions carried over:
 
   **Files:** `tests/integration/webhook_e2e_test.go` (new), `backend/internal/modules/integrations/adapters/webhook/outbox_test.go` (extend)
 
-- [ ] **Task 15: Integration hardening — security, rate limiting, and input validation**
+- [x] **Task 15: Integration hardening — security, rate limiting, and input validation**
   Final hardening pass across all integration surfaces.
 
   **Security** (`backend/internal/`):

@@ -45,7 +45,7 @@ vedo-edutrack/
 │   │   ├── modules/       # 10 bounded contexts (routeplanning, executionprogress, gapcoverage, …)
 │   │   │                  #   + red-тест-скаффолды T13 (domain/application, handler/repository — skip)
 │   │   ├── pkg/           # Общие утилиты (инфраструктурно-нейтральные)
-│   │   └── platform/      # Общие адаптеры: postgres, telemetry, config, logger, wire.go
+│   │   └── platform/      # Общие адаптеры: postgres, telemetry, config, logger, auth, wire.go, ratelimit, circuitbreaker, eventbus
 │   ├── migrations/        # Atlas: <timestamp>_<schema>_<desc>.sql
 │   ├── api/openapi/v1.yaml# OpenAPI-спека (источник истины)
 │   ├── tests/             # Интеграционные (Go, testcontainers, кросс-модульные) — скаффолд T13
@@ -142,6 +142,13 @@ vedo-edutrack/
   - Incorrect: `git checkout main && git pull`
   - Correct: First `git checkout main`, then `git pull origin main`
 - **Auxiliary/tooling tasks run through pnpm** (root `package.json` scripts + `scripts/`): `pnpm install`, `pnpm validate:mermaid`, etc. Do **not** run ad-hoc `npm install` in the repo root — add tooling as devDependencies and install with pnpm (`pnpm add -D <pkg>`). Node version is pinned in `.nvmrc`.
+- **Python (dev environment, Windows):** managed via `uv` — venv lives at `.venv` (CPython 3.13). Use the venv interpreter directly or after `uv venv` + activation:
+  - `python` works inside the activated venv (`.venv\Scripts\activate`), **`python3` is NOT available on Windows** — always invoke `python`, never `python3`.
+  - Run scripts: `.venv/Scripts/python.exe <script.py>` (or `python <script.py>` after activation).
+  - Syntax check: `.venv/Scripts/python.exe -m py_compile <file.py>`.
+  - Add packages with `uv pip install <pkg>` (venv must exist; create with `uv venv`). Example: `uv pip install requests` for `docs/integration/examples/python-example.py`.
+  - The example client scripts under `docs/integration/examples/` are documented extras, not part of the Go backend build.
+- **traceability.ttl is Python-only:** the traceability model (`traceability.ttl`, OWL 2 DL Turtle) MUST be read/edited/validated only through Python tooling — never by hand-editing without tooling, and never edited via the Go backend. After ANY edit, validate with the rdflib gate: `pnpm validate:traceability` (or `uv run --with rdflib python scripts/validate_traceability.py`, or `make validate-traceability`). The gate is enforced in CI as `traceability-validate` (fast tier, group validate). Use rdflib to inspect or modify the graph (e.g. `.venv/Scripts/python.exe -c "import rdflib; g=rdflib.Graph(); g.parse('traceability.ttl', format='turtle'); ..."`).
 - The stack is **selected (2026-08-02)**: Go + chi + oapi-codegen backend, React + TS SPA frontend, PostgreSQL, VEDO Hub external. See `specs/adr/` (T3–T5) for the decision records.
 - Product decisions must trace back to `vision.md` (authoritative) and `.ai-factory/DESCRIPTION.md` (summary).
 - Communicate in Russian (`language.ui: ru`); write artifacts in English (`language.artifacts: en`).
