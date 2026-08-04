@@ -8,18 +8,24 @@
 entryPoints:
   web:
     address: ":80"
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-          permanent: true
+    # HTTP->HTTPS redirect is disabled for the dev stack. The routers below
+    # listen on both entryPoints; dev uses plain HTTP.
+    # HOST port 9080 is mapped to this container port 80 to bypass browser
+    # HSTS cache (localhost:80 cached for 1 year by earlier runs).
+    # Re-enable for production:
+    # http:
+    #   redirections:
+    #     entryPoint:
+    #       to: websecure
+    #       scheme: https
+    #       permanent: true
   websecure:
     address: ":443"
 
 # TLS certificates: Let's Encrypt (staging by default for dev, production
-# endpoint in CI/production — override via ACME_CASERVER). Localhost dev uses
-# Traefik's default self-signed certificate (routers declare tls: true).
+# endpoint in CI/production — override via ACME_CASERVER). Dev uses plain HTTP
+# on port 9080 (tls is disabled in dynamic.yml). Enable tls: true on routers
+# and the httpChallenge below will issue Let's Encrypt certificates.
 # See ADR-IMPL.PROCESS.development-tooling §8.
 certificatesResolvers:
   letsencrypt:

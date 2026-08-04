@@ -9,9 +9,13 @@ http:
   routers:
     api:
       rule: "Host(`api.edutrack.localhost`) || PathPrefix(`/api`)"
-      entryPoints: ["websecure"]
+      entryPoints: ["web", "websecure"]
       service: backend
-      tls: true  # dev: Traefik default self-signed; prod: letsencrypt resolver
+      # tls disabled for dev so plain HTTP works on localhost.
+      # Enable in production:
+      # tls: true
+      # tls:
+      #   certResolver: letsencrypt
       middlewares:
         - rate-limit
         - security-headers
@@ -21,10 +25,12 @@ http:
       # M0.3+: the SPA is served by the unified backend binary (API + SPA on
       # one port). The dev Vite server (frontend-dev profile) is routed only
       # when the frontend-dev compose profile is active.
-      rule: "Host(`edutrack.localhost`)"
-      entryPoints: ["websecure"]
+      rule: "Host(`edutrack.localhost`) || Host(`localhost`)"
+      entryPoints: ["web", "websecure"]
       service: spa-embed
-      tls: true
+      # tls disabled for dev so plain HTTP works on localhost.
+      # Enable in production:
+      # tls: true
       middlewares:
         - security-headers
 
@@ -68,16 +74,18 @@ http:
         customFrameOptionsValue: DENY
         contentTypeNosniff: true
         browserXssFilter: true
-        forceSTSHeader: true
-        stsIncludeSubdomains: true
-        stsPreload: true
-        stsSeconds: 31536000
+        # forceSTSHeader disabled for dev (breaks plain HTTP on localhost).
+        # Enable in production:
+        # forceSTSHeader: true
+        # stsIncludeSubdomains: true
+        # stsPreload: true
+        # stsSeconds: 31536000
         customResponseHeaders:
           X-Content-Type-Options: "nosniff"
         contentSecurityPolicy: |
           default-src 'self';
-          script-src 'self' 'unsafe-inline';
-          style-src 'self' 'unsafe-inline';
+          script-src 'self';
+          style-src 'self';
           img-src 'self' data:;
           font-src 'self';
           connect-src 'self' http://localhost:*;

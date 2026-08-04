@@ -58,6 +58,12 @@ services:
       context: ..
       dockerfile: deploy/backend.Dockerfile
     working_dir: /app
+    # Explicit DNS to work around Docker Desktop DNS issues on Windows with
+    # VPN/corporate proxies (the embedded DNS resolver 127.0.0.11 often fails
+    # to resolve proxy.golang.org and other external hosts).
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       APP_ENV: dev
       LOG_LEVEL: ${LOG_LEVEL:-debug}
@@ -200,13 +206,16 @@ services:
       start_period: 5s
     networks: [edutrack-net]
 
-  # Reverse-proxy edge: 80/443 ingress + dashboard (host 8082 — backend owns 8080).
+  # Reverse-proxy edge: HTTP/HTTPS ingress + dashboard.
+  # Dev uses HTTP on host port 9080 (bypasses browser HSTS cache from earlier
+  # runs — HSTS for localhost is cached for 1 year). Port 80 is intentionally
+  # NOT mapped to avoid browser-level HTTP->HTTPS upgrade.
   traefik:
     image: traefik:v3.1.2
     command: ["--configFile=/etc/traefik/traefik.yml"]
     ports:
-      - "80:80"
-      - "443:443"
+      - "${TRAEFIK_HTTP_PORT:-9080}:80"
+      - "${TRAEFIK_HTTPS_PORT:-9443}:443"
       - "${TRAEFIK_DASHBOARD_PORT:-8082}:8080" # dashboard (api.insecure, dev only)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

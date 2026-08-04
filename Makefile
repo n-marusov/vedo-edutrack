@@ -184,9 +184,9 @@ test-down: ## Stop and remove the TEST stack (isolated project — never touches
 dev: up ## Dev mode: stack up + hot-reload (air in backend container, Vite in frontend)
 	@$(call header,dev,"hot-reload mode")
 	@$(call verdict,INFO,"hot reload runs inside containers")
-	@$(call verdict,INFO,"backend  -> http://localhost:8080   (air)")
-	@$(call verdict,INFO,"frontend -> http://localhost:5173   (vite)")
-	@$(call verdict,INFO,"traefik  -> http://localhost:8082   (dashboard, dev only)")
+	@$(call verdict,INFO,"main  -> http://localhost:9080   (traefik -> backend + embedded SPA)")
+	@$(call verdict,INFO,"api   -> http://localhost:8080   (backend, air hot-reload)")
+	@$(call verdict,INFO,"spa   -> http://localhost:5173   (vite, only with --profile frontend-dev)")
 
 build: build-frontend ## Production build check (Go binary with embedded SPA)
 	@$(call header,build,"Go binary + SPA")

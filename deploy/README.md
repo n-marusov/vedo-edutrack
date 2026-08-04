@@ -39,8 +39,9 @@ Volumes: `postgres_data`, `grafana_data`, `loki_data`, `tempo_data`,
 `frontend_node_modules` (container-owned, avoids host/container binary clashes).
 
 Ports: backend `8080`, frontend `5173`, postgres `5432`, Grafana `3000`,
-Prometheus `9090`, Loki `3100`, Tempo `3200`, OTLP `4317/4318`, Traefik `80/443`
-(dashboard `8082`, dev only). Defaults are overridable via **`deploy/.env.dev`**
+Prometheus `9090`, Loki `3100`, Tempo `3200`, OTLP `4317/4318`, Traefik `9080/9443`
+(dashboard `8082`, dev only; port 80 is intentionally NOT mapped to avoid browser
+HSTS cache — see `deploy/traefik/`). Defaults are overridable via **`deploy/.env.dev`**
 (committed, non-secret — `ENV_FILE` in the Makefile): `make up` passes it to
 compose via `--env-file deploy/.env.dev`. Adjust values there or override on
 the command line (process env wins over `--env-file`). When the file is absent,

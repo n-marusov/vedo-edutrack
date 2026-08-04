@@ -90,14 +90,15 @@ make dev
 
 | Service | URL | Notes |
 |---------|-----|-------|
-| Frontend (Vite HMR) | http://localhost:5173 | SPA; proxies `/api` to the backend |
+| Main SPA + API (via Traefik) | http://localhost:9080 | Embedded SPA; API at `/api/*`; override with `TRAEFIK_HTTP_PORT` |
 | Backend (air hot-reload) | http://localhost:8080 | `/healthz` (liveness), `/readyz` (readiness) |
-| Traefik edge | http://localhost:8082 | dashboard (dev only); ingress on 80/443 |
+| Traefik dashboard | http://localhost:8082 | Dev only |
+| Frontend (Vite HMR) | http://localhost:5173 | Only with `--profile frontend-dev` |
 | PostgreSQL | localhost:5432 | `edutrack` / `edutrack` |
 | Grafana | http://localhost:3000 | Prometheus / Loki / Tempo datasources provisioned |
-| Prometheus / Loki / Tempo | 9090 / 3100 / 3200 | observability backends |
+| Prometheus / Loki / Tempo | 9090 / 3100 / 3200 | Observability backends |
 
-Configuration lives in `deploy/.env.example` — copy it to `deploy/.env` and adjust (ports, credentials, sampling rate). Build version and URLs are injected at runtime (see [dynamic config](specs/adr/ADR-DES.INFRA.dynamic-config-injection.md)).
+Configuration defaults are in `deploy/.env.dev` (committed). Override any variable in a root `.env` file (gitignored) or via environment. Key variables: `TRAEFIK_HTTP_PORT` (default 9080), `BACKEND_PORT` (default 8080), `LOG_LEVEL`. Build version and URLs are injected at runtime (see [dynamic config](specs/adr/ADR-DES.INFRA.dynamic-config-injection.md)).
 
 > [!NOTE]
 > At M0.2 the backend serves only the health endpoints; domain APIs land in M0.3. Red test scaffolds intentionally fail until then — `make test` reports the pending work.
