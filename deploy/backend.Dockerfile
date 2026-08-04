@@ -31,4 +31,15 @@ LABEL org.opencontainers.image.title="vedo-edutrack-backend" \
 # Pre-install air v1.67.4 for hot-reload (no ENTRYPOINT/CMD — set by compose).
 RUN go install github.com/air-verse/air@v1.67.4
 
+# Pre-download Go module dependencies at build time so that air does not need
+# DNS at runtime (common issue on Windows Docker Desktop with VPN/corporate
+# proxy). WORKDIR must be set to a non-GOPATH directory (default GOPATH is /go)
+# — Go ignores go.mod files inside GOPATH.
+WORKDIR /build-cache
+COPY backend/go.mod backend/go.sum ./
+RUN go mod download
+
+# WORKDIR for the runtime volume mount (backend/ -> /app). The module cache
+# lives in /root/go/pkg/mod (outside the mount) and is inherited from the
+# pre-download above.
 WORKDIR /app
