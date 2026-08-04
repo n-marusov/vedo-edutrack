@@ -51,4 +51,6 @@
 - **Code generation:** `make gen` regenerates OpenAPI code via oapi-codegen (`types` + `chi-server`, excluding `issueToken`); committed generated files must match the spec (gen-consistency gate).
 - **Database:** Atlas-style migrations via the embedded runner (`vedo-edutrack migrate up/down/validate`); drift = 0 is the target.
 - **Dev env:** the compose stack reads `deploy/.env.dev` (committed, non-secret); `make up` passes it with `--env-file deploy/.env.dev`. Test stack reads `deploy/.env.test` (`make test-up`).
+- **Python (Windows):** `uv`-managed venv at `.venv` (CPython 3.13); use `python` (never `python3` on Windows): `.venv/Scripts/python.exe <script>`; add packages via `uv pip install <pkg>`.
 - `pnpm validate:mermaid` — validates mermaid blocks in `specs/c4/*.md`; `pnpm validate:mermaid:all` — across all specs (used in CI / before committing C4 or DDD diagrams).
+- **traceability.ttl is Python-only:** read/edit/validate the traceability model ONLY through Python/rdflib (`pnpm validate:traceability` / `make validate-traceability` / `uv run --with rdflib python scripts/validate_traceability.py`); never hand-edit blindly or via the Go backend. CI gate: `traceability-validate` (fast, group validate).

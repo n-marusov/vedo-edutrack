@@ -55,3 +55,24 @@ backend-sbom.spdx.json
 .zed/settings.json
 deploy/.env.dev
 deploy/.env.test
+
+# ===== Python (uv / dev tooling) =====
+# Виртуальное окружение uv (создаётся командой `uv venv`, активация .venv\Scripts\activate)
+.venv/
+
+# Кэши интерпретатора и тулинга
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.uv/
+
+# Артефакты сборки/пакетов
+*.egg-info/
+*.whl
+*.egg
+.coverage
+.coverage.*
+htmlcov/

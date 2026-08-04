@@ -46,6 +46,9 @@ jobs:
           args: --out-format=github-actions ./...
       - name: Run lint gates
         run: bash deploy/ci/run-gates.sh --trigger ci --group lint --out-format json
+      - uses: astral-sh/setup-uv@v5
+      - name: Run validate gates (mermaid + traceability via Python/rdflib)
+        run: bash deploy/ci/run-gates.sh --trigger ci --group validate --out-format json
 
   typecheck:
     name: Typecheck (frontend)

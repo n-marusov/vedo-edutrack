@@ -11,6 +11,7 @@
   "scripts": {
     "validate:mermaid": "node scripts/validate-mermaid.mjs",
     "validate:mermaid:all": "node scripts/validate-mermaid.mjs specs/**/*.md",
+    "validate:traceability": "uv run --with rdflib python scripts/validate_traceability.py",
     "clean": "pnpm prune"
   },
   "devDependencies": {

@@ -115,7 +115,7 @@ define verdict
 	bash scripts/verdict.sh "$(1)" $(2)
 endef
 
-.PHONY: help up down test-up test-down dev build build-frontend bench test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json docker-build docker-build-backend docker-build-local docker-build-frontend-nginx docker-build-all clean
+.PHONY: help up down test-up test-down dev build build-frontend bench test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json validate-traceability docker-build docker-build-backend docker-build-local docker-build-frontend-nginx docker-build-all clean
 
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
@@ -386,6 +386,15 @@ gates-%: ## Run gates for a specific group (lint|typecheck|test|coverage|gen|db|
 		$(call verdict,PASS,"$* gates: zero blocking failures"); \
 	else \
 		$(call verdict,FAIL,"$* gates: blocking failures found"); \
+		exit 1; \
+	fi
+
+validate-traceability: ## Validate traceability.ttl via Python/rdflib (structure, orphans, file paths)
+	@$(call header,validate,"traceability.ttl (rdflib)")
+	@if uv run --with rdflib python scripts/validate_traceability.py; then \
+		$(call verdict,PASS,"traceability.ttl valid"); \
+	else \
+		$(call verdict,FAIL,"traceability.ttl invalid"); \
 		exit 1; \
 	fi
 

@@ -105,6 +105,17 @@ gates:
     severity: blocking
     group: validate
 
+  - id: traceability-validate
+    # traceability.ttl must only be touched through Python (rdflib) — this
+    # gate parses it and checks structure, orphans and file paths.
+    command: uv run --with rdflib python scripts/validate_traceability.py
+    tier: fast
+    phase: m0.0
+    severity: blocking
+    group: validate
+    tool: uv
+    nfr: REQ-NFR-process.dev.engineering-gates
+
   - id: makefile-health
     # Regression guard: 'make help' must exit 0, show real target names (not
     # the makefile filename), and emit no parse-time $(shell) spawn errors on
