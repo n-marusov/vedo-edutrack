@@ -1,0 +1,5 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32.000000" height="32.000000" fill="none" customFrame="#000000">
+	<rect id="clock" width="32.000000" height="32.000000" x="0.000000" y="0.000000" />
+	<circle id="Эллипс 15" cx="15.9999599" cy="16.0003262" r="13.333334" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" />
+	<path id="Вектор 51" d="M16 8L16 16L21.3333 18.6667" fill-rule="nonzero" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" />
+</svg>

@@ -1,0 +1,66 @@
+.Pixso-symbol-7_207 {
+  width: 1760px;
+  height: 141px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+.Pixso-instance-7_208 {
+  width: 98px;
+  height: 26px;
+  position: relative;
+  flex-shrink: 0;
+}
+.Pixso-paragraph-7_211 {
+  font-size: 48px;
+  font-family: "Inter-Extra Bold", sans-serif;
+  font-weight: 400;
+  text-align: center;
+  color: var(--foreground);
+  width: auto;
+  height: auto;
+  position: relative;
+  flex-shrink: 0;
+  white-space: pre;
+  flex-grow: 0;
+}
+.Pixso-paragraph-7_212 {
+  font-size: 20px;
+  font-family: "Inter-Regular", sans-serif;
+  font-weight: 400;
+  text-align: center;
+  color: var(--muted-foreground);
+  width: auto;
+  height: auto;
+  position: relative;
+  flex-shrink: 0;
+  white-space: pre;
+  flex-grow: 0;
+}
+.component-7_207 {
+  width: fit-content;
+  height: fit-content;
+}
+
+.Pixso-instance-7_208 {
+  background-color: var(--primary-warm);
+  border-radius: 999px 999px 999px 999px;
+}
+.Pixso-instance-7_208 .Pixso-symbol-4_271 {
+  width: 98px;
+  height: 26px;
+  overflow: hidden;
+}
+.Pixso-instance-7_208 .Pixso-paragraph-4_273 {
+  font-size: 11px;
+  font-family: "Inter-Bold", sans-serif;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--accent-foreground);
+  width: auto;
+  height: auto;
+  white-space: pre;
+}

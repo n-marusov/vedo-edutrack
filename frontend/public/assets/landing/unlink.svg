@@ -1,0 +1,9 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32.000000" height="32.000000" fill="none" customFrame="#000000">
+	<rect id="unlink" width="32.000000" height="32.000000" x="0.000000" y="0.000000" />
+	<path id="Вектор 49" d="M25.12 16.3337L27.4134 14.0536L27.3867 14.0536C28.1991 13.2118 28.7759 12.1711 29.0592 11.0359C29.3425 9.90078 29.3223 8.71109 29.0007 7.58621C28.679 6.46132 28.0672 5.44079 27.2267 4.62698C26.403 3.83265 25.3889 3.26342 24.2819 2.97394C23.1748 2.68447 22.0119 2.68447 20.9048 2.97394C19.7978 3.26342 18.7837 3.83265 17.96 4.62698L15.6667 6.90698" fill-rule="nonzero" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" />
+	<path id="Вектор 50" d="M6.89331 15.667L4.61331 17.947C3.80086 18.7889 3.22406 19.8296 2.94078 20.9647C2.6575 22.0999 2.67769 23.2896 2.99933 24.4144C3.32097 25.5393 3.93276 26.5599 4.77331 27.3737C5.59699 28.168 6.61105 28.7372 7.71812 29.0267C8.82519 29.3162 9.9881 29.3162 11.0952 29.0267C12.2022 28.7372 13.2163 28.168 14.04 27.3737L16.32 25.0937" fill-rule="nonzero" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" />
+	<line id="Линия 5" x1="0" x2="4" y1="0" y2="0" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" transform="matrix(0,1,-1,0,10.6667,2.66699)" />
+	<line id="Линия 6" x1="2.66668701" x2="6.66668701" y1="10.6669922" y2="10.6669922" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" />
+	<line id="Линия 7" x1="0" x2="4" y1="0" y2="0" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" transform="matrix(0,1,-1,0,21.3333,25.333)" />
+	<line id="Линия 8" x1="25.333313" x2="29.333313" y1="21.3330078" y2="21.3330078" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" />
+</svg>

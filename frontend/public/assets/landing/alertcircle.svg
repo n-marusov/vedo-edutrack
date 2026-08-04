@@ -1,0 +1,6 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32.000000" height="32.000000" fill="none" customFrame="#000000">
+	<rect id="alert-circle" width="32.000000" height="32.000000" x="0.000000" y="0.000000" />
+	<circle id="Эллипс 16" cx="16.0000057" cy="16.0003262" r="13.333334" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" />
+	<line id="Линия 9" x1="0" x2="5.33333349" y1="0" y2="0" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" transform="matrix(0,1,-1,0,16,10.667)" />
+	<line id="Линия 10" x1="16" x2="16.0133343" y1="21.3330078" y2="21.3330078" stroke="rgb(234,88,12)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.666667" />
+</svg>

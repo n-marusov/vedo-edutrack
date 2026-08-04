@@ -1,3 +1,4 @@
+export { LandingPixso } from './LandingPixso';
 export { LandingPage } from './Landing';
 export { LoginPage } from './Login';
 export { DashboardPage } from './Dashboard';
