@@ -105,7 +105,7 @@ Decisions carried over:
 
 ### Phase 2: SPARQL Endpoint & Webhook System
 
-- [ ] **Task 4: Implement production SPARQL endpoint handler**
+- [x] **Task 4: Implement production SPARQL endpoint handler**
   Replace the existing stub `SparqlQuery` handler with a real implementation that proxies SPARQL queries to VEDO Hub.
 
   **Handler** (`backend/internal/modules/integrations/adapters/sparql/handler.go`):
@@ -131,7 +131,7 @@ Decisions carried over:
 
   **Files:** `backend/internal/modules/integrations/adapters/sparql/handler.go`, `backend/internal/api/handler.go` (update SparqlQuery call)
 
-- [ ] **Task 5: SPARQL endpoint contract and integration tests**
+- [x] **Task 5: SPARQL endpoint contract and integration tests**
   Write comprehensive tests for the SPARQL endpoint.
 
   **Contract tests** (`backend/tests/contract/` or `backend/internal/modules/integrations/adapters/sparql/handler_test.go`):
@@ -152,7 +152,7 @@ Decisions carried over:
 
   **Files:** `backend/internal/modules/integrations/adapters/sparql/handler_test.go`, `tests/integration/sparql_test.go`
 
-- [ ] **Task 6: Implement webhook subscription domain and application layer**
+- [x] **Task 6: Implement webhook subscription domain and application layer**
   Implement the domain service and application layer for webhook subscription management.
 
   **Domain service** (`backend/internal/modules/integrations/domain/integrations.go` — extend):
@@ -177,7 +177,7 @@ Decisions carried over:
 
   **Files:** `backend/internal/modules/integrations/domain/integrations.go`, `backend/internal/modules/integrations/application/commands/commands.go`, `backend/internal/modules/integrations/application/queries/queries.go`
 
-- [ ] **Task 7: Add webhook subscription endpoints to OpenAPI spec and implement handlers**
+- [x] **Task 7: Add webhook subscription endpoints to OpenAPI spec and implement handlers**
   Extend the OpenAPI spec with webhook subscription management endpoints and implement the HTTP handlers.
 
   **OpenAPI spec** (`backend/api/openapi/v1.yaml`):
@@ -200,7 +200,7 @@ Decisions carried over:
 
   **Files:** `backend/api/openapi/v1.yaml`, `backend/internal/api/handler.go`, `backend/internal/api/server.gen.go` (regenerated)
 
-- [ ] **Task 8: Implement webhook delivery worker with retry and HMAC signing**
+- [x] **Task 8: Implement webhook delivery worker with retry and HMAC signing**
   Build the outbox polling worker that delivers webhook events to subscriber URLs.
 
   **Worker** (`backend/internal/modules/integrations/adapters/webhook/outbox.go` — extend):

@@ -9,10 +9,14 @@
 package integrations
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // EventType identifies a webhook event contract. Event names are the stable
@@ -152,6 +156,10 @@ type SubscriptionError struct {
 	Reason string
 }
 
+// ErrNotFound is returned by SubscriptionRepository implementations when a
+// subscription does not exist.
+var ErrNotFound = errors.New("webhook subscription not found")
+
 // Error implements the error interface.
 func (e *SubscriptionError) Error() string {
 	return fmt.Sprintf("subscription validation failed: %s", e.Reason)
@@ -210,6 +218,149 @@ func validateWebhookURL(rawURL string) error {
 // isLocalhost reports whether a host is a loopback host.
 func isLocalhost(host string) bool {
 	return host == "localhost" || host == "127.0.0.1" || host == "::1"
+}
+
+// SubscriptionRepository is the persistence port for webhook subscriptions
+// (implemented by the adapter layer; the domain service depends on this
+// interface, never on a concrete store — Clean Architecture).
+type SubscriptionRepository interface {
+	// Create persists a new subscription. Returns the stored subscription
+	// (with generated ID / timestamps) or an error.
+	Create(ctx context.Context, sub *WebhookSubscription) error
+	// Update persists subscription changes (URL/events/secret/failures/active).
+	Update(ctx context.Context, sub *WebhookSubscription) error
+	// Delete removes (soft-deletes) a subscription.
+	Delete(ctx context.Context, id SubscriptionID) error
+	// Get returns a subscription by id (ErrNotFound when absent).
+	Get(ctx context.Context, id SubscriptionID) (*WebhookSubscription, error)
+	// ListByTenant returns the tenant's subscriptions, optionally filtered by
+	// active status (active != nil filters).
+	ListByTenant(ctx context.Context, tenantID string, active *bool) ([]WebhookSubscription, error)
+	// ListByEventType returns active subscriptions subscribed to the event type.
+	ListByEventType(ctx context.Context, eventType EventType) ([]WebhookSubscription, error)
+	// CountActiveByTenant returns the number of active subscriptions.
+	CountActiveByTenant(ctx context.Context, tenantID string) (int, error)
+}
+
+// SubscriptionService implements the webhook subscription business rules.
+type SubscriptionService struct {
+	repo SubscriptionRepository
+}
+
+// NewSubscriptionService builds the domain subscription service.
+func NewSubscriptionService(repo SubscriptionRepository) *SubscriptionService {
+	return &SubscriptionService{repo: repo}
+}
+
+// CreateSubscription validates and persists a new subscription. Enforces the
+// per-tenant active-subscription cap (MaxSubscriptionsPerTenant).
+func (s *SubscriptionService) CreateSubscription(ctx context.Context, tenantID, rawURL string, eventTypes []EventType, signingSecret string) (*WebhookSubscription, error) {
+	if err := ValidateSubscription(tenantID, rawURL, eventTypes, signingSecret); err != nil {
+		return nil, err
+	}
+
+	activeCount, err := s.repo.CountActiveByTenant(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	if activeCount >= MaxSubscriptionsPerTenant {
+		return nil, &SubscriptionError{Reason: fmt.Sprintf("tenant %q reached the maximum of %d active subscriptions", tenantID, MaxSubscriptionsPerTenant)}
+	}
+
+	sub := &WebhookSubscription{
+		ID:            SubscriptionID(uuid.NewString()),
+		TenantID:      tenantID,
+		URL:           strings.TrimSpace(rawURL),
+		EventTypes:    eventTypes,
+		SigningSecret: signingSecret,
+		Active:        true,
+		Failures:      0,
+		CreatedAt:     time.Now().UTC(),
+		UpdatedAt:     time.Now().UTC(),
+	}
+	if err := s.repo.Create(ctx, sub); err != nil {
+		return nil, err
+	}
+	return sub, nil
+}
+
+// UpdateSubscription applies allowed updates (URL, event types, signing
+// secret) and resets the failure counter. Validates the updated payload.
+func (s *SubscriptionService) UpdateSubscription(ctx context.Context, id SubscriptionID, tenantID, rawURL string, eventTypes []EventType, signingSecret string) (*WebhookSubscription, error) {
+	if err := ValidateSubscription(tenantID, rawURL, eventTypes, signingSecret); err != nil {
+		return nil, err
+	}
+	sub, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if sub.TenantID != tenantID {
+		return nil, &SubscriptionError{Reason: "subscription does not belong to the tenant"}
+	}
+
+	sub.URL = strings.TrimSpace(rawURL)
+	sub.EventTypes = eventTypes
+	if signingSecret != "" {
+		sub.SigningSecret = signingSecret
+	}
+	sub.Failures = 0
+	sub.UpdatedAt = time.Now().UTC()
+	if err := s.repo.Update(ctx, sub); err != nil {
+		return nil, err
+	}
+	return sub, nil
+}
+
+// DeleteSubscription soft-deletes a subscription.
+func (s *SubscriptionService) DeleteSubscription(ctx context.Context, id SubscriptionID, tenantID string) error {
+	sub, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	if sub.TenantID != tenantID {
+		return &SubscriptionError{Reason: "subscription does not belong to the tenant"}
+	}
+	return s.repo.Delete(ctx, id)
+}
+
+// GetSubscription returns one subscription (tenant-scoped).
+func (s *SubscriptionService) GetSubscription(ctx context.Context, id SubscriptionID, tenantID string) (*WebhookSubscription, error) {
+	sub, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if sub.TenantID != tenantID {
+		return nil, &SubscriptionError{Reason: "subscription does not belong to the tenant"}
+	}
+	return sub, nil
+}
+
+// ListSubscriptions returns the tenant's subscriptions with an optional
+// active-status filter.
+func (s *SubscriptionService) ListSubscriptions(ctx context.Context, tenantID string, active *bool) ([]WebhookSubscription, error) {
+	return s.repo.ListByTenant(ctx, tenantID, active)
+}
+
+// RecordDeliveryFailure increments the subscription's consecutive failure
+// counter and deactivates it when the boundary is crossed
+// (MaxConsecutiveDeliveryFailures). Returns whether the subscription was
+// deactivated.
+func (s *SubscriptionService) RecordDeliveryFailure(ctx context.Context, id SubscriptionID) (bool, error) {
+	sub, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	sub.Failures++
+	deactivated := false
+	if sub.Failures >= MaxConsecutiveDeliveryFailures {
+		sub.Active = false
+		deactivated = true
+	}
+	sub.UpdatedAt = time.Now().UTC()
+	if err := s.repo.Update(ctx, sub); err != nil {
+		return false, err
+	}
+	return deactivated, nil
 }
 
 // NextDeliveryAttempt computes the next attempt number for a delivery.

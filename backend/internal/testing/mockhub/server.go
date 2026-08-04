@@ -27,7 +27,7 @@ func NewTestServer(t testing.TB, ttlPath string) *httptest.Server {
 		t.Fatalf("parse ontology %s: %v", ttlPath, err)
 	}
 
-	srv := httptest.NewServer(NewHandler(ont, zap.NewNop()))
+	srv := httptest.NewServer(NewMux(ont, zap.NewNop()))
 	t.Cleanup(srv.Close)
 	return srv
 }

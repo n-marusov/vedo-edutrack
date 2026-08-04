@@ -17,6 +17,10 @@ import (
 	gapapp "vedo-edutrack/backend/internal/modules/gapcoverage/application"
 	gapdomain "vedo-edutrack/backend/internal/modules/gapcoverage/domain"
 	"vedo-edutrack/backend/internal/modules/integrations/adapters/sparql"
+	"vedo-edutrack/backend/internal/modules/integrations/adapters/webhook"
+	integapp "vedo-edutrack/backend/internal/modules/integrations/application/commands"
+	integquery "vedo-edutrack/backend/internal/modules/integrations/application/queries"
+	integdomain "vedo-edutrack/backend/internal/modules/integrations/domain"
 	ontostub "vedo-edutrack/backend/internal/modules/ontologyport/adapters/stub"
 	practiceapp "vedo-edutrack/backend/internal/modules/practicelife/application"
 	practicedomain "vedo-edutrack/backend/internal/modules/practicelife/domain"
@@ -24,6 +28,9 @@ import (
 	resourcedomain "vedo-edutrack/backend/internal/modules/resources/domain"
 	routestub "vedo-edutrack/backend/internal/modules/routeplanning/adapters/stub"
 	"vedo-edutrack/backend/internal/platform/auth"
+	"vedo-edutrack/backend/internal/platform/circuitbreaker"
+	"vedo-edutrack/backend/internal/platform/config"
+	"vedo-edutrack/backend/internal/platform/ratelimit"
 )
 
 // StubHandler implements ServerInterface. M0.3 stub endpoints (ontology,
@@ -39,15 +46,33 @@ type StubHandler struct {
 	Practice  *practiceapp.PracticeLifeService
 	Progress  *execapp.ProgressService
 	Forecast  *execapp.ForecastService
+	Sparql    *sparql.Handler
+	Webhooks  *integapp.SubscriptionCommands
+	WebhookQ  *integquery.SubscriptionQueries
 	Logger    *zap.Logger
 	gapGraph  gapdomain.Graph
 }
 
+// WebhookServices bundles the shared webhook subscription services so the
+// HTTP handler and the delivery worker operate on the same state.
+type WebhookServices struct {
+	Cmds     *integapp.SubscriptionCommands
+	Queries  *integquery.SubscriptionQueries
+	Repo     *webhook.InMemorySubscriptionRepository
+	Recorder *webhook.InMemoryDeliveryRecorder
+	Worker   *webhook.DeliveryWorker
+}
+
 // NewStubHandler returns a handler wired to the stub graph, route computer,
-// and real M1 application services over in-memory fixtures.
-func NewStubHandler() *StubHandler {
+// real M1 application services over in-memory fixtures, and the production
+// SPARQL endpoint (F6). cfg is used for the Hub SPARQL proxy; logger is
+// shared with the services. When webhooks is nil, default in-memory webhook
+// services are built (contract tests).
+func NewStubHandler(cfg *config.Config, logger *zap.Logger, webhooks *WebhookServices) *StubHandler {
 	graph := ontostub.NewGraph()
-	logger := zap.NewNop()
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 
 	catalog, _ := resourcedomain.NewCatalog([]resourcedomain.Resource{
 		{ID: "res-1", Title: "Percent video", Type: resourcedomain.ResourceTypeContent, Format: "video", Source: "school", Difficulty: "basic", DurationMinutes: 10, URI: "https://example.test/res-1"},
@@ -67,6 +92,38 @@ func NewStubHandler() *StubHandler {
 	practiceStories := practiceapp.LaunchStories()
 	practiceProjects := practiceapp.LaunchProjects()
 
+	// SPARQL endpoint (F6): Hub proxy + circuit breaker + per-user rate limit
+	// (10 req/min, burst 2 per the M4 plan).
+	var sparqlHandler *sparql.Handler
+	if cfg != nil {
+		client, clientErr := sparql.NewClient(sparql.ClientConfig{
+			BaseURL:     cfg.HubAPIURL,
+			Path:        cfg.HubSparqlPath,
+			BearerToken: cfg.HubBearerToken,
+		}, logger)
+		if clientErr != nil {
+			logger.Warn("sparql client init failed; endpoint will return 503", zap.Error(clientErr))
+		} else {
+			breaker := circuitbreaker.New(circuitbreaker.DefaultConfig(), logger)
+			limiter := ratelimit.NewLimiter(10.0/60.0, 2, logger) // 10 req/min, burst 2
+			sparqlHandler = sparql.NewHandler(client, breaker, limiter, logger)
+		}
+	}
+
+	// Webhook subscriptions (F6): in-memory repository for the M4 handler wiring
+	// (the PostgreSQL-backed repository lands with the delivery worker in Task 8).
+	var webhookCmds *integapp.SubscriptionCommands
+	var webhookQueries *integquery.SubscriptionQueries
+	if webhooks != nil && webhooks.Cmds != nil && webhooks.Queries != nil {
+		webhookCmds = webhooks.Cmds
+		webhookQueries = webhooks.Queries
+	} else {
+		subRepo := webhook.NewInMemorySubscriptionRepository()
+		subService := integdomain.NewSubscriptionService(subRepo)
+		webhookCmds = integapp.NewSubscriptionCommands(subService, outboxBridge{}, logger)
+		webhookQueries = integquery.NewSubscriptionQueries(subService, nil, logger)
+	}
+
 	return &StubHandler{
 		Ontology:  graph,
 		Routes:    routestub.NewComputer(graph),
@@ -76,6 +133,9 @@ func NewStubHandler() *StubHandler {
 		Practice:  practiceapp.NewPracticeLifeService(logger, practiceStories, practiceProjects),
 		Progress:  execapp.NewProgressService(logger),
 		Forecast:  execapp.NewForecastService(inMemoryProgressRepo{}, logger),
+		Sparql:    sparqlHandler,
+		Webhooks:  webhookCmds,
+		WebhookQ:  webhookQueries,
 		Logger:    logger,
 		gapGraph:  gapGraph,
 	}
@@ -498,27 +558,18 @@ func (h *StubHandler) GetPlan(w http.ResponseWriter, _ *http.Request, planID str
 	notImplemented(w, "GET /plans/{plan_id}")
 }
 
-// SparqlQuery executes a read-only SPARQL query guarded by the F6 gate.
-func (h *StubHandler) SparqlQuery(w http.ResponseWriter, _ *http.Request, params SparqlQueryParams) {
-	h.Logger.Info("sparql query", zap.String("query", params.Query))
-	if err := sparql.ValidateReadOnly(params.Query); err != nil {
-		msg := err.Error()
-		writeJSONBody(w, http.StatusBadRequest, ErrorResponse{Error: "invalid_sparql", Message: &msg})
+// SparqlQuery executes a read-only SPARQL query guarded by the F6 gate and
+// proxied to the VEDO Hub SPARQL endpoint (circuit-breaker-wrapped, rate
+// limited per user, truncated at 10 000 rows).
+func (h *StubHandler) SparqlQuery(w http.ResponseWriter, r *http.Request, params SparqlQueryParams) {
+	if h.Sparql == nil {
+		writeJSONBody(w, http.StatusServiceUnavailable, ErrorResponse{
+			Error:   "hub_unavailable",
+			Message: stringPtr("SPARQL endpoint is not configured (missing Hub connectivity)"),
+		})
 		return
 	}
-	// Query execution against the ontology lands with the read-only store
-	// adapter (T20+). Return an empty result set so the endpoint contract is
-	// stable while execution is being wired.
-	vars := []string{}
-	bindings := []map[string]interface{}{}
-	writeJSONBody(w, http.StatusOK, SparqlResponse{
-		Head: struct {
-			Vars *[]string `json:"vars,omitempty"`
-		}{Vars: &vars},
-		Results: struct {
-			Bindings *[]map[string]interface{} `json:"bindings,omitempty"`
-		}{Bindings: &bindings},
-	})
+	h.Sparql.Query(w, r, params.Query, auth.GetUserID(r.Context()))
 }
 
 // stringOr dereferences a string pointer ("" for nil).
@@ -527,6 +578,11 @@ func stringOr(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+// stringPtr returns a pointer to a string (ErrorResponse helper).
+func stringPtr(s string) *string {
+	return &s
 }
 
 // stringOrType dereferences a resource type pointer ("" for nil).

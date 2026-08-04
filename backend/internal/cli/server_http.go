@@ -86,7 +86,13 @@ func serveHTTP(_ *cobra.Command) error {
 		zapLogger.Info("database pool ready")
 	}
 
-	r := newRouter(cfg, a)
+	// Webhook services (F6): shared in-memory subscription repo + outbox-based
+	// delivery worker. The worker delivers outbox events to subscriber URLs
+	// with HMAC signing and retry/deactivation rules (M4 Task 8).
+	webhooks, stopWorker := startWebhookWorker(zapLogger)
+	defer stopWorker()
+
+	r := newRouter(cfg, a, webhooks)
 
 	addr := ":" + strconv.Itoa(cfg.Port)
 	srv := &http.Server{
@@ -154,8 +160,9 @@ func securityHeaders(next http.Handler) http.Handler {
 
 // newRouter builds the chi router with the full M0.3 middleware stack and
 // route groups. The auth bundle is optional (nil for tests that don't
-// exercise authentication).
-func newRouter(cfg *config.Config, a *auth.Auth) *chi.Mux {
+// exercise authentication); webhooks is the shared webhook services bundle
+// (nil → handler builds default in-memory services).
+func newRouter(cfg *config.Config, a *auth.Auth, webhooks *api.WebhookServices) *chi.Mux {
 	r := chi.NewRouter()
 
 	// Middleware stack (ADR-DES.API.communication-patterns):
@@ -224,7 +231,8 @@ func newRouter(cfg *config.Config, a *auth.Auth) *chi.Mux {
 			// Protected: everything else under /api/v1.
 			r = r.With(a.Middleware())
 		}
-		api.HandlerWithOptions(api.NewStubHandler(), api.ChiServerOptions{
+		h := api.NewStubHandler(cfg, zapLogger, webhooks)
+		api.HandlerWithOptions(h, api.ChiServerOptions{
 			BaseRouter: r,
 		})
 	})

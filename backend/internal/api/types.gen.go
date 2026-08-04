@@ -136,6 +136,38 @@ const (
 	Bearer TokenResponseTokenType = "Bearer"
 )
 
+// Defines values for WebhookDeliveryStatus.
+const (
+	Failed           WebhookDeliveryStatus = "failed"
+	Pending          WebhookDeliveryStatus = "pending"
+	PermanentFailure WebhookDeliveryStatus = "permanent_failure"
+	Sent             WebhookDeliveryStatus = "sent"
+)
+
+// Defines values for WebhookSubscriptionEventTypes.
+const (
+	WebhookSubscriptionEventTypesModuleMastered       WebhookSubscriptionEventTypes = "module.mastered"
+	WebhookSubscriptionEventTypesPlanDeviated         WebhookSubscriptionEventTypes = "plan.deviated"
+	WebhookSubscriptionEventTypesRouteRecalculated    WebhookSubscriptionEventTypes = "route.recalculated"
+	WebhookSubscriptionEventTypesStandardRiskDetected WebhookSubscriptionEventTypes = "standard.risk_detected"
+)
+
+// Defines values for WebhookSubscriptionCreateEventTypes.
+const (
+	WebhookSubscriptionCreateEventTypesModuleMastered       WebhookSubscriptionCreateEventTypes = "module.mastered"
+	WebhookSubscriptionCreateEventTypesPlanDeviated         WebhookSubscriptionCreateEventTypes = "plan.deviated"
+	WebhookSubscriptionCreateEventTypesRouteRecalculated    WebhookSubscriptionCreateEventTypes = "route.recalculated"
+	WebhookSubscriptionCreateEventTypesStandardRiskDetected WebhookSubscriptionCreateEventTypes = "standard.risk_detected"
+)
+
+// Defines values for WebhookSubscriptionUpdateEventTypes.
+const (
+	ModuleMastered       WebhookSubscriptionUpdateEventTypes = "module.mastered"
+	PlanDeviated         WebhookSubscriptionUpdateEventTypes = "plan.deviated"
+	RouteRecalculated    WebhookSubscriptionUpdateEventTypes = "route.recalculated"
+	StandardRiskDetected WebhookSubscriptionUpdateEventTypes = "standard.risk_detected"
+)
+
 // Defines values for ListResourcesParamsType.
 const (
 	ListResourcesParamsTypeContent  ListResourcesParamsType = "content"
@@ -467,6 +499,9 @@ type SparqlResponse struct {
 	Results struct {
 		Bindings *[]map[string]interface{} `json:"bindings,omitempty"`
 	} `json:"results"`
+
+	// Truncated True when the result set exceeded the row boundary (10000) and was clipped.
+	Truncated *bool `json:"truncated,omitempty"`
 }
 
 // StoryResponse defines model for StoryResponse.
@@ -510,6 +545,69 @@ type UserInfo struct {
 	UserId string   `json:"user_id"`
 }
 
+// WebhookDelivery defines model for WebhookDelivery.
+type WebhookDelivery struct {
+	Attempt        int                   `json:"attempt"`
+	Error          *string               `json:"error,omitempty"`
+	EventId        openapi_types.UUID    `json:"event_id"`
+	HttpStatus     *int                  `json:"http_status,omitempty"`
+	Id             openapi_types.UUID    `json:"id"`
+	LastAttemptAt  *time.Time            `json:"last_attempt_at,omitempty"`
+	ResponseBody   *string               `json:"response_body,omitempty"`
+	Status         WebhookDeliveryStatus `json:"status"`
+	SubscriptionId openapi_types.UUID    `json:"subscription_id"`
+}
+
+// WebhookDeliveryStatus defines model for WebhookDelivery.Status.
+type WebhookDeliveryStatus string
+
+// WebhookSubscription defines model for WebhookSubscription.
+type WebhookSubscription struct {
+	Active    bool       `json:"active"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// EventTypes Subscribed event types (module.mastered, plan.deviated, route.recalculated, standard.risk_detected).
+	EventTypes []WebhookSubscriptionEventTypes `json:"event_types"`
+
+	// Failures Consecutive delivery failures (>= 5 deactivates the subscription).
+	Failures  *int               `json:"failures,omitempty"`
+	Id        openapi_types.UUID `json:"id"`
+	TenantId  string             `json:"tenant_id"`
+	UpdatedAt *time.Time         `json:"updated_at,omitempty"`
+
+	// Url Subscriber endpoint URL (https; http only for localhost).
+	Url string `json:"url"`
+}
+
+// WebhookSubscriptionEventTypes defines model for WebhookSubscription.EventTypes.
+type WebhookSubscriptionEventTypes string
+
+// WebhookSubscriptionCreate defines model for WebhookSubscriptionCreate.
+type WebhookSubscriptionCreate struct {
+	EventTypes []WebhookSubscriptionCreateEventTypes `json:"event_types"`
+
+	// Secret Optional signing secret (>= 32 chars); a random one is generated when omitted.
+	Secret *string `json:"secret,omitempty"`
+
+	// Url Subscriber endpoint URL (https; http only for localhost).
+	Url string `json:"url"`
+}
+
+// WebhookSubscriptionCreateEventTypes defines model for WebhookSubscriptionCreate.EventTypes.
+type WebhookSubscriptionCreateEventTypes string
+
+// WebhookSubscriptionUpdate defines model for WebhookSubscriptionUpdate.
+type WebhookSubscriptionUpdate struct {
+	EventTypes *[]WebhookSubscriptionUpdateEventTypes `json:"event_types,omitempty"`
+
+	// Secret Optional new signing secret (>= 32 chars).
+	Secret *string `json:"secret,omitempty"`
+	Url    *string `json:"url,omitempty"`
+}
+
+// WebhookSubscriptionUpdateEventTypes defines model for WebhookSubscriptionUpdate.EventTypes.
+type WebhookSubscriptionUpdateEventTypes string
+
 // DiagnoseGapsParams defines parameters for DiagnoseGaps.
 type DiagnoseGapsParams struct {
 	LagModuleId string `form:"lag_module_id" json:"lag_module_id"`
@@ -544,6 +642,21 @@ type SparqlQueryParams struct {
 	Query string `form:"query" json:"query"`
 }
 
+// ListWebhookSubscriptionsParams defines parameters for ListWebhookSubscriptions.
+type ListWebhookSubscriptionsParams struct {
+	// Active Filter by active status.
+	Active *bool `form:"active,omitempty" json:"active,omitempty"`
+}
+
+// GetWebhookDeliveryHistoryParams defines parameters for GetWebhookDeliveryHistory.
+type GetWebhookDeliveryHistoryParams struct {
+	// Page Page number (0-based).
+	Page *int `form:"page,omitempty" json:"page,omitempty"`
+
+	// Limit Page size (max 100).
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // IssueTokenJSONRequestBody defines body for IssueToken for application/json ContentType.
 type IssueTokenJSONRequestBody = TokenRequest
 
@@ -552,3 +665,9 @@ type RecordModuleMasteredJSONRequestBody = MasteryRecordRequest
 
 // ComputeRouteJSONRequestBody defines body for ComputeRoute for application/json ContentType.
 type ComputeRouteJSONRequestBody = RouteComputeRequest
+
+// CreateWebhookSubscriptionJSONRequestBody defines body for CreateWebhookSubscription for application/json ContentType.
+type CreateWebhookSubscriptionJSONRequestBody = WebhookSubscriptionCreate
+
+// UpdateWebhookSubscriptionJSONRequestBody defines body for UpdateWebhookSubscription for application/json ContentType.
+type UpdateWebhookSubscriptionJSONRequestBody = WebhookSubscriptionUpdate

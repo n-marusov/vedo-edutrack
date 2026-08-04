@@ -48,6 +48,8 @@ tags:
     description: Resource catalog and module bindings
   - name: SPARQL
     description: Read-only ontology query endpoint (F6)
+  - name: Webhooks
+    description: Webhook subscription management and delivery history (F6)
 
 security:
   - bearerAuth: []
@@ -686,6 +688,252 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /webhooks/subscriptions:
+    get:
+      tags: [Webhooks]
+      operationId: listWebhookSubscriptions
+      summary: List webhook subscriptions
+      description: Lists the authenticated tenant's webhook subscriptions, optionally filtered by active status.
+      parameters:
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter by active status.
+      responses:
+        "200":
+          description: Subscription list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebhookSubscription"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Webhooks]
+      operationId: createWebhookSubscription
+      summary: Create a webhook subscription
+      description: Creates a subscription for the authenticated tenant and enqueues a verification ping.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookSubscriptionCreate"
+      responses:
+        "201":
+          description: Subscription created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookSubscription"
+        "400":
+          description: Invalid subscription payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded (max 5 subscriptions per hour per tenant)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /webhooks/subscriptions/{id}:
+    get:
+      tags: [Webhooks]
+      operationId: getWebhookSubscription
+      summary: Get a webhook subscription
+      description: Returns one subscription by id (tenant-scoped).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Subscription id.
+      responses:
+        "200":
+          description: Subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookSubscription"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [Webhooks]
+      operationId: updateWebhookSubscription
+      summary: Update a webhook subscription
+      description: Updates the subscription URL, event types, or signing secret; resets the failure counter.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Subscription id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookSubscriptionUpdate"
+      responses:
+        "200":
+          description: Subscription updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookSubscription"
+        "400":
+          description: Invalid subscription payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Webhooks]
+      operationId: deleteWebhookSubscription
+      summary: Delete a webhook subscription
+      description: Soft-deletes a subscription; no further deliveries are attempted.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Subscription id.
+      responses:
+        "204":
+          description: Subscription deleted
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /webhooks/subscriptions/{id}/deliveries:
+    get:
+      tags: [Webhooks]
+      operationId: getWebhookDeliveryHistory
+      summary: Webhook delivery history
+      description: Returns the paginated delivery history for a subscription (tenant-scoped).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Subscription id.
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Page number (0-based).
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: Page size (max 100).
+      responses:
+        "200":
+          description: Delivery list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebhookDelivery"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /webhooks/subscriptions/{id}/ping:
+    post:
+      tags: [Webhooks]
+      operationId: pingWebhookSubscription
+      summary: Ping a webhook subscription
+      description: Enqueues a verification ping event for the subscription to confirm endpoint reachability.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Subscription id.
+      responses:
+        "202":
+          description: Ping enqueued
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1218,3 +1466,97 @@ components:
               type: array
               items:
                 type: object
+        truncated:
+          type: boolean
+          description: True when the result set exceeded the row boundary (10000) and was clipped.
+
+    WebhookSubscription:
+      type: object
+      required: [id, tenant_id, url, event_types, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+        url:
+          type: string
+          format: uri
+          description: Subscriber endpoint URL (https; http only for localhost).
+        event_types:
+          type: array
+          description: Subscribed event types (module.mastered, plan.deviated, route.recalculated, standard.risk_detected).
+          items:
+            type: string
+            enum: [module.mastered, plan.deviated, route.recalculated, standard.risk_detected]
+        active:
+          type: boolean
+        failures:
+          type: integer
+          description: Consecutive delivery failures (>= 5 deactivates the subscription).
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    WebhookSubscriptionCreate:
+      type: object
+      required: [url, event_types]
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Subscriber endpoint URL (https; http only for localhost).
+        event_types:
+          type: array
+          items:
+            type: string
+            enum: [module.mastered, plan.deviated, route.recalculated, standard.risk_detected]
+        secret:
+          type: string
+          description: Optional signing secret (>= 32 chars); a random one is generated when omitted.
+
+    WebhookSubscriptionUpdate:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          items:
+            type: string
+            enum: [module.mastered, plan.deviated, route.recalculated, standard.risk_detected]
+        secret:
+          type: string
+          description: Optional new signing secret (>= 32 chars).
+
+    WebhookDelivery:
+      type: object
+      required: [id, subscription_id, event_id, attempt, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        subscription_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        attempt:
+          type: integer
+        status:
+          type: string
+          enum: [pending, sent, failed, permanent_failure]
+        last_attempt_at:
+          type: string
+          format: date-time
+        http_status:
+          type: integer
+        response_body:
+          type: string
+        error:
+          type: string

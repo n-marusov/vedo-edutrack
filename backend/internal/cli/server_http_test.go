@@ -16,7 +16,7 @@ func TestHealthzLiveness(t *testing.T) {
 	t.Cleanup(func() { config.Version = oldVersion })
 
 	cfg := &config.Config{Port: 8080, Environment: "test"}
-	r := newRouter(cfg, nil)
+	r := newRouter(cfg, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	rec := httptest.NewRecorder()
@@ -46,7 +46,7 @@ func TestHealthzLiveness(t *testing.T) {
 func TestReadyzDatabaseDown(t *testing.T) {
 	// Port 1: dial fails fast → readiness must report degraded/503.
 	cfg := &config.Config{DatabaseURL: "postgres://u:p@127.0.0.1:1/db?sslmode=disable", JWKSURL: "http://127.0.0.1:1/.well-known/jwks.json"}
-	r := newRouter(cfg, nil)
+	r := newRouter(cfg, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	rec := httptest.NewRecorder()
@@ -78,7 +78,7 @@ func TestReadyzDatabaseUp(t *testing.T) {
 		DatabaseURL: "postgres://u:p@" + host + "/db?sslmode=disable",
 		JWKSURL:     "http://" + host + "/.well-known/jwks.json",
 	}
-	r := newRouter(cfg, nil)
+	r := newRouter(cfg, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	rec := httptest.NewRecorder()
@@ -102,7 +102,7 @@ func TestReadyzDatabaseUp(t *testing.T) {
 
 func TestMetricsEndpoint(t *testing.T) {
 	cfg := &config.Config{Port: 8080, Environment: "test"}
-	r := newRouter(cfg, nil)
+	r := newRouter(cfg, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
 	rec := httptest.NewRecorder()

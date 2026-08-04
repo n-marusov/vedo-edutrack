@@ -40,6 +40,7 @@ type Config struct {
 	PublicBaseURL  string // PUBLIC_BASE_URL: externally reachable base URL (webhooks, absolute links)
 	HubAPIURL      string // VEDO_HUB_API_URL: base URL of the VEDO Hub REST API (F0, read-only)
 	HubGraphQLPath string // VEDO_HUB_GRAPHQL_PATH: ontology-service GraphQL path (default /graphql)
+	HubSparqlPath  string // VEDO_HUB_SPARQL_PATH: read-only SPARQL endpoint path (default /sparql)
 	HubBearerToken string // VEDO_HUB_BEARER_TOKEN: optional read-only Hub API bearer token
 	// JWT issuer/audience for locally-issued dev tokens (T5).
 	JWTIssuer   string
@@ -58,6 +59,7 @@ func Load() (*Config, error) {
 		PublicBaseURL:  envOrDefault("PUBLIC_BASE_URL", "http://localhost:8080"),
 		HubAPIURL:      envOrDefault("VEDO_HUB_API_URL", "http://localhost:8081"),
 		HubGraphQLPath: envOrDefault("VEDO_HUB_GRAPHQL_PATH", "/graphql"),
+		HubSparqlPath:  envOrDefault("VEDO_HUB_SPARQL_PATH", "/sparql"),
 		HubBearerToken: os.Getenv("VEDO_HUB_BEARER_TOKEN"),
 		JWTIssuer:      envOrDefault("JWT_ISSUER", "vedo-edutrack"),
 		JWTAudience:    envOrDefault("JWT_AUDIENCE", "vedo-edutrack"),

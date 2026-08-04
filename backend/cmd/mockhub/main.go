@@ -53,7 +53,7 @@ func run() error {
 	addr := ":" + strconv.Itoa(port)
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           mockhub.NewHandler(ont, logger),
+		Handler:           mockhub.NewMux(ont, logger),
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       30 * time.Second,
