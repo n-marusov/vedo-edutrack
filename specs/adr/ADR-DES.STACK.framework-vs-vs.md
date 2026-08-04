@@ -12,7 +12,7 @@
 - Тестирование: Vitest + React Testing Library / Playwright, покрытие API-контрактов (integration ≥ 70%) (`REQ-NFR-process.dev.test-coverage`)
 - i18n: react-i18next на фронте, ICU (`REQ-NFR-ops.compliance.i18n-readiness`)
 - WCAG 2.1 AA, axe-core = 0 critical (`REQ-NFR-ui.compliance.wcag-level`)
-- Стилизация — дизайн-токены (темы light/dark), синхронизация «дизайн (pen.dev) ↔ код» (`ADR-DES.PROCESS.pencil-design-adoption`)
+- Стилизация — дизайн-токены (темы light/dark), синхронизация «дизайн (Pixso) ↔ код» (`ADR-DES.PROCESS.pixso-design-adoption`)
 - Фронтенд-тулчейн — Vite (бандлер/dev-server), Vitest (тесты), pnpm (пакетный менеджер, монорепо): скорость сборки, единый раннер тестов, воспроизводимость зависимостей
 
 **Требование-источник:**
@@ -31,7 +31,7 @@
 - **CLI-фреймворк: `cobra`** (Go) — дерево подкоманд единого бинарника `vedo-edutrack` (server / mcp / migrate / seed / ontology sync / route compute / plan get / gap diagnose / report) — `ADR-DES.API.cli-interface`.
 - **Фронтенд: React + TypeScript** с React Flow (конструктор) + Cytoscape.js (карта знаний, canvas).
 - **Типизированный клиент фронта: `openapi-typescript`** — из той же спеки.
-- **Стилизация фронта: Tailwind CSS** — utility-first, дизайн-токены как CSS-переменные (`@theme`, темы light/dark), синергия с pen.dev (Pencil) и вайбкодингом.
+- **Стилизация фронта: Tailwind CSS** — utility-first, дизайн-токены как CSS-переменные (`@theme`, темы light/dark), синергия с Pixso и вайбкодингом.
 - **Бандлер/dev-server фронта: `Vite`** — стандартный инструмент React SPA: instant dev-server + HMR, быстрая production-сборка; fit с `make dev` (Vite dev для React).
 - **Тестирование фронта: `Vitest`** — единый раннер unit/компонентных тестов (React Testing Library), Vite-нативный (общий конфиг и трансформация TS/JSX), покрытие Domain/Application фронта без браузера.
 - **Пакетный менеджер: `pnpm`** — быстрее и экономнее npm (content-addressable store, симлинки), строгая изоляция зависимостей, монорепо-воркспейс (Go + React в одном репо, единый lockfile `pnpm-lock.yaml`).
@@ -85,7 +85,7 @@ OpenAPI-спек (источник истины, в репозитории)
 | # | Аргумент | Обоснование |
 |---|----------|-------------|
 | 1 | Вайбкодинг: AI-корпус | Tailwind — доминирующий подход к стилизации в AI-генерации (shadcn/ui, современные React-стеки); утилиты детерминированы, генерация стабильна |
-| 2 | Дизайн-токены ↔ CSS-переменные | Tailwind v4: токены как CSS-переменные (`@theme`) — прямая синхронизация с переменными pen.dev (Pencil) и темами light/dark без препроцессора |
+| 2 | Дизайн-токены ↔ CSS-переменные | Tailwind v4: токены как CSS-переменные (`@theme`) — прямая синхронизация с переменными Pixso и темами light/dark без препроцессора |
 | 3 | Границы Clean Architecture | Утилиты — декларативный слой представления; не протекают в Domain/Application; компоненты React + Tailwind — внешний круг (Frameworks) |
 | 4 | a11y и i18n | Утилиты не мешают семантике (ARIA — в JSX), dark mode — variant `dark:`; не конфликтует с react-i18next |
 | 5 | Экосистема | Крупнейшая в связке с React (shadcn/ui, headlessui, Tailwind UI); CSS Modules остаётся для точечных случаев |
@@ -133,7 +133,7 @@ OpenAPI-спек (источник истины, в репозитории)
 - CLI (cobra): единый бинарник `vedo-edutrack` — сервер и инструменты (migrate/seed/route compute/…) в одном артефакте; MCP stdio (F6.6) реализуется как подкоманда; тулинг воспроизводим в контейнере и скриптуем (cron/CI).
 - Визуализация: Cytoscape (карта/лакуны) + React Flow (конструктор) — правильные инструменты под разные задачи; Web Workers для layout больших графов.
 - Вайбкодинг: React (макс. корпус) + chi (минимальный API) — надёжная генерация.
-- Стилизация: Tailwind + дизайн-токены (CSS-переменные) — единый контур «дизайн (pen.dev) ↔ код», темы light/dark без препроцессора.
+- Стилизация: Tailwind + дизайн-токены (CSS-переменные) — единый контур «дизайн (Pixso) ↔ код», темы light/dark без препроцессора.
 - Фронтенд-тулчейн: Vite (быстрая сборка/HMR) + Vitest (единый раннер с покрытием ядра без браузера) + pnpm (монорепо, скорость, изоляция) — стратегия «компенсация тестированием и документацией» поддержана нативно.
 
 *Отрицательные и смягчение:*
@@ -152,6 +152,6 @@ OpenAPI-спек (источник истины, в репозитории)
 - [Модульный монолит](ADR-DES.INFRA.modular-monolith-approach.md) — стиль
 - C4-диаграммы (T6): «Веб-приложение (React SPA)», «API-сервер (Go, chi, модульный монолит)»
 - ADR `DES.API.communication-patterns` (T4) — REST + async-события
-- [Дизайн-процесс (Pencil)](ADR-DES.PROCESS.pencil-design-adoption.md) — .pen-артефакты, токены ↔ CSS
+- [Дизайн-процесс (Pixso)](ADR-DES.PROCESS.pixso-design-adoption.md) — дизайн-артефакты, токены ↔ CSS
 - [Инструменты разработки](ADR-IMPL.PROCESS.development-tooling.md) — фронтенд-тулчейн (Vite + pnpm, §11), Makefile, pre-commit, CI/CD
 - [Mock VEDO Hub](ADR-DES.INFRA.mock-hub-strategy.md) — контейнер `hub-mock` (test-only), единственная новая зависимость `gqlparser/v2` (T20, M0.3)

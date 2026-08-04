@@ -268,7 +268,7 @@ vedo-edutrack/
 ├── frontend/                         # React SPA (pnpm-воркспейс apps/web)
 │   ├── Dockerfile                    # Vite → статика (nginx) — вариант B
 │   ├── src/                          # Структура — раздел 3
-│   ├── design/                       # .pen-файлы (Pencil, дизайн-процесс)
+├── design/                       # Pixso-файлы (дизайн-процесс)
 │   ├── package.json
 │   └── vite.config.ts
 ├── tests/                            # Системные тесты (pnpm-воркспейс, TS/Playwright)

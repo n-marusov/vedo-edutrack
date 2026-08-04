@@ -120,6 +120,7 @@ vedo-edutrack/
 | User stories | `specs/user-stories/` | 47 US in Gherkin with @UC/@FR tags (Russian) |
 | Architecture decisions | `specs/adr/` | ADR records: stack, storage, comm patterns, repo structure, RBAC, CLI interface (Russian) |
 | CLI interface | `specs/adr/ADR-DES.API.cli-interface.md` | Single binary with cobra subcommands; CLI as input adapter over Application layer; dev/support/testing tooling (Russian) |
+| GUI integration into EdTech platforms | `specs/adr/ADR-DES.UI.eduplatform-gui-integration.md` | Embeddable widgets, iframe, postMessage API, OAuth 2.0 SSO, white-labeling for EdTech platforms (Russian) |
 | Domain model | `specs/ddd/` | Context map, aggregates, domain events (Russian) |
 | RBAC matrix | `specs/requirements/REQ-NFR-security.compliance.*` | Role catalog + permission matrix + ops/admin separation (T8), Community/Enterprise differences (Russian) |
 | Responsibility boundary | `specs/requirements/REQ-NFR-api.compliance.*` | EduTrack vs VEDO Hub ownership (T10): data, computation, API, events, deployment, ontology-port contract (Russian) |

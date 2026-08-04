@@ -110,4 +110,5 @@ EduTrack — клиент-серверное веб-приложение (`REQ-N
 - [Каталог доменных событий](../ddd/domain-events.md) — события ядра и webhook-представления, матрица каскадов
 - [Карта контекстов](../ddd/context-map.md) — `ontology-port` как ACL к VEDO Hub
 - C4-диаграммы (T6): контейнеры «API-сервер», «SPARQL-эндпоинт», «VEDO Hub (external)»
+- [ADR-DES.UI.eduplatform-gui-integration](ADR-DES.UI.eduplatform-gui-integration.md) — интеграция GUI в EdTech-платформы (встраиваемые виджеты, iframe, postMessage)
 - ADR `DES.SECURITY.rbac-model` (T5) — auth enforcement points на API-границе

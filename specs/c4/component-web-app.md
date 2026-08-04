@@ -1,6 +1,6 @@
 # C4 Level 3: Component Diagram — Веб-приложение (фронтенд)
 
-> Уровень 3 модели C4: компоненты внутри контейнера «Веб-приложение (React SPA)». Первичные источники: `specs/adr/ADR-DES.INFRA.clean-architecture-adoption.md` (зеркальные круги Clean Architecture на фронтенде), `specs/adr/ADR-DES.STACK.framework-vs-vs.md` (React, React Flow, Cytoscape.js, openapi-typescript, react-i18next), `specs/adr/ADR-IMPL.PROCESS.development-tooling.md` (Vite, pnpm, Zustand, Tailwind v4, Pencil-дизайн), `REQ-NFR-ui.compliance.wcag-level` (WCAG 2.1 AA), `REQ-NFR-ops.compliance.i18n-readiness` (RU+EN, ICU).
+> Уровень 3 модели C4: компоненты внутри контейнера «Веб-приложение (React SPA)». Первичные источники: `specs/adr/ADR-DES.INFRA.clean-architecture-adoption.md` (зеркальные круги Clean Architecture на фронтенде), `specs/adr/ADR-DES.STACK.framework-vs-vs.md` (React, React Flow, Cytoscape.js, openapi-typescript, react-i18next), `specs/adr/ADR-IMPL.PROCESS.development-tooling.md` (Vite, pnpm, Zustand, Tailwind v4, Pixso-дизайн), `REQ-NFR-ui.compliance.wcag-level` (WCAG 2.1 AA), `REQ-NFR-ops.compliance.i18n-readiness` (RU+EN, ICU).
 
 ## Диаграмма
 
@@ -28,7 +28,7 @@ C4Component
         Component(viewModels, "View-модели", "Adapters · TS-типы", "Проекции состояния для UI: форматирование, i18n-готовность, сортировки, агрегаты дашбордов")
 
         %% ===== Frameworks & Drivers (внешний круг) =====
-        Component(ui, "UI-компоненты", "Framework · React + Tailwind v4 (дизайн-система из Pencil .pen)", "Экраны: карта знаний, дашборды, конструктор маршрутов, панель группы. WCAG 2.1 AA, axe-core = 0 critical")
+        Component(ui, "UI-компоненты", "Framework · React + Tailwind v4 (дизайн-система из Pixso)", "Экраны: карта знаний, дашборды, конструктор маршрутов, панель группы. WCAG 2.1 AA, axe-core = 0 critical")
         Component(graph, "Граф-движки", "Framework · Cytoscape.js + React Flow + Web Workers", "Карта знаний/лакун (canvas >500 нод, layout в Worker), node-редактор конструктора")
         Component(router, "Роутер", "Framework · react-router", "Навигация между экранами SPA")
         Component(i18n, "i18n", "Framework · react-i18next (ICU)", "Строки RU/EN, добавление языка без кода (NFR)")
@@ -95,7 +95,7 @@ C4Component
 
 | Компонент | Ответственность | Технология |
 |-----------|-----------------|------------|
-| **UI-компоненты** | Экраны и переиспользуемые компоненты из дизайн-системы; семантические Tailwind-классы | React, Tailwind v4, Lucide; дизайн из Pencil (`.pen` → код) |
+| **UI-компоненты** | Экраны и переиспользуемые компоненты из дизайн-системы; семантические Tailwind-классы | React, Tailwind v4, Lucide; дизайн из Pixso |
 | **Граф-движки** | Карта знаний/лакун (canvas >500 нод, layout в Web Workers) и node-редактор конструктора | Cytoscape.js, React Flow |
 | **Роутер** | Навигация между экранами SPA | react-router |
 | **i18n** | Строки RU/EN, ICU; добавление языка без кода | react-i18next |
@@ -162,5 +162,5 @@ C4Component
 - [System Context](context-system.md) — уровень 1
 - [ADR Clean Architecture](../adr/ADR-DES.INFRA.clean-architecture-adoption.md) — круги на фронтенде
 - [ADR стек: фреймворки](../adr/ADR-DES.STACK.framework-vs-vs.md) — React, React Flow, Cytoscape.js, openapi-typescript
-- [ADR инструменты разработки](../adr/ADR-IMPL.PROCESS.development-tooling.md) — Vite, pnpm, Zustand, Tailwind v4, Pencil
+- [ADR инструменты разработки](../adr/ADR-IMPL.PROCESS.development-tooling.md) — Vite, pnpm, Zustand, Tailwind v4, Pixso
 - [Карта контекстов](../ddd/context-map.md) — bounded contexts (визуализация как read-only проекции)

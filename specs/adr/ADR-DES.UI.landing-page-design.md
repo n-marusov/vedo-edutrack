@@ -4,7 +4,7 @@
 **Дата:** 2026-08-03
 **Контекст:** Дизайн публичной посадочной страницы (M0.3, T14 — «Build landing page»)
 
-EduTrack — сервис образовательных маршрутов на базе VEDO Hub; фронтенд — React + TypeScript SPA (T3), визуализация — React Flow + Cytoscape.js, стилизация — Tailwind CSS v4 + дизайн-токены (`ADR-DES.PROCESS.pencil-design-adoption`, `ADR-DES.STACK.framework-vs-vs`). Внутренняя структура — Clean Architecture (`ADR-DES.INFRA.clean-architecture-adoption`): UI — периферия (Interface Adapters/Frameworks), бизнес-правила не живут в компонентах.
+EduTrack — сервис образовательных маршрутов на базе VEDO Hub; фронтенд — React + TypeScript SPA (T3), визуализация — React Flow + Cytoscape.js, стилизация — Tailwind CSS v4 + дизайн-токены (`ADR-DES.PROCESS.pixso-design-adoption`, `ADR-DES.STACK.framework-vs-vs`). Внутренняя структура — Clean Architecture (`ADR-DES.INFRA.clean-architecture-adoption`): UI — периферия (Interface Adapters/Frameworks), бизнес-правила не живут в компонентах.
 
 Функциональное требование посадочной страницы зафиксировано (`REQ-FR-onboarding.landing.explore-value-proposition`, P1): публичная страница (`/`) без авторизации сообщает ценностное предложение, содержит hero, три карточки ценностных предложений, CTA «Sign In» (→ `/login`) и «Learn More» (якорь к секции возможностей), футер; маршрутизирует посетителя к входу/регистрации (roadmap M0.3: «Landing page communicates the product value proposition and routes users toward registration»); локали RU + EN (`REQ-NFR-ops.compliance.i18n-readiness`); доступность WCAG 2.1 AA (`REQ-NFR-ui.compliance.wcag-level`).
 
@@ -12,10 +12,10 @@ EduTrack — сервис образовательных маршрутов на
 
 **Ключевые драйверы:**
 - **Первое впечатление и воронка**: страница — точка входа в продукт; цель — передать ценностное предложение за ≤ 5 секунд сканирования и направить к CTA («Sign In»), не отвлекая (G3, `REQ-FR-onboarding.landing.explore-value-proposition`).
-- **Вайбкодинг и дизайн как код**: структура страницы описывается декларативно (секции → компоненты → токены), воспроизводима ИИ-ассистентами и командой (`ADR-DES.PROCESS.pencil-design-adoption`, `REQ-NFR-process.dev.developer-documentation`).
+- **Вайбкодинг и дизайн как код**: структура страницы описывается декларативно (секции → компоненты → токены), воспроизводима ИИ-ассистентами и командой (`ADR-DES.PROCESS.pixso-design-adoption`, `REQ-NFR-process.dev.developer-documentation`).
 - **i18n RU+EN**: все строки — в файлах переводов (react-i18next, ICU); макеты не содержат хардкода (`REQ-NFR-ops.compliance.i18n-readiness`).
 - **WCAG 2.1 AA**: контраст, семантика, клавиатура, screen reader — с первого коммита, не пост-фактум (`REQ-NFR-ui.compliance.wcag-level`, `REQ-FR-a11y.navigation.dashboards-keyboard` — паттерн распространяется на публичные страницы).
-- **Темы light/dark**: токены из дизайн-системы; лендинг — первый кандидат на проверку темизации (`ADR-DES.PROCESS.pencil-design-adoption`).
+- **Темы light/dark**: токены из дизайн-системы; лендинг — первый кандидат на проверку темизации (`ADR-DES.PROCESS.pixso-design-adoption`).
 - **Перформанс и SEO-нейтральность**: публичная страница отдаётся из SPA-бандла (M0.3 — embedded SPA в едином бинарнике, `ADR-DES.INFRA.docker-images-environments`); тяжёлая визуализация (Cytoscape/React Flow) на лендинг не грузится — ленивый импорт (`React.lazy`).
 - **Авторизованный пользователь**: `/` для авторизованного — редирект на ролевой дашборд (`/dashboard`), не показ маркетингового экрана (ProtectedRoute).
 
@@ -139,7 +139,7 @@ frontend/src/pages/Landing.tsx (Router route "/")
 *Положительные:*
 - **Ценностное предложение за ≤ 5 секунд**: hero + 3 карточки + CTA на одном экране; прямое выполнение критериев приёмки FR (3 карточки, CTA → `/login`, якорь `#features`).
 - **Лёгкий бандл лендинга**: без Cytoscape/React Flow на критическом пути — быстрый TTI для публичной страницы (первый экран продукта).
-- **Воспроизводимость для вайбкодинга**: декларативная структура секций → компонентов → токенов; `.pen`-макет лендинга может быть сгенерирован/синхронизирован через Pencil (MCP), код — из структуры.
+- **Воспроизводимость для вайбкодинга**: декларативная структура секций → компонентов → токенов; макет лендинга может быть сгенерирован/синхронизирован через Pixso (MCP), код — из структуры.
 - **i18n и темы с первого коммита**: все строки в ресурсах, все стили — токены; RU+EN и light/dark не требуют переписывания страницы.
 - **Единая воронка**: метрика `landing.cta_clicked` → `/login` измерима сразу (`REQ-NFR-ops.observability.product-metrics`).
 
@@ -153,7 +153,7 @@ frontend/src/pages/Landing.tsx (Router route "/")
 - [Требование: посадочная страница](../requirements/REQ-FR-onboarding.landing.explore-value-proposition.md) — FR, критерии приёмки
 - [Прецедент: знакомство с продуктом](../use-cases/UC-onboarding.landing.explore-value-proposition.md) — UC, основной/альтернативные потоки
 - [История: посадочная страница](../user-stories/US-onboarding.landing.explore-value-proposition.md) — US, Gherkin-сценарии
-- [Дизайн как код (Pencil)](ADR-DES.PROCESS.pencil-design-adoption.md) — процесс дизайна, токены, темы
+- [Дизайн как код (Pixso)](ADR-DES.PROCESS.pixso-design-adoption.md) — процесс дизайна, токены, темы
 - [Стек: фреймворки](ADR-DES.STACK.framework-vs-vs.md) — React + TS, Tailwind, i18n (T3)
 - [Clean Architecture](ADR-DES.INFRA.clean-architecture-adoption.md) — UI как периферия
 - [Стратегия образов (embed SPA)](ADR-DES.INFRA.docker-images-environments.md) — раздача лендинга из единого бинарника (M0.3)

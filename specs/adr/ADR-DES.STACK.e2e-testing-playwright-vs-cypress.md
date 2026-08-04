@@ -95,6 +95,6 @@
 - [Стек: фреймворки (chi + React + oapi-codegen)](ADR-DES.STACK.framework-vs-vs.md) — T3, Playwright для e2e в тест-стратегии
 - [Инструменты разработки](ADR-IMPL.PROCESS.development-tooling.md) — §6 тест-пирамида, §7 CI/CD, §11 Makefile
 - [Репозиторная структура](ADR-IMPL.PROCESS.repository-structure.md) — §5 тестовая структура (E2E: Playwright, 10 Must-сценариев)
-- [Дизайн-процесс (Pencil)](ADR-DES.PROCESS.pencil-design-adoption.md) — генерируемые компоненты проходят те же гейты
+- [Дизайн-процесс (Pixso)](ADR-DES.PROCESS.pixso-design-adoption.md) — генерируемые компоненты проходят те же гейты
 - `specs/requirements/MVP-ACCEPTANCE-CRITERIA.md` — M1–M10 (10 Must-сценариев)
 - `specs/requirements/REQ-NFR-process.dev.test-coverage.md` — e2e-покрытие 100% Must-критериев
