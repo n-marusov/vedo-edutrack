@@ -32,16 +32,18 @@ if [[ ! -f "$FILE" ]]; then
   exit 0 # no data -> not a blocker; the unit-test gate covers failures
 fi
 
-TOTAL="$(go tool cover -func="$FILE" 2>/dev/null | tail -1 | awk '{print $3}' | tr -d '%')"
+COVER_DIR="$(dirname "$FILE")"
+COVER_FILE="$(basename "$FILE")"
+TOTAL="$(cd "$COVER_DIR" && go tool cover -func="$COVER_FILE" 2>/dev/null | tail -1 | awk '{print $3}' | tr -d '%')"
 if [[ -z "$TOTAL" ]]; then
-  echo "coverage-check: could not parse $FILE"
+  echo "coverage-check: could not parse $FILE (run go test -coverprofile first from the module directory)"
   exit 0
 fi
 
 echo "coverage-check: total coverage ${TOTAL}% (min ${MIN}%)"
 awk -v t="$TOTAL" -v m="$MIN" 'BEGIN {
   if (t + 0 < m + 0) {
-    printf "coverage-check: FAIL — %.1f%% < %d%% (advisory at M0.2; blocking at M1)\n", t, m
+    printf "coverage-check: FAIL — %.1f%% < %d%% (advisory at M0.3; becomes blocking when coverage >= 90%%)\n"
     exit 1
   }
   printf "coverage-check: OK — %.1f%% >= %d%%\n", t, m

@@ -21,9 +21,9 @@
 #   nfr         requirement ID traced (optional)
 #   runner      agent | internal — non-shell gates (agent-declared, executed by the agent)
 
-current_phase: m0.2
+current_phase: m0.3
 
-# Deferred stages — declared so DESCRIPTION.md / CI never drift (never executed at m0.2).
+# Deferred stages — declared so DESCRIPTION.md / CI never drift (never executed at current_phase).
 deferred:
   - id: mutation
     tool: gremlins
@@ -150,7 +150,7 @@ gates:
     command: cd backend && go test -count=1 -coverprofile=coverage.out ./...
     tier: delivery
     phase: m0.2
-    severity: advisory # red placeholder scaffolds at M0.2 (T13); blocking from M0.3
+    severity: blocking
     group: test
     nfr: REQ-NFR-process.dev.test-coverage
 
@@ -158,7 +158,7 @@ gates:
     command: cd backend && go test -tags=integration -count=1 ./...
     tier: delivery
     phase: m0.2
-    severity: advisory # placeholder skips at M0.2 (T13); blocking from M0.3
+    severity: blocking
     group: test
     needs: postgres
     nfr: REQ-NFR-process.dev.test-coverage
@@ -167,7 +167,7 @@ gates:
     command: bash deploy/ci/e2e-run.sh gui
     tier: delivery
     phase: m0.2
-    severity: advisory # red placeholder at M0.2 (T15); blocking from M0.3
+    severity: blocking
     group: test
     nfr: REQ-NFR-process.dev.test-coverage
 
@@ -175,7 +175,7 @@ gates:
     command: bash deploy/ci/e2e-run.sh api
     tier: delivery
     phase: m0.2
-    severity: advisory # stack auto-managed by e2e-run.sh; blocking from M0.3
+    severity: blocking
     group: test
     nfr: REQ-NFR-process.dev.test-coverage
 
@@ -183,7 +183,7 @@ gates:
     command: cd frontend && pnpm test
     tier: delivery
     phase: m0.2
-    severity: advisory # red placeholder scaffolds at M0.2 (T14); blocking from M0.3
+    severity: blocking
     group: test
     nfr: REQ-NFR-process.dev.test-coverage
 
@@ -191,7 +191,7 @@ gates:
     command: bash deploy/ci/coverage-check.sh --min 90 backend/coverage.out --generate-on-missing
     tier: delivery
     phase: m0.2
-    severity: advisory # advisory at M0.2 -> blocking at M1 (REQ-NFR-process.dev.test-coverage)
+    severity: advisory # advisory at M0.2 (coverage 38.7% at M0.3 — below 90% threshold; becomes blocking when coverage >= 90%)
     group: coverage
     nfr: REQ-NFR-process.dev.test-coverage
 
