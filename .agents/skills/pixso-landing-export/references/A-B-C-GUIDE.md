@@ -31,7 +31,7 @@ function getInitialTheme(): string {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-export function LandingPixso() {
+export function Landing() {
   useEffect(() => {
     // Apply initial theme
     const theme = getInitialTheme();
@@ -246,7 +246,7 @@ frontend/
 │               └── ...
 ├── src/
 │   ├── pages/
-│   │   └── LandingPixso.tsx   # Generated React component
+│   │   └── Landing.tsx         # Generated React component
 │   └── styles/
 │       └── pixso-variables.css # Pixso color tokens
 ```
