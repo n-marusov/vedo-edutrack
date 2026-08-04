@@ -115,7 +115,7 @@ define verdict
 	bash scripts/verdict.sh "$(1)" $(2)
 endef
 
-.PHONY: help up down test-up test-down dev build build-frontend bench test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json validate-traceability docker-build docker-build-backend docker-build-local docker-build-frontend-nginx docker-build-all clean
+.PHONY: help up down test-up build-test-backend test-down dev build build-frontend bench test test-e2e lint format gen dev-check check migrate migrate-down hooks ci gates gates-list gates-json validate-traceability docker-build docker-build-backend docker-build-local docker-build-frontend-nginx docker-build-all clean
 
 help: ## Print available targets
 	@if [ -t 1 ] && [ -z "$(NO_COLOR)" ]; then \
@@ -151,16 +151,25 @@ down: ## Stop and remove the dev stack (incl. volumes) — idempotent
 	else \
 		$(call verdict,SKIP,"stack was not running (nothing to stop)"); \
 	fi
+build-test-backend: ## Cross-compile Linux backend binary for the test stack
+		@$(call header,build,"test backend binary")
+		@(cd backend && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/vedo-edutrack.linux ./cmd/vedo-edutrack) 2>&1; rc=$$?; \
+		if [ $$rc -eq 0 ]; then \
+			$(call verdict,PASS,"linux/amd64 backend binary"); \
+		else \
+			$(call verdict,FAIL,"cross-compile failed"); \
+			exit 1; \
+		fi
 
-test-up: ## Start the TEST stack (postgres + backend + hub-mock + frontend; no observability)
-	@$(call header,up,"start test stack")
-	@unset $(TEST_ENV_CLEAN); \
-	if $(TEST_COMPOSE) up -d --wait; then \
-		$(call verdict,PASS,"test stack up (4 services)"); \
-	else \
-		$(call verdict,FAIL,"test stack failed to start"); \
-		exit 1; \
-	fi
+test-up: build-test-backend ## Start the TEST stack (postgres + backend + hub-mock + frontend; no observability)
+		@$(call header,up,"start test stack")
+		@unset $(TEST_ENV_CLEAN); \
+		if $(TEST_COMPOSE) up -d --wait; then \
+			$(call verdict,PASS,"test stack up (4 services)"); \
+		else \
+			$(call verdict,FAIL,"test stack failed to start"); \
+			exit 1; \
+		fi
 
 test-down: ## Stop and remove the TEST stack (isolated project — never touches dev data)
 	@$(call header,down,"stop test stack")

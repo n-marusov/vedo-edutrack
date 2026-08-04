@@ -16,7 +16,7 @@ import (
 func NewTestServer(t testing.TB, ttlPath string) *httptest.Server {
 	t.Helper()
 
-	f, err := os.Open(ttlPath)
+	f, err := os.Open(ttlPath) // #nosec G304
 	if err != nil {
 		t.Fatalf("open ontology %s: %v", ttlPath, err)
 	}

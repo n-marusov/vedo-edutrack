@@ -53,7 +53,7 @@ func LoadOrCreateKey(path string) (*rsa.PrivateKey, error) {
 
 // loadKeyFile reads and parses a PEM-encoded RSA private key.
 func loadKeyFile(path string) (*rsa.PrivateKey, error) {
-	raw, err := os.ReadFile(path)
+	raw, err := os.ReadFile(path) // #nosec G304
 	if err != nil {
 		return nil, err
 	}

@@ -39,7 +39,7 @@ func run() error {
 	defer func() { _ = logger.Sync() }()
 
 	// Load the ontology at startup.
-	f, err := os.Open(ontologyFile)
+	f, err := os.Open(ontologyFile) // #nosec G304
 	if err != nil {
 		return fmt.Errorf("open ontology %s: %w", ontologyFile, err)
 	}

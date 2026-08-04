@@ -208,7 +208,7 @@ func insertIntegrationDemoData(ctx context.Context, tx pgx.Tx) error {
 	}
 
 	// Secret: fixed demo secret (32+ chars) — sandbox only, not production.
-	const demoSecret = "vedo-edutrack-integration-demo-secret-0123456789"
+	const demoSecret = "vedo-edutrack-integration-demo-secret-0123456789" // #nosec G101
 
 	for _, s := range demoSubs {
 		var exists bool

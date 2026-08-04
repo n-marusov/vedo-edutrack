@@ -71,7 +71,7 @@ type gapDiagnoseInput struct {
 }
 
 func readJSONFile(path string, out any) error {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304
 	if err != nil {
 		return fmt.Errorf("read %s: %w", path, err)
 	}

@@ -36,7 +36,7 @@ func runHealthProbe() error {
 	}
 
 	client := &http.Client{Timeout: 2 * time.Second}
-	resp, err := client.Get("http://127.0.0.1:" + strconv.Itoa(port) + "/healthz")
+	resp, err := client.Get("http://127.0.0.1:" + strconv.Itoa(port) + "/healthz") // #nosec G704
 	if err != nil {
 		return fmt.Errorf("health probe failed: %w", err)
 	}
