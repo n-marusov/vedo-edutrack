@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"go.uber.org/zap"
 
@@ -30,6 +31,7 @@ import (
 	"vedo-edutrack/backend/internal/platform/auth"
 	"vedo-edutrack/backend/internal/platform/circuitbreaker"
 	"vedo-edutrack/backend/internal/platform/config"
+	"vedo-edutrack/backend/internal/platform/eventbus"
 	"vedo-edutrack/backend/internal/platform/ratelimit"
 )
 
@@ -49,6 +51,7 @@ type StubHandler struct {
 	Sparql    *sparql.Handler
 	Webhooks  *integapp.SubscriptionCommands
 	WebhookQ  *integquery.SubscriptionQueries
+	Bus       *eventbus.Bus
 	Logger    *zap.Logger
 	gapGraph  gapdomain.Graph
 }
@@ -61,6 +64,7 @@ type WebhookServices struct {
 	Repo     *webhook.InMemorySubscriptionRepository
 	Recorder *webhook.InMemoryDeliveryRecorder
 	Worker   *webhook.DeliveryWorker
+	Bus      *eventbus.Bus
 }
 
 // NewStubHandler returns a handler wired to the stub graph, route computer,
@@ -124,6 +128,12 @@ func NewStubHandler(cfg *config.Config, logger *zap.Logger, webhooks *WebhookSer
 		webhookQueries = integquery.NewSubscriptionQueries(subService, nil, logger)
 	}
 
+	// In-process event bus (F6.4): domain events → webhook outbox.
+	var bus *eventbus.Bus
+	if webhooks != nil {
+		bus = webhooks.Bus
+	}
+
 	return &StubHandler{
 		Ontology:  graph,
 		Routes:    routestub.NewComputer(graph),
@@ -136,6 +146,7 @@ func NewStubHandler(cfg *config.Config, logger *zap.Logger, webhooks *WebhookSer
 		Sparql:    sparqlHandler,
 		Webhooks:  webhookCmds,
 		WebhookQ:  webhookQueries,
+		Bus:       bus,
 		Logger:    logger,
 		gapGraph:  gapGraph,
 	}
@@ -438,6 +449,21 @@ func (h *StubHandler) RecordModuleMastered(w http.ResponseWriter, r *http.Reques
 		zap.String("module_id", req.ModuleId),
 		zap.String("status", string(req.Status)),
 	)
+
+	// Emit the ModuleMastered domain event on the in-process bus (F6.4): the
+	// integrations subscriber maps it to the webhook outbox (module.mastered).
+	if h.Bus != nil {
+		h.Bus.Publish(eventbus.Event{
+			Name: webhook.EventNameModuleMastered,
+			Payload: map[string]any{
+				"event_id":    uuid.NewString(),
+				"learner_id":  learnerID,
+				"module_id":   req.ModuleId,
+				"mastery":     string(req.Status),
+				"mastered_at": time.Now().UTC().Format(time.RFC3339),
+			},
+		})
+	}
 
 	now := time.Now()
 	writeJSONBody(w, http.StatusCreated, MasteryRecordResponse{

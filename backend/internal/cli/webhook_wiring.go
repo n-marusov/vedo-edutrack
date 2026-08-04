@@ -10,6 +10,7 @@ import (
 	integapp "vedo-edutrack/backend/internal/modules/integrations/application/commands"
 	integquery "vedo-edutrack/backend/internal/modules/integrations/application/queries"
 	integdomain "vedo-edutrack/backend/internal/modules/integrations/domain"
+	"vedo-edutrack/backend/internal/platform/eventbus"
 )
 
 // newWebhookServices builds the shared webhook services: in-memory subscription
@@ -37,6 +38,7 @@ func newWebhookServices(logger *zap.Logger) *api.WebhookServices {
 	queries := integquery.NewSubscriptionQueries(subService, recorder, logger)
 
 	var worker *webhook.DeliveryWorker
+	var bus *eventbus.Bus
 	if dbPool != nil {
 		worker = webhook.NewDeliveryWorker(webhook.DeliveryWorkerConfig{
 			Outbox:        outbox,
@@ -46,12 +48,19 @@ func newWebhookServices(logger *zap.Logger) *api.WebhookServices {
 		}, logger)
 	}
 
+	// In-process event bus (F6.4): domain events from other bounded contexts
+	// are mapped to outbox webhook events by the subscriber.
+	bus = eventbus.New(logger)
+	subscriber := webhook.NewEventSubscriber(bus, outbox, logger)
+	subscriber.Register()
+
 	return &api.WebhookServices{
 		Cmds:     cmds,
 		Queries:  queries,
 		Repo:     subRepo,
 		Recorder: recorder,
 		Worker:   worker,
+		Bus:      bus,
 	}
 }
 

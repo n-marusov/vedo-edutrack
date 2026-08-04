@@ -230,7 +230,7 @@ Decisions carried over:
 
 ### Phase 3: Event Integration & MCP Server
 
-- [ ] **Task 9: Wire domain events from other bounded contexts into the webhook outbox**
+- [x] **Task 9: Wire domain events from other bounded contexts into the webhook outbox**
   Connect the in-process event bus from other modules to the integrations outbox so webhook subscribers receive events.
 
   **Event subscriber** (`backend/internal/modules/integrations/adapters/webhook/` or new file):
@@ -249,7 +249,7 @@ Decisions carried over:
 
   **Files:** `backend/internal/modules/integrations/adapters/webhook/event_subscriber.go` (new), `backend/internal/cli/server_http.go` (wire subscriber)
 
-- [ ] **Task 10: Implement MCP server over stdio**
+- [x] **Task 10: Implement MCP server over stdio**
   Implement the `vedo-edutrack mcp` subcommand as a production-ready MCP server over stdio.
 
   **MCP server** (`backend/internal/cli/mcp.go` — replace stub):
@@ -278,7 +278,7 @@ Decisions carried over:
 
   **Files:** `backend/internal/cli/mcp.go`, `backend/internal/modules/integrations/adapters/mcp/` (new: mcp adapter)
 
-- [ ] **Task 11: MCP server tests**
+- [x] **Task 11: MCP server tests**
   Write tests for the MCP server.
 
   **Tests** (`backend/internal/cli/mcp_test.go` or `backend/internal/modules/integrations/adapters/mcp/mcp_test.go`):
