@@ -1,7 +1,34 @@
-import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import {
+  AlertCircle,
+  ArrowRight,
+  BadgeCheck,
+  Briefcase,
+  Check,
+  Clock,
+  Compass,
+  Eye,
+  FlaskConical,
+  FolderKanban,
+  HelpCircle,
+  Info,
+  Layers,
+  Link2,
+  Map as MapIcon,
+  Minus,
+  Navigation,
+  Play,
+  Plus,
+  Quote,
+  RefreshCw,
+  Search,
+  Send,
+  Sparkles,
+  Target,
+  Unlink,
+  Users,
+} from 'lucide-react';
+import { type ReactNode, useEffect, useState } from 'react';
 import '../styles/pixso-variables.css';
-import '../styles/pixso-landing.css';
 
 const THEME_KEY = 'pixso-theme';
 
@@ -11,304 +38,19 @@ function getInitialTheme(): string {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-function CTAButton({
-  children,
-  id,
-  className,
-  slot_4_258,
-}: {
-  children?: ReactNode;
-  id?: string;
-  className?: string;
-  slot_4_258?: ReactNode;
-}) {
-  return (
-    <div id={id} className={`component-4_257 ${className ?? ''}`.trim()}>
-      <div className="Pixso-symbol-4_257">
-        {children ?? slot_4_258 ?? <p className="Pixso-paragraph-4_258">Начать бесплатно</p>}
-        <div className="Pixso-frame-4_259">
-          <div className="frame-content-4_259">
-            <div className="Pixso-frame-4_260">
-              <div className="Pixso-vector-4_261" />
-              <div className="Pixso-vector-4_262" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+function useTheme() {
+  const [theme, setTheme] = useState<string>(() => getInitialTheme());
 
-function Eyebrow({
-  children,
-  id,
-  className,
-  slot_4_273,
-}: {
-  children?: ReactNode;
-  id?: string;
-  className?: string;
-  slot_4_273?: ReactNode;
-}) {
-  return (
-    <div id={id} className={`component-4_271 ${className ?? ''}`.trim()}>
-      <div className="Pixso-symbol-4_271">
-        <div className="Pixso-frame-4_272" />
-        {children ?? slot_4_273 ?? <p className="Pixso-paragraph-4_273">СЕКЦИЯ</p>}
-      </div>
-    </div>
-  );
-}
-
-function SectionHeader({
-  eyebrow,
-  title,
-  subtitle,
-  id,
-  className,
-  slot_7_208,
-  slot_7_211,
-  slot_7_212,
-}: {
-  eyebrow?: ReactNode;
-  title?: ReactNode;
-  subtitle?: ReactNode;
-  id?: string;
-  className?: string;
-  slot_7_208?: ReactNode;
-  slot_7_211?: ReactNode;
-  slot_7_212?: ReactNode;
-}) {
-  return (
-    <div id={id} className={`component-7_207 ${className ?? ''}`.trim()}>
-      <div className="Pixso-symbol-7_207">
-        {eyebrow ?? slot_7_208 ?? <Eyebrow />}
-        {title ?? slot_7_211 ?? <p className="Pixso-paragraph-7_211">Заголовок секции</p>}
-        {subtitle ?? slot_7_212 ?? <p className="Pixso-paragraph-7_212">Подзаголовок секции</p>}
-      </div>
-    </div>
-  );
-}
-
-// --- Extracted CTAButton slot props ---
-
-const headerCtaText = (
-  <p id="11_38" className="Pixso-paragraph-11_38">
-    {'Попробовать бесплатно'}
-  </p>
-);
-
-const heroCtaText = (
-  <p id="11_33" className="Pixso-paragraph-11_33">
-    {'Построить маршрут за 5 минут'}
-  </p>
-);
-
-const pricingMapCtaText = (
-  <p id="11_11" className="Pixso-paragraph-11_11">
-    {'Попробовать 7 дней'}
-  </p>
-);
-
-const pricingCompassCtaText = (
-  <p id="11_43" className="Pixso-paragraph-11_43">
-    {'Выбрать маршрут'}
-  </p>
-);
-
-const pricingNavigatorCtaText = (
-  <p id="11_18" className="Pixso-paragraph-11_18">
-    {'Получить максимум'}
-  </p>
-);
-
-// --- Extracted SectionHeader slot props ---
-
-// Problem section
-const problemSectionSubtitle = (
-  <p id="11_126" className="Pixso-paragraph-11_126">
-    {'Знакомые ситуации для родителей на семейном образовании'}
-  </p>
-);
-
-const problemSectionTitle = (
-  <p id="11_125" className="Pixso-paragraph-11_125">
-    {'Это про вас?'}
-  </p>
-);
-
-const problemSectionEyebrow = (
-  <Eyebrow
-    id="11_122"
-    className="Pixso-instance-11_122"
-    slot_4_273={
-      <p id="11_124" className="Pixso-paragraph-11_124">
-        {'ПРОБЛЕМА'}
-      </p>
-    }
-  />
-);
-
-// How It Works section
-const howItWorksSectionSubtitle = (
-  <p id="11_141" className="Pixso-paragraph-11_141">
-    {
-      'Представьте, что все школьные темы — это города на карте, а связи между ними — дороги. Мы ведём вас по маршруту.'
-    }
-  </p>
-);
-
-const howItWorksSectionTitle = (
-  <p id="11_140" className="Pixso-paragraph-11_140">
-    {'Как работает «Дай пять»'}
-  </p>
-);
-
-const howItWorksSectionEyebrow = (
-  <Eyebrow
-    id="11_137"
-    className="Pixso-instance-11_137"
-    slot_4_273={
-      <p id="11_139" className="Pixso-paragraph-11_139">
-        {'РЕШЕНИЕ'}
-      </p>
-    }
-  />
-);
-
-// Benefits section
-const benefitsSectionSubtitle = (
-  <p id="11_136" className="Pixso-paragraph-11_136">
-    {'Вместо метода проб и ошибок — система, которая работает'}
-  </p>
-);
-
-const benefitsSectionTitle = (
-  <p id="11_135" className="Pixso-paragraph-11_135">
-    {'Почему родители выбирают «Дай пять»'}
-  </p>
-);
-
-const benefitsSectionEyebrow = (
-  <Eyebrow
-    id="11_132"
-    className="Pixso-instance-11_132"
-    slot_4_273={
-      <p id="11_134" className="Pixso-paragraph-11_134">
-        {'ПРЕИМУЩЕСТВА'}
-      </p>
-    }
-  />
-);
-
-// Pricing section
-const pricingSectionSubtitle = (
-  <p id="11_111" className="Pixso-paragraph-11_111">
-    {'Диагностика бесплатно. Мотивация — в Компасе. Экономия на репетиторах — в Навигаторе.'}
-  </p>
-);
-
-const pricingSectionTitle = (
-  <p id="11_110" className="Pixso-paragraph-11_110">
-    {'Выберите свой маршрут к аттестации'}
-  </p>
-);
-
-const pricingSectionEyebrow = (
-  <Eyebrow
-    id="11_107"
-    className="Pixso-instance-11_107"
-    slot_4_273={
-      <p id="11_109" className="Pixso-paragraph-11_109">
-        {'ТАРИФЫ'}
-      </p>
-    }
-  />
-);
-
-// Testimonials section
-const testimonialsSectionSubtitle = (
-  <p id="11_91" className="Pixso-paragraph-11_91">
-    {'Как «Дай пять» помог семьям на семейном образовании'}
-  </p>
-);
-
-const testimonialsSectionTitle = (
-  <p id="11_90" className="Pixso-paragraph-11_90">
-    {'Реальные истории'}
-  </p>
-);
-
-const testimonialsSectionEyebrow = (
-  <Eyebrow
-    id="11_87"
-    className="Pixso-instance-11_87"
-    slot_4_273={
-      <p id="11_89" className="Pixso-paragraph-11_89">
-        {'ОТЗЫВЫ'}
-      </p>
-    }
-  />
-);
-
-// Philosophy section
-const philosophySectionSubtitle = (
-  <p id="11_86" className="Pixso-paragraph-11_86">
-    {'Мы строим карту знаний, где каждая тема занимает своё место.'}
-  </p>
-);
-
-const philosophySectionTitle = (
-  <p id="11_85" className="Pixso-paragraph-11_85">
-    {'Система, которая возвращает логику и смысл'}
-  </p>
-);
-
-const philosophySectionEyebrow = (
-  <Eyebrow
-    id="11_82"
-    className="Pixso-instance-11_82"
-    slot_4_273={
-      <p id="11_84" className="Pixso-paragraph-11_84">
-        {'ОСНОВА'}
-      </p>
-    }
-  />
-);
-
-// FAQ section
-const faqSectionSubtitle = (
-  <p id="11_81" className="Pixso-paragraph-11_81">
-    {'Отвечаем на сомнения до того, как они возникнут'}
-  </p>
-);
-
-const faqSectionTitle = (
-  <p id="11_80" className="Pixso-paragraph-11_80">
-    {'Частые вопросы'}
-  </p>
-);
-
-const faqSectionEyebrow = (
-  <Eyebrow
-    id="11_77"
-    className="Pixso-instance-11_77"
-    slot_4_273={
-      <p id="11_79" className="Pixso-paragraph-11_79">
-        {'FAQ'}
-      </p>
-    }
-  />
-);
-
-export function LandingPage() {
   useEffect(() => {
-    const theme = getInitialTheme();
     document.documentElement.setAttribute('data-collection-3-4-mode', theme);
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
 
+  useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e: MediaQueryListEvent) => {
       const next = e.matches ? 'dark' : 'light';
+      setTheme(next);
       document.documentElement.setAttribute('data-collection-3-4-mode', next);
       localStorage.setItem(THEME_KEY, next);
     };
@@ -316,1478 +58,1167 @@ export function LandingPage() {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
+  return { theme, setTheme };
+}
+
+// ---------- REUSABLE UI ----------
+
+function SectionBadge({ children }: { children: ReactNode }) {
   return (
-    <div className="scroll-container">
-      <div id="3_1309" className="Pixso-frame-3_1309">
-        <div id="3_1310" className="Pixso-frame-3_1310">
-          <div className="frame-content-3_1310">
-            <div id="4_99" className="stroke-wrapper-4_99">
-              <div className="Pixso-frame-4_99" />
-              <div className="stroke-4_99" />
-              <div className="Pixso-frame-4_99-content-layer">
-                <div className="frame-content-4_99">
-                  <div id="3_1311" className="Pixso-frame-3_1311">
-                    <div id="3_1312" className="Pixso-vector-3_1312" />
-                    <p id="3_1317" className="Pixso-paragraph-3_1317">
-                      {'Дай пять'}
-                    </p>
-                  </div>
-                  <div id="3_1318" className="Pixso-frame-3_1318">
-                    <p id="3_1319" className="Pixso-paragraph-3_1319">
-                      {'Как это работает'}
-                    </p>
-                    <p id="3_1320" className="Pixso-paragraph-3_1320">
-                      {'Возможности'}
-                    </p>
-                    <p id="6_120" className="Pixso-paragraph-6_120">
-                      {'Тарифы'}
-                    </p>
-                    <p id="3_1321" className="Pixso-paragraph-3_1321">
-                      {'Отзывы'}
-                    </p>
-                    <p id="3_1322" className="Pixso-paragraph-3_1322">
-                      {'FAQ'}
-                    </p>
-                  </div>
-                  <div id="7_7" className="Pixso-frame-7_7">
-                    <div id="7_8" className="Pixso-frame-7_8">
-                      <div id="7_9" className="Pixso-vector-7_9" />
-                      <p id="7_14" className="Pixso-paragraph-7_14">
-                        {'Для бизнеса'}
-                      </p>
-                    </div>
-                    <div id="8_6" className="Pixso-frame-8_6">
-                      <div id="8_7" className="Pixso-vector-8_7" />
-                      <p id="8_11" className="Pixso-paragraph-8_11">
-                        {'VEDO Hub'}
-                      </p>
-                    </div>
-                  </div>
-                  <CTAButton
-                    id="7_291"
-                    className="Pixso-instance-7_291"
-                    slot_4_258={headerCtaText}
-                  />
-                </div>
-              </div>
+    <div className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary-warm)] px-3.5 py-1.5">
+      <div className="size-1.5 rounded-full bg-[var(--accent-foreground)]" />
+      <span className="text-[11px] font-bold tracking-[2px] text-[var(--accent-foreground)]">
+        {children}
+      </span>
+    </div>
+  );
+}
+
+function SectionHeader({
+  badge,
+  title,
+  subtitle,
+}: {
+  badge: string;
+  title: string;
+  subtitle?: string;
+}) {
+  return (
+    <div className="flex w-full flex-col items-center gap-4">
+      <SectionBadge>{badge}</SectionBadge>
+      <h2 className="text-center text-[40px] font-extrabold leading-[110%] tracking-0 text-[var(--foreground)] lg:text-[48px]">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="max-w-[720px] text-center text-[18px] leading-[160%] text-[var(--muted-foreground)] lg:text-[20px]">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function OrangeButton({
+  children,
+  className = '',
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={`inline-flex items-center gap-3 rounded-full bg-[var(--primary-warm)] px-6 py-3.5 text-[16px] font-semibold text-[var(--accent-foreground)] transition-opacity hover:opacity-90 ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Card({
+  children,
+  className = '',
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`flex w-full flex-1 flex-col rounded-[28px] bg-[var(--card)] shadow-[0_12px_48px_-16px_rgba(124,45,18,0.149)] ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ArrowIconCircle() {
+  return (
+    <div className="flex size-8 items-center justify-center rounded-full bg-[var(--accent-foreground)]">
+      <ArrowRight className="size-4 text-[var(--primary-foreground)]" strokeWidth={2.5} />
+    </div>
+  );
+}
+
+// ---------- ASSET ICONS (custom inline SVGs) ----------
+
+function IconHand() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <title>Hand icon</title>
+      <path
+        d="M13.9999 2.33337C16.5772 2.33337 18.6666 4.42271 18.6666 7.00004V11.6667C18.6666 14.244 16.5772 16.3334 13.9999 16.3334C11.4226 16.3334 9.33325 14.244 9.33325 11.6667V7.00004C9.33325 4.42271 11.4226 2.33337 13.9999 2.33337Z"
+        fill="var(--primary-warm)"
+      />
+      <path
+        d="M7.00008 12.8334C7.00008 12.8334 5.83341 14.4667 5.83341 16.3334C5.83341 18.8427 7.88275 20.8334 10.5001 20.8334H17.5001C20.1174 20.8334 22.1667 18.8427 22.1667 16.3334C22.1667 14.4667 21.0001 12.8334 21.0001 12.8334"
+        stroke="var(--primary-warm)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10.5 20.8334V23.3334M14 20.8334V25.6667M17.5 20.8334V23.3334"
+        stroke="var(--primary-warm)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// ---------- SECTION: HEADER ----------
+
+const NAV_LINKS = ['Как это работает', 'Возможности', 'Тарифы', 'Отзывы', 'FAQ'];
+
+function Header() {
+  return (
+    <header className="sticky top-0 z-50 w-full px-5 py-4 lg:px-20">
+      <div className="flex w-full items-center justify-between rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 shadow-[0_12px_48px_-16px_rgba(124,45,18,0.149)] lg:px-8">
+        <a href="/" className="flex items-center gap-3">
+          <IconHand />
+          <span className="text-[22px] font-bold tracking-[-0.5px] text-[var(--foreground)]">
+            Дай пять
+          </span>
+        </a>
+        <nav className="hidden items-center gap-8 lg:flex">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link}
+              href="/"
+              className="text-[16px] font-medium text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+            >
+              {link}
+            </a>
+          ))}
+        </nav>
+        <div className="flex items-center gap-5">
+          <div className="hidden items-center gap-2 md:flex">
+            <Briefcase className="size-4 text-[var(--muted-foreground)]" strokeWidth={1.5} />
+            <span className="text-[16px] text-[var(--muted-foreground)]">Для бизнеса</span>
+          </div>
+          <div className="hidden items-center gap-2 md:flex">
+            <Layers className="size-4 text-[var(--muted-foreground)]" strokeWidth={1.5} />
+            <span className="text-[16px] text-[var(--muted-foreground)]">VEDO Hub</span>
+          </div>
+          <OrangeButton className="hidden px-5 py-2.5 sm:inline-flex">
+            Попробовать бесплатно
+          </OrangeButton>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+// ---------- SECTION: HERO ----------
+
+function Hero() {
+  return (
+    <section className="flex flex-col items-center justify-between gap-12 px-5 pb-20 pt-16 lg:flex-row lg:px-20 lg:pt-[100px]">
+      <div className="flex max-w-[720px] flex-col items-start gap-8">
+        <div className="inline-flex items-center gap-2 rounded-full bg-[var(--muted)] px-4 py-2">
+          <Sparkles className="size-4 text-[var(--accent-warm)]" strokeWidth={2} />
+          <span className="text-[14px] font-semibold text-[var(--muted-foreground)]">
+            Не зубрёжка, а понимание
+          </span>
+        </div>
+        <h1 className="text-[52px] font-extrabold leading-[110%] tracking-[-2px] text-[var(--foreground)] lg:text-[72px]">
+          Ребёнок учится думать.
+          <br />
+          Вы — направлять.
+        </h1>
+        <p className="max-w-[640px] text-[20px] leading-[160%] text-[var(--muted-foreground)]">
+          Платформа для построения индивидуальных маршрутов обучения на основе графа знаний,
+          диагностики пробелов, отслеживания прогресса и ИИ-ассистента
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          <OrangeButton className="gap-4 px-6 py-4 text-[17px]">
+            Построить маршрут за 5 минут
+            <ArrowIconCircle />
+          </OrangeButton>
+          <button
+            type="button"
+            className="rounded-full border border-[var(--border)] px-7 py-4 text-[17px] font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--muted)]"
+          >
+            Узнать больше
+          </button>
+        </div>
+      </div>
+
+      {/* Hero illustration card */}
+      <div className="relative size-[580px] shrink-0 rounded-[40px] bg-gradient-to-br from-[#FFF7ED] via-[#FFEDD5] to-[#ECFEFF] max-lg:hidden">
+        <div className="absolute left-[60px] top-[50px] flex size-[520px] flex-col gap-5 rounded-[32px] bg-[var(--card)] p-8 shadow-[0_16px_64px_-20px_rgba(124,45,18,0.149)]">
+          {/* Card header */}
+          <div className="flex w-full items-center justify-between">
+            <span className="text-[20px] font-bold text-[var(--foreground)]">Карта знаний</span>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-warm)] px-3 py-1.5">
+              <Check className="size-3 text-[var(--primary-foreground)]" strokeWidth={3} />
+              <span className="text-[12px] font-bold text-[var(--primary-foreground)]">ФГОС</span>
             </div>
           </div>
-        </div>
-        <div id="3_1325" className="Pixso-frame-3_1325">
-          <div className="frame-content-3_1325">
-            <div id="3_1326" className="Pixso-frame-3_1326">
-              <div className="frame-content-3_1326">
-                <div id="3_1327" className="Pixso-frame-3_1327">
-                  <div id="3_1328" className="Pixso-vector-3_1328" />
-                  <p id="3_1333" className="Pixso-paragraph-3_1333">
-                    {'Не зубрёжка, а понимание'}
-                  </p>
-                </div>
-                <div id="3_1334" className="Pixso-text-3_1334">
-                  <p id="3_1334_0" className="Pixso-paragraph-3_1334_0">
-                    <span id="3_1334_0_1" className="Pixso-span-3_1334_0_1">
-                      {'Ребёнок учится думать.'}
-                    </span>
-                  </p>
-                  <p id="3_1334_1" className="Pixso-paragraph-3_1334_1">
-                    <span id="3_1334_1_1" className="Pixso-span-3_1334_1_1">
-                      {'Вы — направлять.'}
-                    </span>
-                  </p>
-                </div>
-                <p id="3_1335" className="Pixso-paragraph-3_1335">
-                  {
-                    'Платформа для построения индивидуальных маршрутов обучения на основе графа знаний, диагностики пробелов, отслеживания прогресса и ИИ-ассистента'
-                  }
-                </p>
-                <div id="3_1336" className="Pixso-frame-3_1336">
-                  <CTAButton id="7_297" className="Pixso-instance-7_297" slot_4_258={heroCtaText} />
-                  <div id="3_1344" className="Pixso-frame-3_1344">
-                    <p id="3_1345" className="Pixso-paragraph-3_1345">
-                      {'Узнать больше'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+          {/* Progress bar */}
+          <div className="flex w-full flex-col gap-3 rounded-[20px] bg-[var(--muted)] p-5">
+            <span className="text-[16px] font-semibold text-[var(--foreground)]">
+              Алгебра: деление → дроби
+            </span>
+            <div className="h-2.5 w-full rounded-full bg-[var(--border)]">
+              <div className="h-2.5 w-[300px] rounded-full bg-[var(--primary-warm)]" />
             </div>
-            <div id="3_1346" className="Pixso-frame-3_1346">
-              <div id="4_45" className="Pixso-vector-4_45" />
-              <div id="4_46" className="Pixso-vector-4_46" />
-              <div id="4_101" className="stroke-wrapper-4_101">
-                <div className="Pixso-frame-4_101">
-                  <div className="shadow-blend-unknown-1" />
-                  <div className="shadow-blend-unknown-0" />
-                </div>
-                <div className="stroke-4_101" />
-                <div className="Pixso-frame-4_101-content-layer">
-                  <div className="frame-content-4_101">
-                    <div id="4_102" className="Pixso-frame-4_102">
-                      <div className="frame-content-4_102">
-                        <p id="4_103" className="Pixso-paragraph-4_103">
-                          {'Карта знаний'}
-                        </p>
-                        <div id="4_104" className="Pixso-frame-4_104">
-                          <div id="4_105" className="Pixso-vector-4_105" />
-                          <p id="4_107" className="Pixso-paragraph-4_107">
-                            {'ФГОС ✓'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div id="4_108" className="Pixso-frame-4_108">
-                      <div className="frame-content-4_108">
-                        <p id="4_109" className="Pixso-paragraph-4_109">
-                          {'Алгебра: деление → дроби'}
-                        </p>
-                        <div id="4_110" className="Pixso-frame-4_110">
-                          <div className="frame-content-4_110">
-                            <div id="4_111" className="Pixso-frame-4_111" />
-                          </div>
-                        </div>
-                        <div id="4_112" className="Pixso-frame-4_112">
-                          <div className="frame-content-4_112">
-                            <p id="4_113" className="Pixso-paragraph-4_113">
-                              {'Пройдено 75%'}
-                            </p>
-                            <p id="4_114" className="Pixso-paragraph-4_114">
-                              {'12/16 тем'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div id="4_115" className="stroke-wrapper-4_115">
-                      <div className="Pixso-frame-4_115">
-                        <div className="frame-content-4_115">
-                          <div id="4_116" className="Pixso-vector-4_116" />
-                          <div id="4_120" className="Pixso-frame-4_120">
-                            <div className="frame-content-4_120">
-                              <p id="4_121" className="Pixso-paragraph-4_121">
-                                {'Пробел: Проценты'}
-                              </p>
-                              <p id="4_122" className="Pixso-paragraph-4_122">
-                                {'Нужны деление → дроби'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="stroke-4_115" />
-                    </div>
-                    <div id="4_123" className="Pixso-frame-4_123">
-                      <div className="frame-content-4_123">
-                        <p id="4_124" className="Pixso-paragraph-4_124">
-                          {'Маршрут до аттестации'}
-                        </p>
-                        <div id="4_125" className="Pixso-frame-4_125">
-                          <div className="frame-content-4_125">
-                            <div id="4_126" className="Pixso-frame-4_126">
-                              <div className="frame-content-4_126">
-                                <p id="4_127" className="Pixso-paragraph-4_127">
-                                  {'Деление'}
-                                </p>
-                              </div>
-                            </div>
-                            <div id="4_128" className="Pixso-vector-4_128" />
-                            <div id="4_131" className="Pixso-frame-4_131">
-                              <div className="frame-content-4_131">
-                                <p id="4_132" className="Pixso-paragraph-4_132">
-                                  {'Дроби'}
-                                </p>
-                              </div>
-                            </div>
-                            <div id="4_133" className="Pixso-vector-4_133" />
-                            <div id="4_136" className="Pixso-frame-4_136">
-                              <div className="frame-content-4_136">
-                                <p id="4_137" className="Pixso-paragraph-4_137">
-                                  {'Проценты'}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="flex w-full justify-between">
+              <span className="text-[13px] text-[var(--muted-foreground)]">Пройдено 75%</span>
+              <span className="text-[13px] font-semibold text-[var(--primary-warm)]">
+                12/16 тем
+              </span>
             </div>
           </div>
-        </div>
-        <div id="3_1347" className="Pixso-frame-3_1347">
-          <div className="frame-content-3_1347">
-            <SectionHeader
-              id="7_213"
-              className="Pixso-instance-7_213"
-              slot_7_212={problemSectionSubtitle}
-              slot_7_211={problemSectionTitle}
-              slot_7_208={problemSectionEyebrow}
-            />
-            <div id="3_1351" className="Pixso-frame-3_1351">
-              <div className="frame-content-3_1351">
-                <div id="3_1352" className="stroke-wrapper-3_1352">
-                  <div className="Pixso-frame-3_1352">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1352">
-                      <div id="3_1353" className="Pixso-vector-3_1353" />
-                      <p id="3_1354" className="Pixso-paragraph-3_1354">
-                        {'Программа перегружена'}
-                      </p>
-                      <p id="3_1355" className="Pixso-paragraph-3_1355">
-                        {
-                          'Школьную программу невозможно осмысленно пройти в отведённое время: либо поверхностно, либо не успеваем.'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1352" />
-                </div>
-                <div id="3_1356" className="stroke-wrapper-3_1356">
-                  <div className="Pixso-frame-3_1356">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1356">
-                      <div id="3_1357" className="Pixso-vector-3_1357" />
-                      <p id="3_1360" className="Pixso-paragraph-3_1360">
-                        {'Пробелы в знаниях'}
-                      </p>
-                      <p id="3_1361" className="Pixso-paragraph-3_1361">
-                        {
-                          'В декабре выяснилось, что ребёнок не знает тему, которой не было в купленных курсах. Где ещё пробелы?'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1356" />
-                </div>
-                <div id="3_1362" className="stroke-wrapper-3_1362">
-                  <div className="Pixso-frame-3_1362">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1362">
-                      <div id="3_1363" className="Pixso-vector-3_1363" />
-                      <p id="3_1370" className="Pixso-paragraph-3_1370">
-                        {'Предметы изолированы'}
-                      </p>
-                      <p id="3_1371" className="Pixso-paragraph-3_1371">
-                        {
-                          'Физика отдельно от математики, биология — от химии. Ребёнок не видит связей между явлениями.'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1362" />
-                </div>
-                <div id="3_1372" className="stroke-wrapper-3_1372">
-                  <div className="Pixso-frame-3_1372">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1372">
-                      <div id="3_1373" className="Pixso-vector-3_1373" />
-                      <p id="3_1376" className="Pixso-paragraph-3_1376">
-                        {'Единый темп не работает'}
-                      </p>
-                      <p id="3_1377" className="Pixso-paragraph-3_1377">
-                        {
-                          'По математике — 7 класс, по биологии — 8. Это нормально. Но как это учесть в плане?'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1372" />
-                </div>
-                <div id="3_1378" className="stroke-wrapper-3_1378">
-                  <div className="Pixso-frame-3_1378">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1378">
-                      <div id="3_1379" className="Pixso-vector-3_1379" />
-                      <p id="3_1380" className="Pixso-paragraph-3_1380">
-                        {'Непонятно зачем'}
-                      </p>
-                      <p id="3_1381" className="Pixso-paragraph-3_1381">
-                        {
-                          'Ребёнок спрашивает: «Зачем мне это?» — а ответить нечего. Каждое знание должно иметь смысл.'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1378" />
-                </div>
-              </div>
+          {/* Gap alert */}
+          <div className="flex w-full items-center gap-3 rounded-[20px] border border-[var(--border)] bg-[#FFF7ED] p-4">
+            <AlertCircle className="size-5 shrink-0 text-[var(--primary-warm)]" strokeWidth={1.5} />
+            <div className="flex flex-col">
+              <span className="text-[15px] font-bold text-[var(--foreground)]">
+                Пробел: Проценты
+              </span>
+              <span className="text-[13px] text-[var(--muted-foreground)]">
+                Нужны деление → дроби
+              </span>
             </div>
           </div>
-        </div>
-        <div id="3_1391" className="Pixso-frame-3_1391">
-          <div className="frame-content-3_1391">
-            <p id="3_1392" className="Pixso-paragraph-3_1392">
-              {'Так было.'}
-            </p>
-            <p id="3_1393" className="Pixso-paragraph-3_1393">
-              {'А теперь — так'}
-            </p>
-          </div>
-        </div>
-        <div id="3_1437" className="Pixso-frame-3_1437">
-          <div className="frame-content-3_1437">
-            <SectionHeader
-              id="7_219"
-              className="Pixso-instance-7_219"
-              slot_7_212={howItWorksSectionSubtitle}
-              slot_7_211={howItWorksSectionTitle}
-              slot_7_208={howItWorksSectionEyebrow}
-            />
-            <div id="3_1441" className="Pixso-frame-3_1441">
-              <div className="frame-content-3_1441">
-                <div id="3_1442" className="stroke-wrapper-3_1442">
-                  <div className="Pixso-frame-3_1442">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1442">
-                      <div id="3_1443" className="Pixso-frame-3_1443">
-                        <div className="frame-content-3_1443">
-                          <p id="3_1444" className="Pixso-paragraph-3_1444">
-                            {'1'}
-                          </p>
-                        </div>
-                      </div>
-                      <p id="3_1445" className="Pixso-paragraph-3_1445">
-                        {'Задаём цели и ограничения'}
-                      </p>
-                      <p id="3_1446" className="Pixso-paragraph-3_1446">
-                        {
-                          'Цели к аттестации, время, нагрузка, темп. ИИ-ассистент поможет сформулировать и скорректировать.'
-                        }
-                      </p>
-                      <p id="3_1447" className="Pixso-paragraph-3_1447">
-                        {'Пример: «К маю — аттестация, по алгебре подтянуть до «4»»'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1442" />
-                </div>
-                <div id="3_1448" className="stroke-wrapper-3_1448">
-                  <div className="Pixso-frame-3_1448">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1448">
-                      <div id="3_1449" className="Pixso-frame-3_1449">
-                        <div className="frame-content-3_1449">
-                          <p id="3_1450" className="Pixso-paragraph-3_1450">
-                            {'2'}
-                          </p>
-                        </div>
-                      </div>
-                      <p id="3_1451" className="Pixso-paragraph-3_1451">
-                        {'Подключаем карту знаний'}
-                      </p>
-                      <p id="3_1452" className="Pixso-paragraph-3_1452">
-                        {
-                          'Подключаем готовую карту от методистов и сообщества: темы, связи, актуальный ФГОС.'
-                        }
-                      </p>
-                      <p id="3_1453" className="Pixso-paragraph-3_1453">
-                        {'Пример: «Проценты → биология → химия → география»'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1448" />
-                </div>
-                <div id="3_1454" className="stroke-wrapper-3_1454">
-                  <div className="Pixso-frame-3_1454">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1454">
-                      <div id="3_1455" className="Pixso-frame-3_1455">
-                        <div className="frame-content-3_1455">
-                          <p id="3_1456" className="Pixso-paragraph-3_1456">
-                            {'3'}
-                          </p>
-                        </div>
-                      </div>
-                      <p id="3_1457" className="Pixso-paragraph-3_1457">
-                        {'Находим пробелы'}
-                      </p>
-                      <p id="3_1458" className="Pixso-paragraph-3_1458">
-                        {'Система показывает, какие темы пропущены и почему это важно.'}
-                      </p>
-                      <p id="3_1459" className="Pixso-paragraph-3_1459">
-                        {'Пример: «Деление → Дроби → Проценты. Без деления — пробел»'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1454" />
-                </div>
-                <div id="3_1460" className="stroke-wrapper-3_1460">
-                  <div className="Pixso-frame-3_1460">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1460">
-                      <div id="3_1461" className="Pixso-frame-3_1461">
-                        <div className="frame-content-3_1461">
-                          <p id="3_1462" className="Pixso-paragraph-3_1462">
-                            {'4'}
-                          </p>
-                        </div>
-                      </div>
-                      <p id="3_1463" className="Pixso-paragraph-3_1463">
-                        {'Видим прогноз до аттестации'}
-                      </p>
-                      <p id="3_1464" className="Pixso-paragraph-3_1464">
-                        {'Видите, что успеете до экзамена. Планируете с уверенностью.'}
-                      </p>
-                      <p id="3_1465" className="Pixso-paragraph-3_1465">
-                        {'Пример: «До ОГЭ 8 месяцев. Успеете 95% программы»'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1460" />
-                </div>
+          {/* Route steps */}
+          <div className="flex w-full flex-col gap-2.5 rounded-[20px] bg-[var(--muted)] p-4">
+            <span className="text-[15px] font-semibold text-[var(--foreground)]">
+              Маршрут до аттестации
+            </span>
+            <div className="flex w-full items-center gap-2">
+              <div className="flex h-9 items-center justify-center rounded-xl bg-[var(--primary-warm)] px-4">
+                <span className="text-[13px] font-semibold text-[var(--primary-foreground)]">
+                  Деление
+                </span>
               </div>
-            </div>
-            <div id="4_348" className="Pixso-frame-4_348">
-              <div className="frame-content-4_348">
-                <div id="4_349" className="Pixso-frame-4_349">
-                  <p id="4_350" className="Pixso-paragraph-4_350">
-                    {'Не знаете, с чего начать?'}
-                  </p>
-                  <p id="4_479" className="Pixso-paragraph-4_479">
-                    {'Выберите педагогическую концепцию'}
-                  </p>
-                </div>
-                <div id="4_353" className="Pixso-frame-4_353">
-                  <div className="frame-content-4_353">
-                    <div id="4_354" className="stroke-wrapper-4_354">
-                      <div className="Pixso-frame-4_354">
-                        <div className="frame-content-4_354">
-                          <div id="4_355" className="Pixso-vector-4_355" />
-                          <p id="4_360" className="Pixso-paragraph-4_360">
-                            {'Спиральное обучение'}
-                          </p>
-                          <p id="4_361" className="Pixso-paragraph-4_361">
-                            {
-                              'Тема «Функции» возвращается в 7, 8, 9 классах — с возрастающей глубиной. Маршрут строит витки, а не линейную цепочку.'
-                            }
-                          </p>
-                          <div id="4_362" className="Pixso-frame-4_362">
-                            <div id="4_363" className="Pixso-vector-4_363" />
-                            <p id="4_365" className="Pixso-paragraph-4_365">
-                              {'Выбрано'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="stroke-4_354" />
-                    </div>
-                    <div id="4_366" className="stroke-wrapper-4_366">
-                      <div className="Pixso-frame-4_366">
-                        <div className="frame-content-4_366">
-                          <div id="4_367" className="Pixso-vector-4_367" />
-                          <p id="4_372" className="Pixso-paragraph-4_372">
-                            {'Проектное погружение'}
-                          </p>
-                          <p id="4_373" className="Pixso-paragraph-4_373">
-                            {
-                              'Модули из разных предметов группируются вокруг проекта «Экосистема»: биология + математика + химия + география.'
-                            }
-                          </p>
-                          <div id="4_374" className="Pixso-frame-4_374">
-                            <p id="4_375" className="Pixso-paragraph-4_375">
-                              {'Выбрать'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="stroke-4_366" />
-                    </div>
-                    <div id="4_376" className="stroke-wrapper-4_376">
-                      <div className="Pixso-frame-4_376">
-                        <div className="frame-content-4_376">
-                          <div id="4_377" className="Pixso-vector-4_377" />
-                          <p id="4_381" className="Pixso-paragraph-4_381">
-                            {'Свободное обучение'}
-                          </p>
-                          <p id="4_382" className="Pixso-paragraph-4_382">
-                            {
-                              'Ребёнок идёт от интереса: динозавры → биология → география → химия. Маршрут строится вокруг увлечений, а не наоборот.'
-                            }
-                          </p>
-                          <div id="4_383" className="Pixso-frame-4_383">
-                            <p id="4_384" className="Pixso-paragraph-4_384">
-                              {'Выбрать'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="stroke-4_376" />
-                    </div>
-                  </div>
-                </div>
+              <ArrowRight
+                className="size-4 shrink-0 text-[var(--muted-foreground)]"
+                strokeWidth={1.5}
+              />
+              <div className="flex h-9 items-center justify-center rounded-xl bg-[var(--secondary-calm)] px-4">
+                <span className="text-[13px] font-semibold text-[var(--primary-foreground)]">
+                  Дроби
+                </span>
               </div>
-            </div>
-          </div>
-        </div>
-        <div id="3_1466" className="Pixso-frame-3_1466">
-          <div className="frame-content-3_1466">
-            <SectionHeader
-              id="7_225"
-              className="Pixso-instance-7_225"
-              slot_7_212={benefitsSectionSubtitle}
-              slot_7_211={benefitsSectionTitle}
-              slot_7_208={benefitsSectionEyebrow}
-            />
-            <div id="3_1470" className="Pixso-frame-3_1470">
-              <div className="frame-content-3_1470">
-                <div id="3_1471" className="Pixso-frame-3_1471">
-                  <div className="frame-content-3_1471">
-                    <div id="3_1472" className="stroke-wrapper-3_1472">
-                      <div className="Pixso-frame-3_1472">
-                        <div className="shadow-blend-unknown-1" />
-                        <div className="shadow-blend-unknown-0" />
-                        <div className="frame-content-3_1472">
-                          <div id="3_1473" className="Pixso-vector-3_1473" />
-                          <p id="3_1476" className="Pixso-paragraph-3_1476">
-                            {'Вижу пробелы до аттестации'}
-                          </p>
-                          <p id="3_1477" className="Pixso-paragraph-3_1477">
-                            {
-                              'Система заранее покажет, какие темы не пройдены. Не будет сюрпризов на экзамене.'
-                            }
-                          </p>
-                          <p id="3_1478" className="Pixso-paragraph-3_1478">
-                            {'Вместо: «Надеюсь, всё успеем»'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="stroke-3_1472" />
-                    </div>
-                    <div id="3_1479" className="stroke-wrapper-3_1479">
-                      <div className="Pixso-frame-3_1479">
-                        <div className="shadow-blend-unknown-1" />
-                        <div className="shadow-blend-unknown-0" />
-                        <div className="frame-content-3_1479">
-                          <div id="3_1480" className="Pixso-vector-3_1480" />
-                          <p id="3_1483" className="Pixso-paragraph-3_1483">
-                            {'Учу в своём темпе'}
-                          </p>
-                          <p id="3_1484" className="Pixso-paragraph-3_1484">
-                            {
-                              'По математике — 7 класс, по биологии — 8. Это нормально. Система учитывает разные уровни.'
-                            }
-                          </p>
-                          <p id="3_1485" className="Pixso-paragraph-3_1485">
-                            {'Вместо: «Все должны быть на одном уровне»'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="stroke-3_1479" />
-                    </div>
-                    <div id="3_1486" className="stroke-wrapper-3_1486">
-                      <div className="Pixso-frame-3_1486">
-                        <div className="shadow-blend-unknown-1" />
-                        <div className="shadow-blend-unknown-0" />
-                        <div className="frame-content-3_1486">
-                          <div id="3_1487" className="Pixso-vector-3_1487" />
-                          <p id="3_1492" className="Pixso-paragraph-3_1492">
-                            {'Одна панель для всех детей'}
-                          </p>
-                          <p id="3_1493" className="Pixso-paragraph-3_1493">
-                            {'Трое детей? Не проблема. Видите прогресс каждого в одном месте.'}
-                          </p>
-                          <p id="3_1494" className="Pixso-paragraph-3_1494">
-                            {'Вместо: «Три таблицы Excel и два чата»'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="stroke-3_1486" />
-                    </div>
-                  </div>
-                </div>
-                <div id="3_1495" className="Pixso-frame-3_1495">
-                  <div className="frame-content-3_1495">
-                    <div id="3_1496" className="stroke-wrapper-3_1496">
-                      <div className="Pixso-frame-3_1496">
-                        <div className="shadow-blend-unknown-1" />
-                        <div className="shadow-blend-unknown-0" />
-                        <div className="frame-content-3_1496">
-                          <div id="3_1497" className="Pixso-vector-3_1497" />
-                          <p id="3_1500" className="Pixso-paragraph-3_1500">
-                            {'Знаю, зачем это учить'}
-                          </p>
-                          <p id="3_1501" className="Pixso-paragraph-3_1501">
-                            {
-                              'Каждая тема связана с реальной жизнью и другими предметами. Ребёнок видит смысл.'
-                            }
-                          </p>
-                          <p id="3_1502" className="Pixso-paragraph-3_1502">
-                            {'Вместо: «Учи, потому что так надо»'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="stroke-3_1496" />
-                    </div>
-                    <div id="3_1503" className="stroke-wrapper-3_1503">
-                      <div className="Pixso-frame-3_1503">
-                        <div className="shadow-blend-unknown-1" />
-                        <div className="shadow-blend-unknown-0" />
-                        <div className="frame-content-3_1503">
-                          <div id="3_1504" className="Pixso-vector-3_1504" />
-                          <p id="3_1508" className="Pixso-paragraph-3_1508">
-                            {'Карта знаний показывает связи'}
-                          </p>
-                          <p id="3_1509" className="Pixso-paragraph-3_1509">
-                            {
-                              'Визуальная карта с темами и связями между предметами. Физика не отдельно от математики.'
-                            }
-                          </p>
-                          <p id="3_1510" className="Pixso-paragraph-3_1510">
-                            {'Вместо: «Предметы как отдельные острова»'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="stroke-3_1503" />
-                    </div>
-                    <div id="3_1511" className="stroke-wrapper-3_1511">
-                      <div className="Pixso-frame-3_1511">
-                        <div className="shadow-blend-unknown-1" />
-                        <div className="shadow-blend-unknown-0" />
-                        <div className="frame-content-3_1511">
-                          <div id="3_1512" className="Pixso-vector-3_1512" />
-                          <p id="3_1515" className="Pixso-paragraph-3_1515">
-                            {'Успеваем подготовиться к аттестации'}
-                          </p>
-                          <p id="3_1516" className="Pixso-paragraph-3_1516">
-                            {
-                              'Система показывает покрытие стандарта: какие темы закрыты, какие остались до аттестации. Без ручной сверки в Excel.'
-                            }
-                          </p>
-                          <p id="3_1517" className="Pixso-paragraph-3_1517">
-                            {'Вместо: «Ручная сверка с ФГОС в Excel»'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="stroke-3_1511" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div id="3_1518" className="Pixso-frame-3_1518">
-              <div className="frame-content-3_1518">
-                <p id="3_1523" className="Pixso-paragraph-3_1523">
-                  {
-                    'Почему это работает: карта знаний основана на принципе межпредметных связей — каждая тема имеет понятные «зачем» и «где пригодится». А ИИ-ассистент ответит на вопросы и подскажет, как лучше выстроить маршрут.'
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="6_1" className="Pixso-frame-6_1">
-          <div className="frame-content-6_1">
-            <SectionHeader
-              id="7_249"
-              className="Pixso-instance-7_249"
-              slot_7_212={pricingSectionSubtitle}
-              slot_7_211={pricingSectionTitle}
-              slot_7_208={pricingSectionEyebrow}
-            />
-            <div id="6_8" className="Pixso-frame-6_8">
-              <div className="frame-content-6_8">
-                <div id="7_23" className="Pixso-frame-7_23">
-                  <div className="frame-content-7_23">
-                    <div id="8_24" className="Pixso-frame-8_24">
-                      <div id="8_25" className="Pixso-vector-8_25" />
-                      <p id="7_24" className="Pixso-paragraph-7_24">
-                        {'Карта'}
-                      </p>
-                    </div>
-                    <div id="7_25" className="Pixso-frame-7_25">
-                      <p id="7_26" className="Pixso-paragraph-7_26">
-                        {'0 ₽'}
-                      </p>
-                      <p id="7_27" className="Pixso-paragraph-7_27">
-                        {'/ 7 дней'}
-                      </p>
-                    </div>
-                    <p id="7_28" className="Pixso-paragraph-7_28">
-                      {'Диагностика пробелов и карта тем на 7 дней.'}
-                    </p>
-                    <div id="7_29" className="Pixso-frame-7_29" />
-                    <div id="7_30" className="Pixso-frame-7_30">
-                      <div id="7_31" className="Pixso-frame-7_31">
-                        <div id="7_32" className="Pixso-vector-7_32" />
-                        <p id="7_34" className="Pixso-paragraph-7_34">
-                          {'Карта всех тем по предметам'}
-                        </p>
-                      </div>
-                      <div id="7_35" className="Pixso-frame-7_35">
-                        <div id="7_36" className="Pixso-vector-7_36" />
-                        <p id="7_38" className="Pixso-paragraph-7_38">
-                          {'Диагностика пробелов до аттестации'}
-                        </p>
-                      </div>
-                      <div id="7_626" className="Pixso-frame-7_626">
-                        <div id="7_627" className="Pixso-vector-7_627" />
-                        <p id="7_629" className="Pixso-paragraph-7_629">
-                          {'1 ребёнок в профиле'}
-                        </p>
-                      </div>
-                      <div id="7_43" className="Pixso-frame-7_43">
-                        <div id="7_44" className="Pixso-vector-7_44" />
-                        <p id="7_46" className="Pixso-paragraph-7_46">
-                          {'Без привязки банковской карты'}
-                        </p>
-                      </div>
-                      <div id="7_344" className="Pixso-frame-7_344">
-                        <div id="7_345" className="Pixso-vector-7_345" />
-                        <p id="7_347" className="Pixso-paragraph-7_347">
-                          {'Истории «зачем это знать»'}
-                        </p>
-                      </div>
-                      <div id="7_348" className="Pixso-frame-7_348">
-                        <div id="7_349" className="Pixso-vector-7_349" />
-                        <p id="7_351" className="Pixso-paragraph-7_351">
-                          {'Маршрут и расписание'}
-                        </p>
-                      </div>
-                      <div id="7_352" className="Pixso-frame-7_352">
-                        <div id="7_353" className="Pixso-vector-7_353" />
-                        <p id="7_355" className="Pixso-paragraph-7_355">
-                          {'Планирование бюджета и ресурсов'}
-                        </p>
-                      </div>
-                    </div>
-                    <div id="7_59" className="Pixso-frame-7_59">
-                      <CTAButton
-                        id="7_60"
-                        className="Pixso-instance-7_60"
-                        slot_4_258={pricingMapCtaText}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div id="7_66" className="Pixso-frame-7_66">
-                  <div className="frame-content-7_66">
-                    <div id="8_29" className="Pixso-frame-8_29">
-                      <div id="8_30" className="Pixso-vector-8_30" />
-                      <p id="7_67" className="Pixso-paragraph-7_67">
-                        {'Компас'}
-                      </p>
-                    </div>
-                    <div id="7_68" className="Pixso-frame-7_68">
-                      <p id="7_69" className="Pixso-paragraph-7_69">
-                        {'990 ₽'}
-                      </p>
-                      <p id="7_70" className="Pixso-paragraph-7_70">
-                        {'/ месяц'}
-                      </p>
-                    </div>
-                    <div id="7_71" className="Pixso-frame-7_71">
-                      <p id="7_72" className="Pixso-paragraph-7_72">
-                        {'8 990 ₽'}
-                      </p>
-                      <p id="7_73" className="Pixso-paragraph-7_73">
-                        {'11 880 ₽'}
-                      </p>
-                      <div id="7_74" className="Pixso-frame-7_74">
-                        <p id="7_75" className="Pixso-paragraph-7_75">
-                          {'Экономия 2 890 ₽'}
-                        </p>
-                      </div>
-                    </div>
-                    <p id="7_76" className="Pixso-paragraph-7_76">
-                      {
-                        'Направление для всей семьи. Истории, маршрут и расписание, 30 запросов к ИИ.'
-                      }
-                    </p>
-                    <div id="7_77" className="Pixso-frame-7_77" />
-                    <div id="7_78" className="Pixso-frame-7_78">
-                      <div id="7_79" className="Pixso-frame-7_79">
-                        <div id="7_80" className="Pixso-vector-7_80" />
-                        <p id="7_82" className="Pixso-paragraph-7_82">
-                          {'Всё из Карты'}
-                        </p>
-                      </div>
-                      <div id="7_83" className="Pixso-frame-7_83">
-                        <div id="7_84" className="Pixso-vector-7_84" />
-                        <p id="7_86" className="Pixso-paragraph-7_86">
-                          {'Истории и контекст «зачем это знать»'}
-                        </p>
-                      </div>
-                      <div id="7_87" className="Pixso-frame-7_87">
-                        <div id="7_88" className="Pixso-vector-7_88" />
-                        <p id="7_90" className="Pixso-paragraph-7_90">
-                          {'Маршрут и расписание: что доступно сейчас, что дальше, где цель'}
-                        </p>
-                      </div>
-                      <div id="7_91" className="Pixso-frame-7_91">
-                        <div id="7_92" className="Pixso-vector-7_92" />
-                        <p id="7_94" className="Pixso-paragraph-7_94">
-                          {'Полный учебный маршрут'}
-                        </p>
-                      </div>
-                      <div id="7_95" className="Pixso-frame-7_95">
-                        <div id="7_96" className="Pixso-vector-7_96" />
-                        <p id="7_98" className="Pixso-paragraph-7_98">
-                          {'Отслеживание прогресса'}
-                        </p>
-                      </div>
-                      <div id="7_99" className="Pixso-frame-7_99">
-                        <div id="7_100" className="Pixso-vector-7_100" />
-                        <p id="7_102" className="Pixso-paragraph-7_102">
-                          {'До 2 детей в одном профиле'}
-                        </p>
-                      </div>
-                      <div id="7_103" className="Pixso-frame-7_103">
-                        <div id="7_104" className="Pixso-vector-7_104" />
-                        <p id="7_106" className="Pixso-paragraph-7_106">
-                          {'ИИ-ассистент (30 запросов/мес)'}
-                        </p>
-                      </div>
-                    </div>
-                    <div id="7_107" className="Pixso-frame-7_107">
-                      <CTAButton
-                        id="7_108"
-                        className="Pixso-instance-7_108"
-                        slot_4_258={pricingCompassCtaText}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div id="7_114" className="Pixso-frame-7_114">
-                  <div className="frame-content-7_114">
-                    <div id="8_22" className="Pixso-frame-8_22">
-                      <div id="8_33" className="Pixso-vector-8_33" />
-                      <p id="7_117" className="Pixso-paragraph-7_117">
-                        {'Навигатор'}
-                      </p>
-                      <div id="7_115" className="Pixso-frame-7_115">
-                        <p id="7_116" className="Pixso-paragraph-7_116">
-                          {'Самый популярный'}
-                        </p>
-                      </div>
-                    </div>
-                    <div id="7_118" className="Pixso-frame-7_118">
-                      <p id="7_119" className="Pixso-paragraph-7_119">
-                        {'1 990 ₽'}
-                      </p>
-                      <p id="7_120" className="Pixso-paragraph-7_120">
-                        {'/ месяц'}
-                      </p>
-                    </div>
-                    <div id="7_121" className="Pixso-frame-7_121">
-                      <p id="7_122" className="Pixso-paragraph-7_122">
-                        {'17 910 ₽'}
-                      </p>
-                      <p id="7_123" className="Pixso-paragraph-7_123">
-                        {'23 880 ₽'}
-                      </p>
-                      <div id="7_124" className="Pixso-frame-7_124">
-                        <p id="7_125" className="Pixso-paragraph-7_125">
-                          {'Экономия 5 970 ₽'}
-                        </p>
-                      </div>
-                    </div>
-                    <p id="7_126" className="Pixso-paragraph-7_126">
-                      {
-                        'Полная система для осмысленной подготовки. 300 запросов к ИИ, ресурсы, проекты и отчёты.'
-                      }
-                    </p>
-                    <div id="7_127" className="Pixso-frame-7_127" />
-                    <div id="7_128" className="Pixso-frame-7_128">
-                      <div id="7_129" className="Pixso-frame-7_129">
-                        <div id="7_130" className="Pixso-vector-7_130" />
-                        <p id="7_132" className="Pixso-paragraph-7_132">
-                          {'Всё из Компаса'}
-                        </p>
-                      </div>
-                      <div id="7_133" className="Pixso-frame-7_133">
-                        <div id="7_134" className="Pixso-vector-7_134" />
-                        <p id="7_136" className="Pixso-paragraph-7_136">
-                          {'Без ограничений по количеству детей'}
-                        </p>
-                      </div>
-                      <div id="7_137" className="Pixso-frame-7_137">
-                        <div id="7_138" className="Pixso-vector-7_138" />
-                        <p id="7_140" className="Pixso-paragraph-7_140">
-                          {'ИИ-ассистент по планированию (300 запросов/мес)'}
-                        </p>
-                      </div>
-                      <div id="7_141" className="Pixso-frame-7_141">
-                        <div id="7_142" className="Pixso-vector-7_142" />
-                        <p id="7_144" className="Pixso-paragraph-7_144">
-                          {
-                            'Планирование бюджета и ресурсов — сколько денег и времени до аттестации'
-                          }
-                        </p>
-                      </div>
-                      <div id="7_145" className="Pixso-frame-7_145">
-                        <div id="7_146" className="Pixso-vector-7_146" />
-                        <p id="7_148" className="Pixso-paragraph-7_148">
-                          {'Проектные идеи на стыках предметов'}
-                        </p>
-                      </div>
-                      <div id="7_149" className="Pixso-frame-7_149">
-                        <div id="7_150" className="Pixso-vector-7_150" />
-                        <p id="7_152" className="Pixso-paragraph-7_152">
-                          {'Экспорт отчётов и сертификатов'}
-                        </p>
-                      </div>
-                      <div id="7_153" className="Pixso-frame-7_153">
-                        <div id="7_154" className="Pixso-vector-7_154" />
-                        <p id="7_156" className="Pixso-paragraph-7_156">
-                          {'Приоритетная поддержка'}
-                        </p>
-                      </div>
-                    </div>
-                    <div id="7_157" className="Pixso-frame-7_157">
-                      <CTAButton
-                        id="7_158"
-                        className="Pixso-instance-7_158"
-                        slot_4_258={pricingNavigatorCtaText}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div id="7_194" className="Pixso-frame-7_194">
-              <div className="frame-content-7_194">
-                <div id="7_195" className="Pixso-vector-7_195" />
-                <p id="7_196" className="Pixso-paragraph-7_196">
-                  {
-                    'Не нашли подходящий вариант? VEDO EduTrack также используют школы, онлайн-платформы и корпорации.'
-                  }
-                </p>
-                <p id="7_197" className="Pixso-paragraph-7_197">
-                  {'Перейти в раздел «Для бизнеса»'}
-                </p>
-                <div id="7_198" className="Pixso-vector-7_198" />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="3_1524" className="Pixso-frame-3_1524">
-          <div className="frame-content-3_1524">
-            <SectionHeader
-              id="7_231"
-              className="Pixso-instance-7_231"
-              slot_7_212={testimonialsSectionSubtitle}
-              slot_7_211={testimonialsSectionTitle}
-              slot_7_208={testimonialsSectionEyebrow}
-            />
-            <div id="3_1528" className="Pixso-frame-3_1528">
-              <div className="frame-content-3_1528">
-                <div id="3_1529" className="stroke-wrapper-3_1529">
-                  <div className="Pixso-frame-3_1529">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1529">
-                      <div id="3_1530" className="Pixso-vector-3_1530" />
-                      <p id="3_1533" className="Pixso-paragraph-3_1533">
-                        {
-                          '«До «Дай пять» я тратила 3 часа в неделю на составление плана. Сейчас система сама показывает, что учить дальше. Маша стала учиться с удовольствием — видит, зачем ей каждая тема.»'
-                        }
-                      </p>
-                      <div id="3_1534" className="Pixso-frame-3_1534">
-                        <div className="frame-content-3_1534">
-                          <div id="3_1535" className="Pixso-frame-3_1535" />
-                          <div id="3_1536" className="Pixso-frame-3_1536">
-                            <p id="3_1537" className="Pixso-paragraph-3_1537">
-                              {'Елена, 38 лет'}
-                            </p>
-                            <p id="3_1538" className="Pixso-paragraph-3_1538">
-                              {'Мама Маши (6 класс) и Пети (3 класс)'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div id="3_1539" className="Pixso-frame-3_1539">
-                        <div className="frame-content-3_1539">
-                          <div id="3_1540" className="Pixso-vector-3_1540" />
-                          <p id="3_1542" className="Pixso-paragraph-3_1542">
-                            {'Результат: аттестация сдана на «отлично», пробелов нет'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1529" />
-                </div>
-                <div id="3_1543" className="stroke-wrapper-3_1543">
-                  <div className="Pixso-frame-3_1543">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1543">
-                      <div id="3_1544" className="Pixso-vector-3_1544" />
-                      <p id="3_1547" className="Pixso-paragraph-3_1547">
-                        {
-                          '«Сын обожает биологию, но алгебра шла туго. «Дай пять» показал: он не понимает дроби → проценты → статистику. Закрыли пробел за 2 месяца. Теперь сам просит задачи по математике!»'
-                        }
-                      </p>
-                      <div id="3_1548" className="Pixso-frame-3_1548">
-                        <div className="frame-content-3_1548">
-                          <div id="3_1549" className="Pixso-frame-3_1549" />
-                          <div id="3_1550" className="Pixso-frame-3_1550">
-                            <p id="3_1551" className="Pixso-paragraph-3_1551">
-                              {'Андрей, 42 года'}
-                            </p>
-                            <p id="3_1552" className="Pixso-paragraph-3_1552">
-                              {'Папа Димы (8 класс)'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div id="3_1553" className="Pixso-frame-3_1553">
-                        <div className="frame-content-3_1553">
-                          <div id="3_1554" className="Pixso-vector-3_1554" />
-                          <p id="3_1556" className="Pixso-paragraph-3_1556">
-                            {'Результат: оценка по алгебре выросла с 3 до 5'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1543" />
-                </div>
-                <div id="3_1557" className="stroke-wrapper-3_1557">
-                  <div className="Pixso-frame-3_1557">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1557">
-                      <div id="3_1558" className="Pixso-vector-3_1558" />
-                      <p id="3_1561" className="Pixso-paragraph-3_1561">
-                        {
-                          '«Трое детей на семейном — это хаос. «Дай пять» собрал всё в одну панель: вижу прогресс каждого, дети сами планируют обучение.»'
-                        }
-                      </p>
-                      <div id="3_1562" className="Pixso-frame-3_1562">
-                        <div className="frame-content-3_1562">
-                          <div id="3_1563" className="Pixso-frame-3_1563" />
-                          <div id="3_1564" className="Pixso-frame-3_1564">
-                            <p id="3_1565" className="Pixso-paragraph-3_1565">
-                              {'Ольга, 35 лет'}
-                            </p>
-                            <p id="3_1566" className="Pixso-paragraph-3_1566">
-                              {'Мама троих: Кати (9 класс), Вани (6 класс), Сони (2 класс)'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div id="3_1567" className="Pixso-frame-3_1567">
-                        <div className="frame-content-3_1567">
-                          <div id="3_1568" className="Pixso-vector-3_1568" />
-                          <p id="3_1570" className="Pixso-paragraph-3_1570">
-                            {'Результат: дети учатся самостоятельно, мама — координатор'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1557" />
-                </div>
-              </div>
-            </div>
-            <div id="3_1571" className="Pixso-frame-3_1571">
-              <div className="frame-content-3_1571">
-                <div id="3_1572" className="Pixso-frame-3_1572">
-                  <p id="3_1573" className="Pixso-paragraph-3_1573">
-                    {'1000+'}
-                  </p>
-                  <p id="3_1574" className="Pixso-paragraph-3_1574">
-                    {'тем в базе знаний'}
-                  </p>
-                </div>
-                <div id="3_1575" className="Pixso-frame-3_1575">
-                  <p id="3_1576" className="Pixso-paragraph-3_1576">
-                    {'500+'}
-                  </p>
-                  <p id="3_1577" className="Pixso-paragraph-3_1577">
-                    {'межпредметных связей'}
-                  </p>
-                </div>
-                <div id="3_1578" className="Pixso-frame-3_1578">
-                  <p id="3_1579" className="Pixso-paragraph-3_1579">
-                    {'200+'}
-                  </p>
-                  <p id="3_1580" className="Pixso-paragraph-3_1580">
-                    {'семей уже используют'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="3_1581" className="Pixso-frame-3_1581">
-          <div className="frame-content-3_1581">
-            <SectionHeader
-              id="7_237"
-              className="Pixso-instance-7_237"
-              slot_7_212={philosophySectionSubtitle}
-              slot_7_211={philosophySectionTitle}
-              slot_7_208={philosophySectionEyebrow}
-            />
-            <div id="3_1585" className="Pixso-frame-3_1585">
-              <div className="frame-content-3_1585">
-                <div id="3_1586" className="stroke-wrapper-3_1586">
-                  <div className="Pixso-frame-3_1586">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1586">
-                      <div id="4_209" className="Pixso-vector-4_209" />
-                      <p id="3_1587" className="Pixso-paragraph-3_1587">
-                        {'ЦЕЛОСТНОСТЬ'}
-                      </p>
-                      <p id="3_1588" className="Pixso-paragraph-3_1588">
-                        {'Целостность'}
-                      </p>
-                      <p id="3_1589" className="Pixso-paragraph-3_1589">
-                        {
-                          'Знания имеют смысл только в системе: одна тема вытекает из другой, предметы переплетаются. Мы строим карту, где эти связи видны, — чтобы ребёнок видел не отдельные куски, а живую картину мира.'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1586" />
-                </div>
-                <div id="3_1590" className="stroke-wrapper-3_1590">
-                  <div className="Pixso-frame-3_1590">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1590">
-                      <div id="4_215" className="Pixso-vector-4_215" />
-                      <p id="3_1591" className="Pixso-paragraph-3_1591">
-                        {'СВОБОДА'}
-                      </p>
-                      <p id="3_1592" className="Pixso-paragraph-3_1592">
-                        {'Свобода без хаоса'}
-                      </p>
-                      <p id="3_1593" className="Pixso-paragraph-3_1593">
-                        {
-                          'Ребёнок идёт за своим интересом — в рамках маршрута, который ведёт к аттестации. Интерес и ответственность соединяются в едином плане. Мы не загоняем в рамки, но и не отпускаем без карты.'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1590" />
-                </div>
-                <div id="3_1594" className="stroke-wrapper-3_1594">
-                  <div className="Pixso-frame-3_1594">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1594">
-                      <div id="4_224" className="Pixso-vector-4_224" />
-                      <p id="3_1595" className="Pixso-paragraph-3_1595">
-                        {'СВЯЗИ'}
-                      </p>
-                      <p id="3_1596" className="Pixso-paragraph-3_1596">
-                        {'Связь с жизнью'}
-                      </p>
-                      <p id="3_1597" className="Pixso-paragraph-3_1597">
-                        {
-                          'Каждая тема показывает, где она применяется: в профессии, в быту, в других предметах. Знания не висят в воздухе — они имеют смысл здесь и сейчас.'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1594" />
-                </div>
-                <div id="3_1598" className="stroke-wrapper-3_1598">
-                  <div className="Pixso-frame-3_1598">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1598">
-                      <div id="4_227" className="Pixso-vector-4_227" />
-                      <p id="3_1599" className="Pixso-paragraph-3_1599">
-                        {'СООБЩЕСТВО'}
-                      </p>
-                      <p id="3_1600" className="Pixso-paragraph-3_1600">
-                        {'Сила в сообществе'}
-                      </p>
-                      <p id="3_1601" className="Pixso-paragraph-3_1601">
-                        {
-                          'Карта знаний — живая, её развивают методисты и родители вместе. Это общее дело: вы делитесь опытом, находите единомышленников и влияете на то, как учатся другие.'
-                        }
-                      </p>
-                      <p id="8_13" className="Pixso-paragraph-8_13">
-                        {'На платформе VEDO Hub →'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1598" />
-                </div>
-              </div>
-            </div>
-            <div id="3_1602" className="Pixso-frame-3_1602">
-              <div className="frame-content-3_1602">
-                <div id="3_1603" className="Pixso-vector-3_1603" />
-                <p id="3_1606" className="Pixso-paragraph-3_1606">
-                  {
-                    '«Дай пять» — это как экспедиция. У вас есть карта, где уже проложены маршруты. Но вы сами выбираете, по какой тропе идти. Рядом — те, кто прошёл этот путь раньше. И вы всегда знаете, где находитесь и что ждёт впереди.'
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="3_1607" className="Pixso-frame-3_1607">
-          <div className="frame-content-3_1607">
-            <SectionHeader
-              id="7_243"
-              className="Pixso-instance-7_243"
-              slot_7_212={faqSectionSubtitle}
-              slot_7_211={faqSectionTitle}
-              slot_7_208={faqSectionEyebrow}
-            />
-            <div id="3_1611" className="Pixso-frame-3_1611">
-              <div className="frame-content-3_1611">
-                <div id="3_1612" className="stroke-wrapper-3_1612">
-                  <div className="Pixso-frame-3_1612">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1612">
-                      <div id="4_291" className="Pixso-frame-4_291">
-                        <div className="frame-content-4_291">
-                          <p id="3_1613" className="Pixso-paragraph-3_1613">
-                            {
-                              'Что, если мы не успеем подготовиться к аттестации? Вдруг забудем какую-то тему?'
-                            }
-                          </p>
-                          <div id="4_274" className="Pixso-vector-4_274" />
-                        </div>
-                      </div>
-                      <p id="3_1614" className="Pixso-paragraph-3_1614">
-                        {
-                          'Система заранее показывает пробелы: какие темы пройдены, какие остались, и сколько на них нужно времени. Вы видите покрытие ФГОС в реальном времени — ни одна тема не потеряется. Аттестация перестаёт быть стрессом, потому что вы точно знаете: всё под контролем.'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1612" />
-                </div>
-                <div id="3_1615" className="stroke-wrapper-3_1615">
-                  <div className="Pixso-frame-3_1615">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1615">
-                      <div id="4_292" className="Pixso-frame-4_292">
-                        <div className="frame-content-4_292">
-                          <p id="3_1616" className="Pixso-paragraph-3_1616">
-                            {'Что если я сам не разбираюсь в предмете?'}
-                          </p>
-                          <div id="4_276" className="Pixso-vector-4_276" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1615" />
-                </div>
-                <div id="3_1618" className="stroke-wrapper-3_1618">
-                  <div className="Pixso-frame-3_1618">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1618">
-                      <div id="4_293" className="Pixso-frame-4_293">
-                        <div className="frame-content-4_293">
-                          <p id="3_1619" className="Pixso-paragraph-3_1619">
-                            {'Можно ли вести несколько детей одновременно?'}
-                          </p>
-                          <div id="4_279" className="Pixso-vector-4_279" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1618" />
-                </div>
-                <div id="3_1621" className="stroke-wrapper-3_1621">
-                  <div className="Pixso-frame-3_1621">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1621">
-                      <div id="4_294" className="Pixso-frame-4_294">
-                        <div className="frame-content-4_294">
-                          <p id="3_1622" className="Pixso-paragraph-3_1622">
-                            {'Это бесплатно?'}
-                          </p>
-                          <div id="4_282" className="Pixso-vector-4_282" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1621" />
-                </div>
-                <div id="3_1624" className="stroke-wrapper-3_1624">
-                  <div className="Pixso-frame-3_1624">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1624">
-                      <div id="4_295" className="Pixso-frame-4_295">
-                        <div className="frame-content-4_295">
-                          <p id="3_1625" className="Pixso-paragraph-3_1625">
-                            {'Сколько времени займёт настройка?'}
-                          </p>
-                          <div id="4_285" className="Pixso-vector-4_285" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1624" />
-                </div>
-                <div id="3_1627" className="stroke-wrapper-3_1627">
-                  <div className="Pixso-frame-3_1627">
-                    <div className="shadow-blend-unknown-1" />
-                    <div className="shadow-blend-unknown-0" />
-                    <div className="frame-content-3_1627">
-                      <div id="4_296" className="Pixso-frame-4_296">
-                        <div className="frame-content-4_296">
-                          <p id="3_1628" className="Pixso-paragraph-3_1628">
-                            {'Мои данные в безопасности?'}
-                          </p>
-                          <div id="4_288" className="Pixso-vector-4_288" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="stroke-3_1627" />
-                </div>
-                <div id="6_111" className="Pixso-frame-6_111">
-                  <div className="frame-content-6_111">
-                    <div id="6_112" className="Pixso-frame-6_112">
-                      <div className="frame-content-6_112">
-                        <p id="6_113" className="Pixso-paragraph-6_113">
-                          {'Кто создаёт граф знаний?'}
-                        </p>
-                        <div id="6_114" className="Pixso-vector-6_114" />
-                      </div>
-                    </div>
-                    <p id="6_115" className="Pixso-paragraph-6_115">
-                      {
-                        'Граф знаний создаётся методистами совместно с родительским сообществом на основе онтологии VEDO Hub. Родители могут предлагать связи между темами, делиться опытом и учебными находками. Это живая система: граф постоянно пополняется и уточняется — академическая точность методистов встречается с реальным родительским опытом.'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="3_1630" className="Pixso-frame-3_1630">
-          <div className="frame-content-3_1630">
-            <p id="3_1631" className="Pixso-paragraph-3_1631">
-              {'Готовы построить маршрут?'}
-            </p>
-            <p id="3_1632" className="Pixso-paragraph-3_1632">
-              {
-                'Бесплатно для всей семьи. 5 минут на маршрут. Доплата — только за ИИ-ассистента. 200+ семей.'
-              }
-            </p>
-            <div id="4_428" className="Pixso-frame-4_428">
-              <div id="4_429" className="Pixso-vector-4_429" />
-              <p id="4_433" className="Pixso-paragraph-4_433">
-                {'Не проходите курс — достигайте цель'}
-              </p>
-            </div>
-            <div id="3_1633" className="Pixso-frame-3_1633">
-              <div id="3_1634" className="Pixso-vector-3_1634" />
-              <p id="3_1639" className="Pixso-paragraph-3_1639">
-                {'Начать строить маршрут'}
-              </p>
-              <div id="4_91" className="Pixso-frame-4_91">
-                <div className="frame-content-4_91">
-                  <div id="4_92" className="Pixso-vector-4_92" />
-                </div>
-              </div>
-            </div>
-            <div id="4_89" className="Pixso-vector-4_89" />
-          </div>
-        </div>
-        <div id="3_1640" className="Pixso-frame-3_1640">
-          <div className="frame-content-3_1640">
-            <div id="3_1641" className="Pixso-frame-3_1641">
-              <div className="frame-content-3_1641">
-                <div id="3_1642" className="Pixso-frame-3_1642">
-                  <div id="3_1643" className="Pixso-vector-3_1643" />
-                  <p id="3_1648" className="Pixso-paragraph-3_1648">
-                    {'Дай пять'}
-                  </p>
-                </div>
-                <div id="3_1649" className="Pixso-frame-3_1649">
-                  <div id="3_1650" className="Pixso-frame-3_1650">
-                    <p id="3_1651" className="Pixso-paragraph-3_1651">
-                      {'Продукт'}
-                    </p>
-                    <p id="3_1652" className="Pixso-paragraph-3_1652">
-                      {'Как это работает'}
-                    </p>
-                    <p id="6_121" className="Pixso-paragraph-6_121">
-                      {'Тарифы'}
-                    </p>
-                    <p id="3_1653" className="Pixso-paragraph-3_1653">
-                      {'Возможности'}
-                    </p>
-                    <p id="3_1654" className="Pixso-paragraph-3_1654">
-                      {'Отзывы'}
-                    </p>
-                  </div>
-                  <div id="3_1655" className="Pixso-frame-3_1655">
-                    <p id="3_1656" className="Pixso-paragraph-3_1656">
-                      {'Поддержка'}
-                    </p>
-                    <p id="3_1657" className="Pixso-paragraph-3_1657">
-                      {'FAQ'}
-                    </p>
-                    <p id="3_1658" className="Pixso-paragraph-3_1658">
-                      {'Контакты'}
-                    </p>
-                    <p id="3_1659" className="Pixso-paragraph-3_1659">
-                      {'Блог'}
-                    </p>
-                  </div>
-                  <div id="3_1660" className="Pixso-frame-3_1660">
-                    <p id="3_1661" className="Pixso-paragraph-3_1661">
-                      {'Правовая информация'}
-                    </p>
-                    <p id="3_1662" className="Pixso-paragraph-3_1662">
-                      {'Политика конфиденциальности'}
-                    </p>
-                    <p id="3_1663" className="Pixso-paragraph-3_1663">
-                      {'Условия использования'}
-                    </p>
-                    <p id="3_1664" className="Pixso-paragraph-3_1664">
-                      {'Согласие на обработку данных'}
-                    </p>
-                  </div>
-                  <div id="7_318" className="Pixso-frame-7_318">
-                    <p id="7_319" className="Pixso-paragraph-7_319">
-                      {'Для бизнеса'}
-                    </p>
-                    <p id="7_320" className="Pixso-paragraph-7_320">
-                      {'Для бизнеса'}
-                    </p>
-                    <p id="8_12" className="Pixso-paragraph-8_12">
-                      {'VEDO Hub'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div id="3_1665" className="Pixso-frame-3_1665">
-              <div className="frame-content-3_1665">
-                <p id="3_1666" className="Pixso-paragraph-3_1666">
-                  {'© 2026 Дай пять. Все права защищены.'}
-                </p>
-                <div id="3_1667" className="Pixso-frame-3_1667">
-                  <div id="3_1668" className="Pixso-vector-3_1668" />
-                  <div id="3_1671" className="Pixso-vector-3_1671" />
-                  <div id="3_1676" className="Pixso-vector-3_1676" />
-                </div>
+              <ArrowRight
+                className="size-4 shrink-0 text-[var(--muted-foreground)]"
+                strokeWidth={1.5}
+              />
+              <div className="flex h-9 items-center justify-center rounded-xl bg-[var(--accent-warm)] px-4">
+                <span className="text-[13px] font-semibold text-[var(--primary-foreground)]">
+                  Проценты
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </section>
+  );
+}
+
+// ---------- SECTION: PROBLEM ----------
+
+const PROBLEMS = [
+  {
+    icon: AlertCircle,
+    title: 'Программа перегружена',
+    desc: 'Школьную программу невозможно осмысленно пройти в отведённое время: либо поверхностно, либо не успеваем.',
+  },
+  {
+    icon: Search,
+    title: 'Пробелы в знаниях',
+    desc: 'В декабре выяснилось, что ребёнок не знает тему, которой не было в купленных курсах. Где ещё пробелы?',
+  },
+  {
+    icon: Unlink,
+    title: 'Предметы изолированы',
+    desc: 'Физика отдельно от математики, биология — от химии. Ребёнок не видит связей между явлениями.',
+  },
+  {
+    icon: Clock,
+    title: 'Единый темп не работает',
+    desc: 'По математике — 7 класс, по биологии — 8. Это нормально. Но как это учесть в плане?',
+  },
+  {
+    icon: HelpCircle,
+    title: 'Непонятно зачем',
+    desc: 'Ребёнок спрашивает: «Зачем мне это?» — а ответить нечего. Каждое знание должно иметь смысл.',
+  },
+];
+
+function ProblemSection() {
+  return (
+    <section className="flex w-full flex-col bg-[var(--background)] px-5 py-[100px] lg:px-20 lg:py-[140px]">
+      <div className="mx-auto flex w-full max-w-[1760px] flex-col items-center gap-[72px]">
+        <SectionHeader
+          badge="ПРОБЛЕМА"
+          title="Это про вас?"
+          subtitle="Знакомые ситуации для родителей на семейном образовании"
+        />
+        <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {PROBLEMS.map((item) => (
+            <Card key={item.title}>
+              <div className="flex flex-col gap-4 p-8">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-[var(--muted)]">
+                  <item.icon className="size-4 text-[var(--primary-warm)]" strokeWidth={2} />
+                </div>
+                <h3 className="text-[20px] font-bold leading-[130%] text-[var(--foreground)]">
+                  {item.title}
+                </h3>
+                <p className="w-full text-[16px] leading-[160%] text-[var(--muted-foreground)]">
+                  {item.desc}
+                </p>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------- SECTION: BRIDGE ----------
+
+function Bridge() {
+  return (
+    <section className="flex w-full flex-col items-center bg-[var(--muted)] px-5 py-20 lg:px-20">
+      <p className="text-center text-[28px] font-semibold text-[var(--muted-foreground)] lg:text-[32px]">
+        Так было.
+      </p>
+      <p className="text-center text-[28px] font-bold text-[var(--foreground)] lg:text-[32px]">
+        А теперь — так
+      </p>
+    </section>
+  );
+}
+
+// ---------- SECTION: SOLUTION ----------
+
+const STEPS = [
+  {
+    num: '1',
+    title: 'Задаём цели и ограничения',
+    desc: 'Цели к аттестации, время, нагрузка, темп. ИИ-ассистент поможет сформулировать и скорректировать.',
+    example: 'Пример: «К маю — аттестация, по алгебре подтянуть до «4»»',
+  },
+  {
+    num: '2',
+    title: 'Подключаем карту знаний',
+    desc: 'Подключаем готовую карту от методистов и сообщества: темы, связи, актуальный ФГОС.',
+    example: 'Пример: «Проценты → биология → химия → география»',
+  },
+  {
+    num: '3',
+    title: 'Находим пробелы',
+    desc: 'Система показывает, какие темы пропущены и почему это важно.',
+    example: 'Пример: «Деление → Дроби → Проценты. Без деления — пробел»',
+  },
+  {
+    num: '4',
+    title: 'Видим прогноз до аттестации',
+    desc: 'Видите, что успеете до экзамена. Планируете с уверенностью.',
+    example: 'Пример: «До ОГЭ 8 месяцев. Успеете 95% программы»',
+  },
+];
+
+const CONCEPTS = [
+  {
+    icon: RefreshCw,
+    title: 'Спиральное обучение',
+    desc: 'Тема «Функции» возвращается в 7, 8, 9 классах — с возрастающей глубиной. Маршрут строит витки, а не линейную цепочку.',
+    selected: true,
+  },
+  {
+    icon: FolderKanban,
+    title: 'Проектное погружение',
+    desc: 'Модули из разных предметов группируются вокруг проекта «Экосистема»: биология + математика + химия + география.',
+    selected: false,
+  },
+  {
+    icon: FlaskConical,
+    title: 'Свободное обучение',
+    desc: 'Ребёнок идёт от интереса: динозавры → биология → география → химия. Маршрут строится вокруг увлечений, а не наоборот.',
+    selected: false,
+  },
+];
+
+function SolutionSection() {
+  return (
+    <section className="flex w-full flex-col bg-[var(--background)] px-5 py-[100px] lg:px-20 lg:py-[140px]">
+      <div className="mx-auto flex w-full max-w-[1760px] flex-col gap-[72px]">
+        <SectionHeader
+          badge="РЕШЕНИЕ"
+          title="Как работает «Дай пять»"
+          subtitle="Представьте, что все школьные темы — это города на карте, а связи между ними — дороги. Мы ведём вас по маршруту."
+        />
+        <div className="flex flex-wrap items-stretch gap-8">
+          {STEPS.map((step) => (
+            <Card key={step.num} className="min-w-[280px] flex-1">
+              <div className="flex flex-col gap-6 p-8 lg:p-10">
+                <div className="flex size-16 items-center justify-center rounded-full bg-[var(--primary-warm)]">
+                  <span className="text-[32px] font-extrabold text-[var(--accent-foreground)]">
+                    {step.num}
+                  </span>
+                </div>
+                <h3 className="text-[22px] font-bold leading-[130%] text-[var(--foreground)] lg:text-[24px]">
+                  {step.title}
+                </h3>
+                <p className="w-full text-[16px] leading-[160%] text-[var(--muted-foreground)]">
+                  {step.desc}
+                </p>
+                <p className="text-[14px] font-medium leading-[150%] text-[var(--primary-warm)]">
+                  {step.example}
+                </p>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Concept picker */}
+        <div className="flex w-full flex-col items-center gap-8">
+          <div className="flex flex-col items-center gap-3">
+            <h3 className="text-center text-[28px] font-bold text-[var(--foreground)]">
+              Не знаете, с чего начать?
+            </h3>
+            <p className="text-center text-[17px] font-medium leading-[150%] text-[var(--muted-foreground)]">
+              Выберите педагогическую концепцию
+            </p>
+          </div>
+          <div className="flex w-full flex-wrap items-stretch gap-6">
+            {CONCEPTS.map((item) => (
+              <div
+                key={item.title}
+                className="flex flex-1 flex-col gap-3.5 rounded-[24px] border-2 border-[var(--border)] bg-[var(--card)] p-6 shadow-[0_12px_48px_-16px_rgba(124,45,18,0.149)] lg:p-7"
+              >
+                <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--muted)]">
+                  <item.icon className="size-5 text-[var(--primary-warm)]" strokeWidth={2} />
+                </div>
+                <h4 className="text-[20px] font-bold text-[var(--foreground)]">{item.title}</h4>
+                <p className="text-[15px] leading-[160%] text-[var(--muted-foreground)]">
+                  {item.desc}
+                </p>
+                <div
+                  className={`inline-flex w-fit items-center gap-2 rounded-full px-3.5 py-2 ${
+                    item.selected ? 'bg-[var(--primary-warm)]' : 'bg-[var(--muted)]'
+                  }`}
+                >
+                  {item.selected && (
+                    <Check className="size-3.5 text-[var(--primary-foreground)]" strokeWidth={3} />
+                  )}
+                  <span
+                    className={`text-[13px] font-semibold ${
+                      item.selected
+                        ? 'text-[var(--primary-foreground)]'
+                        : 'text-[var(--muted-foreground)]'
+                    }`}
+                  >
+                    {item.selected ? 'Выбрано' : 'Выбрать'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------- SECTION: BENEFITS ----------
+
+const BENEFITS_ROW_1 = [
+  {
+    icon: Eye,
+    title: 'Вижу пробелы до аттестации',
+    desc: 'Система заранее покажет, какие темы не пройдены. Не будет сюрпризов на экзамене.',
+    instead: 'Вместо: «Надеюсь, всё успеем»',
+  },
+  {
+    icon: Clock,
+    title: 'Учу в своём темпе',
+    desc: 'По математике — 7 класс, по биологии — 8. Это нормально. Система учитывает разные уровни.',
+    instead: 'Вместо: «Все должны быть на одном уровне»',
+  },
+  {
+    icon: Users,
+    title: 'Одна панель для всех детей',
+    desc: 'Трое детей? Не проблема. Видите прогресс каждого в одном месте.',
+    instead: 'Вместо: «Три таблицы Excel и два чата»',
+  },
+];
+
+const BENEFITS_ROW_2 = [
+  {
+    icon: Link2,
+    title: 'Знаю, зачем это учить',
+    desc: 'Каждая тема связана с реальной жизнью и другими предметами. Ребёнок видит смысл.',
+    instead: 'Вместо: «Учи, потому что так надо»',
+  },
+  {
+    icon: MapIcon,
+    title: 'Карта знаний показывает связи',
+    desc: 'Визуальная карта с темами и связями между предметами. Физика не отдельно от математики.',
+    instead: 'Вместо: «Предметы как отдельные острова»',
+  },
+  {
+    icon: BadgeCheck,
+    title: 'Успеваем подготовиться к аттестации',
+    desc: 'Система показывает покрытие стандарта: какие темы закрыты, какие остались до аттестации. Без ручной сверки в Excel.',
+    instead: 'Вместо: «Ручная сверка с ФГОС в Excel»',
+  },
+];
+
+function BenefitCardList({ items }: { items: typeof BENEFITS_ROW_1 }) {
+  return (
+    <div className="flex w-full flex-wrap items-stretch gap-6">
+      {items.map((item) => (
+        <Card key={item.title} className="min-w-[280px] flex-1">
+          <div className="flex flex-col gap-5 p-8 lg:p-10">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--muted)]">
+              <item.icon className="size-5 text-[var(--secondary-calm)]" strokeWidth={2} />
+            </div>
+            <h3 className="text-[20px] font-bold leading-[130%] text-[var(--foreground)] lg:text-[22px]">
+              {item.title}
+            </h3>
+            <p className="w-full text-[16px] leading-[160%] text-[var(--muted-foreground)]">
+              {item.desc}
+            </p>
+            <p className="text-[14px] font-medium leading-[150%] text-[var(--secondary-calm)]">
+              {item.instead}
+            </p>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function BenefitsSection() {
+  return (
+    <section className="flex w-full flex-col bg-[var(--muted)] px-5 py-[100px] lg:px-20 lg:py-[140px]">
+      <div className="mx-auto flex w-full max-w-[1760px] flex-col gap-[72px]">
+        <SectionHeader
+          badge="ПРЕИМУЩЕСТВА"
+          title="Почему родители выбирают «Дай пять»"
+          subtitle="Вместо метода проб и ошибок — система, которая работает"
+        />
+        <div className="flex w-full flex-col gap-8">
+          <BenefitCardList items={BENEFITS_ROW_1} />
+          <BenefitCardList items={BENEFITS_ROW_2} />
+        </div>
+        <div className="flex w-full items-center justify-center gap-4 rounded-xl bg-[var(--card)] px-8 py-8 lg:px-12">
+          <Target className="size-6 shrink-0 text-[var(--primary-warm)]" strokeWidth={2} />
+          <p className="text-center text-[18px] font-medium leading-[150%] text-[var(--foreground)]">
+            Почему это работает: карта знаний основана на принципе межпредметных связей — каждая
+            тема имеет понятные «зачем» и «где пригодится». А ИИ-ассистент ответит на вопросы и
+            подскажет, как лучше выстроить маршрут.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------- SECTION: PRICING ----------
+
+const PLANS = [
+  {
+    icon: MapIcon,
+    name: 'Карта',
+    price: '0 ₽',
+    period: '/ 7 дней',
+    description: 'Диагностика пробелов и карта тем на 7 дней.',
+    features: [
+      { text: 'Карта всех тем по предметам', highlight: false },
+      { text: 'Диагностика пробелов до аттестации', highlight: false },
+      { text: '1 ребёнок в профиле', highlight: false },
+      { text: 'Без привязки банковской карты', highlight: false },
+      { text: 'Истории «зачем это знать»', highlight: false },
+      { text: 'Маршрут и расписание', highlight: false },
+      { text: 'Планирование бюджета и ресурсов', highlight: false },
+    ],
+    cta: 'Попробовать 7 дней',
+  },
+  {
+    icon: Compass,
+    name: 'Компас',
+    price: '490 ₽',
+    period: '/ месяц',
+    annual: { price: '4 410 ₽', oldPrice: '5 880 ₽', savings: 'Экономия 1 470 ₽' },
+    description: 'Направление для всей семьи. Истории, маршрут и расписание, 30 запросов к ИИ.',
+    features: [
+      { text: 'Всё из Карты', highlight: false },
+      { text: 'Истории и контекст «зачем это знать»', highlight: true },
+      { text: 'Маршрут и расписание: что доступно сейчас, что дальше, где цель', highlight: true },
+      { text: 'Полный учебный маршрут', highlight: false },
+      { text: 'Отслеживание прогресса', highlight: false },
+      { text: 'До 2 детей в одном профиле', highlight: false },
+      { text: 'ИИ-ассистент (30 запросов/мес)', highlight: false },
+    ],
+    cta: 'Выбрать маршрут',
+  },
+  {
+    icon: Navigation,
+    name: 'Навигатор',
+    badge: 'Самый популярный',
+    price: '990 ₽',
+    period: '/ месяц',
+    annual: { price: '8 910 ₽', oldPrice: '11 880 ₽', savings: 'Экономия 2 970 ₽' },
+    description:
+      'Полная система для осмысленной подготовки. 300 запросов к ИИ, ресурсы, проекты и отчёты.',
+    features: [
+      { text: 'Всё из Компаса', highlight: false },
+      { text: 'Без ограничений по количеству детей', highlight: false },
+      { text: 'ИИ-ассистент по планированию (300 запросов/мес)', highlight: true },
+      {
+        text: 'Планирование бюджета и ресурсов — сколько денег и времени до аттестации',
+        highlight: true,
+      },
+      { text: 'Проектные идеи на стыках предметов', highlight: false },
+      { text: 'Экспорт отчётов и сертификатов', highlight: false },
+      { text: 'Приоритетная поддержка', highlight: false },
+    ],
+    cta: 'Получить максимум',
+  },
+];
+
+function PricingCard({ plan }: { plan: (typeof PLANS)[number] }) {
+  return (
+    <div className="flex w-full flex-1 flex-col rounded-[24px] bg-[var(--card)] p-10 shadow-[0_12px_48px_-16px_rgba(124,45,18,0.149)]">
+      {/* Title row */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <plan.icon className="size-7 text-[var(--primary-warm)]" strokeWidth={2} />
+          <h3 className="text-[28px] font-bold text-[var(--foreground)]">{plan.name}</h3>
+        </div>
+        {plan.badge && (
+          <span className="inline-flex items-center rounded-full bg-[var(--primary-warm)] px-3.5 py-1.5 text-[13px] font-semibold text-[var(--accent-foreground)]">
+            {plan.badge}
+          </span>
+        )}
+      </div>
+
+      {/* Price row */}
+      <div className="mt-4 flex items-end gap-1">
+        <span className="text-[48px] font-extrabold leading-none text-[var(--foreground)]">
+          {plan.price}
+        </span>
+        <span className="pb-1 text-[18px] text-[var(--muted-foreground)]">{plan.period}</span>
+      </div>
+
+      {/* Annual row */}
+      {plan.annual && (
+        <div className="mt-3 flex items-center gap-2.5">
+          <span className="text-[16px] font-bold text-[var(--foreground)]">
+            {plan.annual.price}
+          </span>
+          <span className="text-[14px] text-[var(--muted-foreground)] line-through">
+            {plan.annual.oldPrice}
+          </span>
+          <span className="inline-flex items-center rounded-full bg-[rgba(13,148,136,0.12)] px-2.5 py-1 text-[13px] font-semibold text-[rgba(15,118,110,1)]">
+            {plan.annual.savings}
+          </span>
+        </div>
+      )}
+
+      {/* Description */}
+      <p className="mt-4 text-[16px] leading-[150%] text-[var(--muted-foreground)]">
+        {plan.description}
+      </p>
+
+      {/* Divider */}
+      <div className="mt-5 h-px w-full bg-[var(--border)]" />
+
+      {/* Features */}
+      <ul className="mt-5 flex flex-col gap-3">
+        {plan.features.map((feature) => (
+          <li key={feature.text}>
+            {feature.highlight ? (
+              <div className="flex items-start gap-3 rounded-xl bg-[var(--muted)] px-3 py-2.5">
+                <Check
+                  className="mt-0.5 size-[18px] shrink-0 text-[var(--secondary-calm)]"
+                  strokeWidth={2.5}
+                />
+                <span className="text-[16px] font-semibold leading-[150%] text-[var(--foreground)]">
+                  {feature.text}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-start gap-3">
+                <Check
+                  className="mt-0.5 size-[18px] shrink-0 text-[var(--secondary-calm)]"
+                  strokeWidth={2.5}
+                />
+                <span className="text-[16px] leading-[150%] text-[var(--muted-foreground)]">
+                  {feature.text}
+                </span>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {/* CTA */}
+      <button
+        type="button"
+        className="mt-8 flex w-full items-center justify-center gap-3 rounded-full bg-[var(--primary-warm)] py-4 text-[16px] font-semibold text-[var(--accent-foreground)] transition-opacity hover:opacity-90"
+      >
+        {plan.cta}
+        <span className="flex size-8 items-center justify-center rounded-full bg-[var(--accent-foreground)]">
+          <ArrowRight className="size-4 text-[var(--primary-foreground)]" strokeWidth={2.5} />
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function PricingSection() {
+  return (
+    <section className="flex w-full flex-col bg-[var(--background)] px-5 py-[100px] lg:px-20 lg:py-[140px]">
+      <div className="mx-auto flex w-full max-w-[1760px] flex-col items-center gap-[72px]">
+        <SectionHeader
+          badge="ТАРИФЫ"
+          title="Выберите свой маршрут к аттестации"
+          subtitle="Диагностика бесплатно. Мотивация — в Компасе. Экономия на репетиторах — в Навигаторе."
+        />
+        <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-3">
+          {PLANS.map((plan) => (
+            <PricingCard key={plan.name} plan={plan} />
+          ))}
+        </div>
+        <div className="flex w-full flex-wrap items-center justify-center gap-3">
+          <Info className="size-5 shrink-0 text-[var(--muted-foreground)]" strokeWidth={1.5} />
+          <span className="text-center text-[16px] text-[var(--muted-foreground)]">
+            Не нашли подходящий вариант? VEDO EduTrack также используют школы, онлайн-платформы и
+            корпорации.
+          </span>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-[16px] font-semibold text-[var(--primary-warm)] transition-colors hover:underline"
+          >
+            Перейти в раздел «Для бизнеса»
+            <ArrowRight className="size-[18px]" strokeWidth={1.5} />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------- SECTION: TESTIMONIALS ----------
+
+const TESTIMONIALS = [
+  {
+    text: '«До «Дай пять» я тратила 3 часа в неделю на составление плана. Сейчас система сама показывает, что учить дальше. Маша стала учиться с удовольствием — видит, зачем ей каждая тема.»',
+    author: 'Елена, 38 лет',
+    role: 'Мама Маши (6 класс) и Пети (3 класс)',
+    result: 'Результат: аттестация сдана на «отлично», пробелов нет',
+  },
+  {
+    text: '«Сын обожает биологию, но алгебра шла туго. «Дай пять» показал: он не понимает дроби → проценты → статистику. Закрыли пробел за 2 месяца. Теперь сам просит задачи по математике!»',
+    author: 'Андрей, 42 года',
+    role: 'Папа Димы (8 класс)',
+    result: 'Результат: оценка по алгебре выросла с 3 до 5',
+  },
+  {
+    text: '«Трое детей на семейном — это хаос. «Дай пять» собрал всё в одну панель: вижу прогресс каждого, дети сами планируют обучение.»',
+    author: 'Ольга, 35 лет',
+    role: 'Мама троих: Кати (9 класс), Вани (6 класс), Сони (2 класс)',
+    result: 'Результат: дети учатся самостоятельно, мама — координатор',
+  },
+];
+
+const METRICS = [
+  { value: '1000+', label: 'тем в базе знаний' },
+  { value: '500+', label: 'межпредметных связей' },
+  { value: '200+', label: 'семей уже используют' },
+];
+
+function TestimonialsSection() {
+  return (
+    <section className="flex w-full flex-col bg-[var(--muted)] px-5 py-[100px] lg:px-20 lg:py-[140px]">
+      <div className="mx-auto flex w-full max-w-[1760px] flex-col items-center gap-[72px]">
+        <SectionHeader
+          badge="ОТЗЫВЫ"
+          title="Реальные истории"
+          subtitle="Как «Дай пять» помог семьям на семейном образовании"
+        />
+        <div className="flex w-full items-stretch gap-10">
+          {TESTIMONIALS.map((item) => (
+            <div
+              key={item.author}
+              className="flex w-full flex-1 flex-col gap-6 rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-10 shadow-[0_16px_64px_-20px_rgba(124,45,18,0.149)]"
+            >
+              <Quote className="size-8 text-[var(--primary-warm)]" strokeWidth={1.5} />
+              <p className="text-[18px] leading-[170%] text-[var(--foreground)]">{item.text}</p>
+              <div className="flex items-center gap-4 pt-4">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[var(--primary-warm)] text-[16px] font-bold text-[var(--accent-foreground)]">
+                  {item.author[0]}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] font-bold leading-[130%] text-[var(--foreground)]">
+                    {item.author}
+                  </span>
+                  <span className="text-[14px] leading-[140%] text-[var(--muted-foreground)]">
+                    {item.role}
+                  </span>
+                </div>
+              </div>
+              <div className="flex w-full items-center gap-3 rounded-[8px] bg-[var(--muted)] px-5 py-4">
+                <Check className="size-5 shrink-0 text-[var(--secondary-calm)]" strokeWidth={2.5} />
+                <span className="text-[14px] font-semibold leading-[140%] text-[var(--foreground)]">
+                  {item.result}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex w-full items-center justify-center gap-8 rounded-xl bg-[var(--muted)] px-8 py-10">
+          {METRICS.map((metric) => (
+            <div key={metric.value} className="flex flex-col items-center gap-2">
+              <span className="text-[48px] font-extrabold leading-none text-[var(--primary-warm)]">
+                {metric.value}
+              </span>
+              <span className="text-[16px] font-medium leading-[140%] text-[var(--muted-foreground)]">
+                {metric.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------- SECTION: PHILOSOPHY ----------
+
+const PRINCIPLES = [
+  {
+    icon: Layers,
+    title: 'ЦЕЛОСТНОСТЬ',
+    subtitle: 'Целостность',
+    desc: 'Знания имеют смысл только в системе: одна тема вытекает из другой, предметы переплетаются. Мы строим карту, где эти связи видны, — чтобы ребёнок видел не отдельные куски, а живую картину мира.',
+  },
+  {
+    icon: Compass,
+    title: 'СВОБОДА',
+    subtitle: 'Свобода без хаоса',
+    desc: 'Ребёнок идёт за своим интересом — в рамках маршрута, который ведёт к аттестации. Интерес и ответственность соединяются в едином плане. Мы не загоняем в рамки, но и не отпускаем без карты.',
+  },
+  {
+    icon: Link2,
+    title: 'СВЯЗИ',
+    subtitle: 'Связь с жизнью',
+    desc: 'Каждая тема показывает, где она применяется: в профессии, в быту, в других предметах. Знания не висят в воздухе — они имеют смысл здесь и сейчас.',
+  },
+  {
+    icon: Users,
+    title: 'СООБЩЕСТВО',
+    subtitle: 'Сила в сообществе',
+    desc: 'Карта знаний — живая, её развивают методисты и родители вместе. Это общее дело: вы делитесь опытом, находите единомышленников и влияете на то, как учатся другие.',
+    link: 'На платформе VEDO Hub →',
+  },
+];
+
+function PhilosophySection() {
+  return (
+    <section className="flex w-full flex-col bg-[var(--background)] px-5 py-[100px] lg:px-20 lg:py-[140px]">
+      <div className="mx-auto flex w-full max-w-[1760px] flex-col items-center gap-[72px]">
+        <SectionHeader
+          badge="ОСНОВА"
+          title="Система, которая возвращает логику и смысл"
+          subtitle="Мы строим карту знаний, где каждая тема занимает своё место."
+        />
+        <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+          {PRINCIPLES.map((item) => (
+            <div
+              key={item.title}
+              className="flex w-full flex-col gap-5 rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-10 shadow-[0_16px_64px_-20px_rgba(124,45,18,0.149)]"
+            >
+              <div className="flex size-8 items-center justify-center">
+                <item.icon className="size-8 text-[var(--primary-warm)]" strokeWidth={1.75} />
+              </div>
+              <span className="text-[13px] font-bold tracking-[1px] text-[var(--muted-foreground)]">
+                {item.title}
+              </span>
+              <h3 className="text-[24px] font-bold leading-[130%] text-[var(--foreground)]">
+                {item.subtitle}
+              </h3>
+              <p className="text-[16px] leading-[160%] text-[var(--muted-foreground)]">
+                {item.desc}
+              </p>
+              {item.link && (
+                <span className="mt-auto text-[14px] font-semibold text-[var(--primary-warm)]">
+                  {item.link}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex w-full items-center gap-4 rounded-xl bg-[var(--card)] px-12 py-8">
+          <Target className="size-6 shrink-0 text-[var(--primary-warm)]" strokeWidth={2} />
+          <p className="text-[18px] font-medium leading-[150%] text-[var(--foreground)]">
+            «Дай пять» — это как экспедиция. У вас есть карта, где уже проложены маршруты. Но вы
+            сами выбираете, по какой тропе идти. Рядом — те, кто прошёл этот путь раньше. И вы
+            всегда знаете, где находитесь и что ждёт впереди.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------- SECTION: FAQ ----------
+
+const FAQS = [
+  {
+    question: 'Что, если мы не успеем подготовиться к аттестации? Вдруг забудем какую-то тему?',
+    answer:
+      'Система заранее показывает пробелы: какие темы пройдены, какие остались, и сколько на них нужно времени. Вы видите покрытие ФГОС в реальном времени — ни одна тема не потеряется. Аттестация перестаёт быть стрессом, потому что вы точно знаете: всё под контролем.',
+  },
+  {
+    question: 'Что если я сам не разбираюсь в предмете?',
+    answer:
+      'Вам не нужно быть методистом. Система показывает, что учить и в каком порядке. Ребёнок учится через пример взрослого — вы организуете, а не преподаёте.',
+  },
+  {
+    question: 'Можно ли вести несколько детей одновременно?',
+    answer:
+      'Да, одна панель для всех детей. Видите прогресс каждого, управляете планами, получаете уведомления о пробелах.',
+  },
+  {
+    question: 'Это бесплатно?',
+    answer:
+      'Базовый функционал бесплатен навсегда: карта знаний, диагностика пробелов, план обучения. Продвинутые функции (прогноз аттестации, несколько детей) — по подписке.',
+  },
+  {
+    question: 'Сколько времени займёт настройка?',
+    answer:
+      '5 минут. Отвечаете на вопросы о ребёнке — система подключает готовую карту знаний. Дальше работаете по плану, который обновляется автоматически.',
+  },
+  {
+    question: 'Мои данные в безопасности?',
+    answer:
+      'Да, мы соответствуем 152-ФЗ. Данные хранятся в России, шифруются, не передаются третьим лицам. Вы можете удалить аккаунт в любой момент.',
+  },
+  {
+    question: 'Кто создаёт граф знаний?',
+    answer:
+      'Граф знаний создаётся методистами совместно с родительским сообществом на основе онтологии VEDO Hub. Родители могут предлагать связи между темами, делиться опытом и учебными находками. Это живая система: граф постоянно пополняется и уточняется — академическая точность методистов встречается с реальным родительским опытом.',
+  },
+];
+
+function FAQItem({ item, index }: { item: (typeof FAQS)[number]; index: number }) {
+  const [open, setOpen] = useState(index === 0);
+  return (
+    <div className="w-full rounded-[28px] bg-[var(--card)] p-8 shadow-[0_12px_48px_-16px_rgba(124,45,18,0.149)]">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex w-full items-center justify-between gap-4 text-left"
+        aria-expanded={open}
+      >
+        <span className="text-[18px] font-bold leading-[140%] text-[var(--foreground)] lg:text-[20px]">
+          {item.question}
+        </span>
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--muted)]">
+          {open ? (
+            <Minus className="size-4 text-[var(--primary-warm)]" strokeWidth={2.5} />
+          ) : (
+            <Plus className="size-4 text-[var(--primary-warm)]" strokeWidth={2.5} />
+          )}
+        </div>
+      </button>
+      {open && (
+        <p className="mt-4 text-[18px] leading-[160%] text-[var(--muted-foreground)]">
+          {item.answer}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function FaqSection() {
+  return (
+    <section className="flex w-full flex-col bg-[var(--muted)] px-5 py-[100px] lg:px-20 lg:py-[140px]">
+      <div className="mx-auto flex w-full max-w-[1760px] flex-col items-center gap-[72px]">
+        <SectionHeader
+          badge="FAQ"
+          title="Частые вопросы"
+          subtitle="Отвечаем на сомнения до того, как они возникнут"
+        />
+        <div className="flex w-full flex-col items-center gap-4">
+          {FAQS.map((item) => (
+            <FAQItem key={item.question} item={item} index={i} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------- SECTION: FINAL CTA ----------
+
+function FinalCta() {
+  return (
+    <section className="flex w-full flex-col items-center bg-[var(--background)] px-5 pt-[100px] lg:px-20 lg:pt-[140px]">
+      <div className="flex w-full max-w-[1760px] flex-col items-center gap-8 rounded-[32px] bg-gradient-to-br from-[var(--primary-warm)] via-[#F97316] to-[#EA580C] px-8 py-16 text-center lg:px-16 lg:py-20">
+        <h2 className="text-[44px] font-extrabold leading-[110%] text-[var(--primary-foreground)] lg:text-[56px]">
+          Готовы построить маршрут?
+        </h2>
+        <p className="max-w-[640px] text-[20px] leading-[160%] text-[var(--primary-foreground)]/90">
+          Бесплатно для всей семьи. 5 минут на маршрут. Доплата — только за ИИ-ассистента. 200+
+          семей.
+        </p>
+        <div className="inline-flex items-center gap-2 px-4 py-2">
+          <Target className="size-4 text-[var(--primary-foreground)]" strokeWidth={2} />
+          <span className="text-[15px] font-semibold text-[var(--primary-foreground)]">
+            Не проходите курс — достигайте цель
+          </span>
+        </div>
+        <button
+          type="button"
+          className="inline-flex items-center gap-3 rounded-full bg-[var(--primary-foreground)] px-8 py-4 text-[17px] font-bold text-[var(--primary-warm)] transition-opacity hover:opacity-90"
+        >
+          Начать строить маршрут
+          <ArrowIconCircle />
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// ---------- SECTION: FOOTER ----------
+
+const FOOTER_COLUMNS = [
+  {
+    title: 'Продукт',
+    links: ['Как это работает', 'Возможности', 'Тарифы', 'Отзывы'],
+  },
+  {
+    title: 'Поддержка',
+    links: ['FAQ', 'Контакты', 'Блог'],
+  },
+  {
+    title: 'Правовая информация',
+    links: ['Политика конфиденциальности', 'Условия использования', 'Согласие на обработку данных'],
+  },
+  {
+    title: 'Для бизнеса',
+    links: ['Для бизнеса', 'VEDO Hub'],
+  },
+];
+
+function Footer() {
+  return (
+    <footer className="flex w-full flex-col bg-[var(--card)] px-5 py-16 lg:px-20">
+      <div className="mx-auto flex w-full max-w-[1760px] flex-col gap-12">
+        <div className="flex flex-col justify-between gap-10 lg:flex-row lg:gap-0">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <IconHand />
+              <span className="text-[22px] font-bold text-[var(--foreground)]">Дай пять</span>
+            </div>
+            <p className="max-w-[320px] text-[16px] leading-[160%] text-[var(--muted-foreground)]">
+              Индивидуальные маршруты обучения на основе карты знаний для семей на семейном
+              образовании.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                aria-label="Send"
+                className="flex size-10 items-center justify-center rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+              >
+                <Send className="size-4" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                aria-label="Users"
+                className="flex size-10 items-center justify-center rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+              >
+                <Users className="size-4" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                aria-label="Play"
+                className="flex size-10 items-center justify-center rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+              >
+                <Play className="size-4" strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:gap-16">
+            {FOOTER_COLUMNS.map((col) => (
+              <div key={col.title} className="flex flex-col gap-4">
+                <span className="text-[16px] font-bold text-[var(--foreground)]">{col.title}</span>
+                <ul className="flex flex-col gap-3">
+                  {col.links.map((link) => (
+                    <li key={link}>
+                      <a
+                        href="/"
+                        className="text-[15px] text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+                      >
+                        {link}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-[var(--border)] pt-8 sm:flex-row">
+          <span className="text-[14px] text-[var(--muted-foreground)]">
+            © 2026 «Дай пять» — сервис VEDO EduTrack
+          </span>
+          <span className="text-[14px] text-[var(--muted-foreground)]">
+            Сделано на основе открытой онтологии VEDO Hub
+          </span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// ---------- PAGE ----------
+
+export function LandingPage() {
+  useTheme();
+  return (
+    <div className="w-full bg-[var(--background)] text-[var(--foreground)]">
+      <Header />
+      <main className="mx-auto w-full max-w-[1920px] overflow-x-hidden">
+        <Hero />
+        <ProblemSection />
+        <Bridge />
+        <SolutionSection />
+        <BenefitsSection />
+        <PricingSection />
+        <TestimonialsSection />
+        <PhilosophySection />
+        <FaqSection />
+        <FinalCta />
+      </main>
+      <Footer />
+      <button
+        type="button"
+        onClick={() => {
+          const current = document.documentElement.getAttribute('data-collection-3-4-mode');
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-collection-3-4-mode', next);
+          localStorage.setItem(THEME_KEY, next);
+        }}
+        className="fixed bottom-6 right-6 z-50 flex size-10 items-center justify-center rounded-full bg-[var(--card)] text-[var(--foreground)] shadow-[0_12px_48px_-16px_rgba(124,45,18,0.35)]"
+        aria-label="Переключить тему"
+      >
+        {document.documentElement.getAttribute('data-collection-3-4-mode') === 'dark' ? (
+          <Sparkles className="size-4" strokeWidth={2} />
+        ) : (
+          <HelpCircle className="size-4" strokeWidth={2} />
+        )}
+      </button>
     </div>
   );
 }

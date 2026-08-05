@@ -2,6 +2,17 @@
 /* Generated from Pixso "Дай пять / Desktop / Light" and "Дай пять / Desktop / Dark" */
 /* Approach 1: Pixso CSS variables kept as-is per ADR-IMPL.UI.pixso-variables-approach.md */
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap");
+
+:root {
+  --font-inter: "Inter", sans-serif;
+}
+
+/* ===== BASE SETUP ===== */
+* {
+  font-family: var(--font-inter);
+}
+
 /* ===== ACCENT COLORS (shared) ===== */
 :root,
 [data-collection-3-1301-mode="default"] {
