@@ -2,250 +2,287 @@
 name: pixso-landing-export
 description: >-
   Export a Pixso landing page design to a production-ready React component with
-  Tailwind CSS v4, responsive layout, Pixso CSS variables, and asset management.
-  Use when the user says "export landing page", "export design to code",
-  "convert to tailwind", "pixso to react", or after finishing a landing page
-  design in Pixso. Always applies Approach 1 (Pixso CSS variables as-is).
-argument-hint: "[guid] [--dark-guid <guid>] [--no-route]"
+  Tailwind CSS v4, responsive layout, and Pixso CSS variables. Uses DSL+SVG
+  extraction (NOT design_to_code) for pixel-accurate code generation with
+  section-by-section automated processing via Python script. Use when the user
+  says "export landing page", "export design to code", "convert to tailwind",
+  "pixso to react", or after finishing a landing page design in Pixso.
+argument-hint: "[guid] [--dark-guid <guid>] [--section <name>] [--no-route] [--no-assets]"
 user-invocable: true
-allowed-tools: Read Write Edit Fetch CreateDirectory PixsoMCP(design_to_code) PixsoMCP(refine_generated_code) PixsoMCP(fetch_context) PixsoMCP(pixso_mcp_get_screenshot) Terminal(pnpm *) Terminal(mkdir *) Terminal(cp *) Terminal(mv *)
+allowed-tools: Read Write Edit Fetch CreateDirectory PixsoMCP(get_node_dsl) PixsoMCP(get_export_image) PixsoMCP(fetch_context) PixsoMCP(pixso_mcp_get_screenshot) PixsoMCP(get_variables) PixsoMCP(get_top_level_frames) PixsoMCP(query_nodes) Terminal(pnpm *) Terminal(mkdir *) Terminal(cp *) Terminal(mv *) Terminal(python *) Terminal(curl *) SpawnAgent
 metadata:
   author: VEDO EduTrack
-  version: "2.0"
+  version: "3.0"
   category: design-to-code
 ---
 
-# Pixso Landing Page Export
+# Pixso Landing Page Export (DSL+SVG Method)
 
-Export a Pixso landing page design to a production-ready React component in the
-VEDO EduTrack project. The pipeline applies **A+B+C** refinement automatically:
-responsive layout, CSS variables, and Tailwind CSS v4 utility classes.
+**DO NOT use `design_to_code`.** It produces unreliable output: Pixso-* classes,
+slot_4_258 props, separate 182KB CSS files, invented filler content, and wrong
+text/data. Instead, use **DSL extraction + SVG verification + Python code generation**.
 
 **Color strategy is non-negotiable: Pixso CSS variables (`var(--primary-warm)`)**
-are kept as-is. This is formally documented in
-`specs/adr/ADR-IMPL.UI.pixso-variables-approach.md`. See also
-`references/COLOR-STRATEGY.md` for detailed rationale.
-
-## When to use
-
-- After finishing a landing page design in Pixso
-- When the user says "export design to code", "convert to tailwind", "pixso to react"
-- When the user asks to turn a Pixso frame into a working React component
+are kept as-is. See `specs/adr/ADR-IMPL.UI.pixso-variables-approach.md`.
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
 | `<guid>` | Pixso node GUID for the light theme frame (e.g. `3:1309`). Omit to use current selection. |
-| `--dark-guid <guid>` | Pixso node GUID for the dark theme frame (e.g. `3:1677`). Exports only CSS variables for dark mode. |
-| `--no-route` | Skip route registration |
-| `--no-assets` | Skip asset download |
+| `--dark-guid <guid>` | Pixso node GUID for the dark theme frame. Exports only CSS variables. |
+| `--section <name>` | Process only one section (e.g. `Pricing`, `Benefits`). |
+| `--no-route` | Skip route registration. |
+| `--no-assets` | Skip asset download. |
 
 ## Workflow
 
-### Step 1: Identify the target node(s)
-
-Two frames needed:
-
-1. **Light frame** (required) — the main design, provides structure + light variables
-2. **Dark frame** (optional, `--dark-guid`) — same layout, dark palette, provides dark variables
-
-Accept GUIDs in order of priority:
-- Pixso URL → extract `item-id`
-- GUID string → use directly
-- No argument → use current selection
-
-### Step 2: Fetch context
+### Step 1: Identify the target frame
 
 ```
 fetch_context({ include_map: true })
 ```
 
-Confirm the light frame is the right one. If it's a page rather than a frame,
-warn the user.
+Confirm the frame is correct. Collect the light frame GUID (required) and
+dark frame GUID (optional, for theme variables).
 
-### Step 3: Generate code from light frame
-
-```
-design_to_code({
-  guids: ["<LIGHT_GUID>"],
-  clientFrameworks: "react"
-})
-```
-
-### Step 4: Apply A+B+C refinement
+### Step 2: Extract variables (design tokens)
 
 ```
-refine_generated_code({ refinementTags: ["A", "B", "C"] })
+get_variables({ variableSetId: "<id>" })
 ```
 
-### Step 5: Extract dark theme variables (if --dark-guid provided)
+This gives the color tokens for light/dark modes. Resolve the Pixso variable
+set IDs from the frame context. The variable set typically has modes:
+- `light` — light theme colors
+- `dark` — dark theme colors
+
+### Step 3: Get DSL per section — NOT design_to_code
+
+For EACH major section of the page, get the structured DSL:
 
 ```
-design_to_code({
-  guids: ["<DARK_GUID>"],
-  clientFrameworks: "react"
-})
+get_node_dsl({ guid: "<SECTION_GUID>", simplify: true })
 ```
 
-From this output, extract ONLY the `:root` / `[data-collection-...]` CSS
-variable blocks for dark mode. Discard the HTML body — it's identical to
-the light frame. Merge the dark variables into `pixso-variables.css`.
+The compact DSL (simplify:true) returns:
+- `roots` — tree of nodes with exact text content, sizes, autoLayout, fills
+- `refsIndex` — resolved variable names, component references, icon IDs
+- `variableMap` — Pixso variable ID → CSS variable name mapping
 
-### Step 6: Fetch and transform the generated code
+**Save each section's DSL to a temp JSON file** for the Python script.
 
-1. `fetch()` the code URL from Step 3
-2. Apply refinement guides from Step 4:
-   - Convert all `Pixso-*` CSS classes to Tailwind utility classes
-   - Replace fixed widths with responsive equivalents
-   - Add media queries at `768px` and `480px`
-   - Ensure all colors use `var(--*)` CSS custom properties
-   - Remove all `<style>` blocks and inline `style=""`
-   - Remove empty `<script>` blocks
-   - Change `<html lang="zh-CN">` to `<html lang="ru">`
-   - Change `<title>` to meaningful title
+### Step 4: Verify geometry with SVG (optional, for critical sections)
 
-### Step 7: Download assets
+For sections where exact positioning matters (Pricing cards, grids, etc.):
 
-For each unique asset URL at `http://localhost:PORT/assets/BATCH_TS/...`:
+```
+get_export_image({ guid: "<SECTION_GUID>", exportSettings: { imageType: 3, constraint: { type: 1, value: 1 } } })
+```
 
-1. `fetch()` the URL to get binary content
-2. Save to `frontend/public/assets/landing/<basename>`
-3. Update reference in code from full URL to `/assets/landing/<basename>`
-4. Font files to `frontend/public/assets/landing/fonts/`
+Download the SVG to inspect:
+- **Radii** — check `rx="..."` on `<rect>` elements for exact corner radius
+- **Positions** — check `x="..." y="..."` for element placement
+- **Colors** — check `fill="rgb(...)"` for exact color values
+- **Layout** — verify gaps, padding, alignment
 
-### Step 8: Create the React component
+SVG is large (200-300KB per card) but contains pixel-exact geometry. Use it
+for verification, not for text extraction (text renders as glyph paths).
 
-**File:** `frontend/src/pages/Landing.tsx`
+### Step 5: Run the DSL-to-Code Python script
 
-The component includes system theme auto-detection:
+Save the DSL JSON to a temp file, then run:
+
+```bash
+python .agents/skills/pixso-landing-export/scripts/dsl-to-code.py <dsl.json> --section-name "<Name>"
+```
+
+The script outputs:
+- **JSX structure** — recursive frame→div, text→span, autoLayout→flex/grid mapping
+- **Data arrays** — extracted structured data (pricing plans, testimonials, FAQs, etc.)
+- **Icon references** — Pixso vector → lucide-react mapping
+- **Variable resolution** — fills → CSS var() references
+
+For structured data-heavy sections, also run with `--data-only`:
+
+```bash
+python .agents/skills/pixso-landing-export/scripts/dsl-to-code.py <dsl.json> --data-only
+```
+
+This outputs JSON with arrays like `plans`, `testimonials`, `faqs`, `principles`,
+`problems`, `benefits`, `metrics` — ready to paste into the React component.
+
+### Step 6: Generate code section by section
+
+For EACH section, generate a focused React component:
+
+1. Save the section's DSL JSON from Step 3
+2. Run the Python script to extract data + structure
+3. Feed the output to a **spawned code-gen agent** with instructions:
+   - Write clean React+Tailwind code
+   - Use `var(--*)` for all colors
+   - Use lucide-react icons
+   - Match the DSL structure exactly
+   - Verify radius/position from SVG if exported
+4. Integrate the section into the master `Landing.tsx`
+
+**NEVER generate the whole page at once** — section-by-section is more accurate
+because the agent has enough context for each section.
+
+### Step 7: Handle known component types
+
+The script detects these component instances and generates proper code:
+
+| Pixso Component | React Component |
+|----------------|-----------------|
+| `Component / Section Header` | `<SectionHeader badge="..." title="..." subtitle="..." />` |
+| `Component / CTA Button` | `<OrangeButton>...</OrangeButton>` |
+| `Component / Eyebrow` | `<SectionBadge>...</SectionBadge>` |
+
+For the project, these reusable components are defined in `Landing.tsx`.
+
+### Step 8: Save CSS variables
+
+**File:** `frontend/src/styles/pixso-variables.css`
+
+Contains ALL variables from BOTH light and dark frames. The dark theme values
+are extracted from the dark frame's DSL (same structure, different fill values).
+
+```css
+:root,
+[data-collection-3-4-mode="light"] {
+  --background: rgba(255, 249, 240, 1);
+  --foreground: rgba(28, 25, 23, 1);
+  ...
+}
+
+[data-collection-3-4-mode="dark"] {
+  --background: rgba(12, 10, 9, 1);
+  --foreground: rgba(250, 250, 249, 1);
+  ...
+}
+```
+
+### Step 9: Write the theme hook
 
 ```tsx
-import { useEffect } from 'react';
-import './pixso-variables.css';
+import { useEffect, useState } from 'react';
 
 const THEME_KEY = 'pixso-theme';
 
-function getInitialTheme(): string {
-  const stored = localStorage.getItem(THEME_KEY);
-  if (stored === 'dark' || stored === 'light') return stored;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
+function useTheme() {
+  const [theme, setTheme] = useState<string>(() => {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === 'dark' || stored === 'light') return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
 
-export function Landing() {
   useEffect(() => {
-    const theme = getInitialTheme();
     document.documentElement.setAttribute('data-collection-3-4-mode', theme);
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
 
+  useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e: MediaQueryListEvent) => {
-      const next = e.matches ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-collection-3-4-mode', next);
-      localStorage.setItem(THEME_KEY, next);
+      setTheme(e.matches ? 'dark' : 'light');
     };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  return (
-    <div className="w-full relative flex flex-col items-start bg-[var(--background)]">
-      {/* exported sections */}
-    </div>
-  );
-}
-```
-
-Key details:
-- Reads `localStorage` for manual override before system preference
-- Falls back to `prefers-color-scheme` media query
-- Listens for live OS theme changes
-- Sets `data-collection-3-4-mode` attribute (matching Pixso's dark mode selector)
-- Cleans up listener on unmount
-
-### Step 9: Save CSS variables
-
-**File:** `frontend/src/styles/pixso-variables.css`
-
-Contains ALL variables from BOTH light and dark frames:
-
-```css
-/* ===== LIGHT THEME (default) ===== */
-:root,
-[data-collection-3-1301-mode="default"],
-[data-collection-3-4-mode="light"] {
-  --secondary-calm: rgba(20, 184, 166, 1);
-  --primary-warm: rgba(234, 88, 12, 1);
-  --accent-warm: rgba(245, 158, 11, 1);
-  --accent-foreground: rgba(67, 20, 7, 1);
-  --primary-foreground: rgba(255, 255, 255, 1);
-  --border: rgba(245, 230, 216, 1);
-  --card: rgba(255, 255, 255, 1);
-  --muted-foreground: rgba(87, 83, 78, 1);
-  --muted: rgba(253, 243, 231, 1);
-  --foreground: rgba(28, 25, 23, 1);
-  --background: rgba(255, 249, 240, 1);
-}
-
-/* ===== DARK THEME ===== */
-[data-collection-3-4-mode="dark"] {
-  --secondary-calm: rgba(45, 212, 191, 1);
-  --primary-warm: rgba(251, 146, 60, 1);
-  --accent-warm: rgba(251, 191, 36, 1);
-  --accent-foreground: rgba(69, 26, 3, 1);
-  --primary-foreground: rgba(67, 20, 7, 1);
-  --border: rgba(68, 64, 60, 1);
-  --card: rgba(41, 37, 36, 1);
-  --muted-foreground: rgba(168, 162, 158, 1);
-  --muted: rgba(28, 25, 23, 1);
-  --foreground: rgba(250, 250, 249, 1);
-  --background: rgba(12, 10, 9, 1);
+  return { theme, setTheme };
 }
 ```
 
 ### Step 10: Register route (unless --no-route)
 
-The route already points to `./pages/Landing`. No changes needed in `routes.tsx`
-when overwriting the existing file. If saving to a different path, update the
-import accordingly.
+The route already points to `./pages/Landing`. No changes needed when
+overwriting the existing file.
 
 ### Step 11: Take screenshot and verify
 
 ```
 pixso_mcp_get_screenshot({ guid: "<LIGHT_GUID>" })
-pixso_mcp_get_screenshot({ guid: "<DARK_GUID>" })
 ```
 
-Compare screenshots with the generated component to verify:
+Compare with the rendered component in the browser:
 - All sections present
 - Layout preserved
 - Colors match
+- Responsive at 768px and 480px
 - Dark mode switches correctly
+
+## Section types and their data extraction patterns
+
+### Pricing Section
+The script extracts `plans` array with fields: name, price, period, badge,
+features (with highlight flag), annual_price, annual_old, annual_savings, cta.
+
+### Testimonials Section
+The script extracts `testimonials` array with fields: text, author, role, result.
+
+### FAQ Section
+The script extracts `faqs` array with fields: question, answer.
+
+### Principles/Philosophy Section
+The script extracts `principles` array with fields: title, subtitle, desc, link.
+
+### Benefits Section
+The script extracts `benefits` array with fields: title, desc, instead.
+
+### Metrics Section
+The script extracts `metrics` array with fields: value, label.
 
 ## Example
 
 ```
+# Full export (all sections)
 /pixso-landing-export 3:1309 --dark-guid 3:1677
+
+# Single section
+/pixso-landing-export 3:1309 --section Pricing
+
+# Export without route registration
 /pixso-landing-export 3:1309 --no-route
-/pixso-landing-export --dark-guid 3:1677
+```
+
+## Python Script Reference
+
+The `dsl-to-code.py` script supports these modes:
+
+```bash
+# Full JSX generation
+python dsl-to-code.py section.json -n "Pricing" -o pricing.tsx
+
+# Data-only extraction (JSON arrays)
+python dsl-to-code.py section.json --data-only
+
+# List icons found in the design
+python dsl-to-code.py section.json --list-icons
+
+# Structure-only (no data extraction)
+python dsl-to-code.py section.json --structure
 ```
 
 ## Supporting Files
 
-- [references/COLOR-STRATEGY.md](references/COLOR-STRATEGY.md) — Pixso variables vs Tailwind @theme tokens comparison (Approach 1 is the default)
-- [references/A-B-C-GUIDE.md](references/A-B-C-GUIDE.md) — Detailed conversion tables for Pixso to Tailwind, responsive breakpoints, CSS variable mapping, and asset handling
-- [ADR-IMPL.UI.pixso-variables-approach.md](../../specs/adr/ADR-IMPL.UI.pixso-variables-approach.md) — Formal Architecture Decision Record for the CSS variables strategy
+- [scripts/dsl-to-code.py](scripts/dsl-to-code.py) — Python DSL→code generator
+- [references/DSL-TO-CODE-GUIDE.md](references/DSL-TO-CODE-GUIDE.md) — Detailed DSL→Tailwind mapping
+- [references/COLOR-STRATEGY.md](references/COLOR-STRATEGY.md) — Pixso variables strategy (Approach 1)
+- [ADR-IMPL.UI.pixso-variables-approach.md](../../specs/adr/ADR-IMPL.UI.pixso-variables-approach.md) — ADR for CSS variables
 
 ## Edge Cases
 
 | Situation | Handling |
 |-----------|----------|
 | Node is a page, not a frame | Warn user, ask for specific frame |
-| Server returns 404 for assets | Skip missing asset, log warning |
-| Component already exists | Ask user: overwrite, merge, or skip? |
-| No route file found | Skip route registration, log warning |
+| DSL has no children | Frame is empty — generate empty div |
+| Component instance not recognized | Generate as generic div with children |
+| Icon not in lucide-react | Use inline SVG from Pixso export |
+| SVG export returns 404 | Skip SVG verification, use DSL only |
+| Python script not found | Generate code manually from DSL data |
+| Route file not found | Skip route registration, log warning |
 | Empty selection | Fetch context to show available frames |
-| Font @font-face URLs are localhost | Download and save to `frontend/public/assets/landing/fonts/`, update src |
-| SVG data:image URLs | Keep as embedded data URIs (no download needed) |
-| Gradient backgrounds | Keep as `background-image` or inline SVG data URIs |
-| Component has interactive state | Pixso export is static; add interactivity manually after export |
-| --dark-guid points to same colors as light | Log warning: dark theme may be identical to light; verify |
+| Section has no data arrays | Generate JSX structure only |
+| Dark theme identical to light | Log warning; verify manually |

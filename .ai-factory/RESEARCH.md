@@ -5,43 +5,65 @@ Status: active
 
 ## Active Summary (input for /aif-plan)
 <!-- aif:active-summary:start -->
-Topic: VEDO Hub mock server — GraphQL-only, separate Docker container, for dev/test/CI
+Topic: Accurate Pixso → React code generation (landing page) — beyond design_to_code
 
-Goal: Provide a minimal, realistic stand-in for the VEDO Hub ontology platform so EduTrack development, integration tests, e2e, and CI run against a controllable Hub instead of a dead/missing one. Serves the ontology (loaded in memory) over the Hub's GraphQL interface (ontology-service schema.graphql from the vedo-hub contracts).
+Goal: Replace the unreliable `design_to_code` pipeline (Path 1) with a more accurate approach for converting the Pixso landing page design into production React+Tailwind code. The design is the «Дай пять» landing (VEDO EduTrack brand, frame 3:1309, 1920×10602, 12 sections).
 
 Constraints:
 - ui_language = ru, artifact_language = en, technical_terms = keep
-- GraphQL interface ONLY initially (no REST / SPARQL / MCP channels in the mock)
-- Runs as a separate Docker container (hub-mock, :8081) in the dev stack AND in CI; the same http.Handler doubles as httptest.Server for in-process Go tests
-- Ontology is loaded into memory at startup from an arbitrary Turtle (.ttl) file; first seed: traceability.ttl (TBox only); any .ttl must be loadable (ONTOLOGY_FILE env / volume mount; ONTOLOGY_DIR later)
-- Stack: Go, same backend module — cmd/mockhub (thin entry) + backend/internal/testing/mockhub (mini-Turtle parser, in-memory model, gqlparser/v2 resolvers, handler). Documented exception to the single-binary ADR (test-only, not shipped)
-- Contract specs must be synced: F0 channel becomes GraphQL (REQ-FR-api.hub.read-ontology and ADR-DES.API.communication-patterns §6 currently say REST+MCP+SPARQL) — FR + ADR + traceability.ttl updates
-- C4 deployment artifacts: update deployment-dev.md (hub-mock node) + new deployment-test.md (CI)
+- Colors MUST use `var(--*)` CSS custom properties from frontend/src/styles/pixso-variables.css (ADR-IMPL.UI.pixso-variables-approach.md, Approach 1)
+- Theme switching via `data-collection-3-4-mode="light|dark"` on <html>
+- Inter font; lucide-react for icons; Tailwind CSS v4; responsive (desktop → 768px → 480px)
+- Max content width 1760px, px-20 padding, section vertical gap 72px
 
 Decisions:
-1. Channel: GraphQL (vedo-hub ontology-service schema) — query-only by design; graphNeighborhood/classDescendants/classTree fit F0.2 copy-subgraph; REST (openapi.json) has NO traversal endpoint (only list/get by parent_id + SPARQL/Cypher POST)
-2. Stack: Go + vektah/gqlparser/v2 (one dependency). gqlgen rejected (codegen-heavy for a test stub); hand-rolled executor rejected (introspection/fragments/variables too fragile)
-3. Data: mini-Turtle parser → in-memory Ontology (classes, properties, subClassOf hierarchy); traceability.ttl mounted read-only (../traceability.ttl → /data/ontology.ttl, single source); arbitrary ttl via ONTOLOGY_FILE
-4. Deployment: hub-mock service in deploy/docker-compose.yml (edutrack-net, :8081, healthcheck GET /healthz, volume mount); fixes VEDO_HUB_API_URL default → http://hub-mock:8081 (container-to-container; the current localhost:8081 default is dead — nothing listens on it, and localhost inside backend ≠ host)
-5. GraphQL surface: POST /graphql; QueryRoot fields classes/class/classTree/classAncestors/classDescendants/properties/property/individuals/individual/graphNeighborhood/autocompleteClasses (+ _service { sdl }); pagination {items,total,page,perPage}; any Bearer token accepted, missing → error; GraphQL errors array
-6. CI: hub-mock as a GitHub Actions service container (sibling of the existing services.postgres) on localhost:8081; Go integration tests may use httptest.Server (fast path), contract/e2e use the container
+1. `design_to_code` output is unreliable: Pixso-* classes, slot_4_258 props, separate 182KB pixso-landing.css, invented filler content. Replaced by DSL+SVG-guided manual/targeted generation.
+2. `get_node_dsl({ guid, simplify:true })` → compact structured tree: exact text, sizes, layout, autoLayout, fills, component refs. Best source for text & structure (~40KB per section).
+3. `get_export_image({ guid, imageType:3 })` → SVG with pixel-exact coordinates (radius, positions, colors). Best for VERIFICATION of positioning/geometry, but text is glyph-paths (not readable) and files are huge (200-300KB per card).
+4. Best workflow: export SVG for a section → verify geometry (radii, gaps, absolute positions) → write code from DSL text/structure. Section-by-section, not whole page at once.
+5. Cleaned up: deleted the unused 182KB frontend/src/styles/pixso-landing.css (design_to_code artifact).
 
 Open questions:
-- ADR ID: proposed ADR-DES.INFRA.mock-hub-strategy (verify against existing ADRs per ADR README rule 5); final ADR file written in Russian (project convention)
-- Service name (hub-mock?) and GraphQL base path (/graphql — imitates ontology-service, not api-gateway)
-- ontologyId convention: fixed id (e.g. "traceability") vs derived from the file; unknown id → error
-- Stack ADR (framework-vs-vs): only a related-artifacts cross-reference, or a new section (accepted-ADR changes go through status/new-ADR per README rule 6)
-- REST/SPARQL/MCP mock channels: deferred — add only when the adapter calls them
+- Whether to re-verify each remaining section (Hero, Testimonials, Philosophy, FAQ, Final CTA, Footer) against SVG geometry like Pricing
+- Icons: lucide-react views vs exact Pixso SVG paths (minor visual differences acceptable?)
+- Fonts: Inter via Google Fonts vs local files
 
 Success signals:
-- RESEARCH saved with the full mock-hub design (session below) ✅
-- /aif-plan materializes: ADR file, C4 deployment-dev.md update + deployment-test.md, mock implementation (cmd/mockhub + internal/testing/mockhub + backend/Dockerfile.mockhub + compose service), spec updates (GraphQL channel)
+- Pricing section rewritten to match design exactly: correct icons (Map/Compass/Navigation), 7 exact features per plan, annual pricing rows with savings badges, badge inside title row, radius 24px, all-white cards, correct section header + B2B link ✅
+- Testimonials fixed: correct names (Елена/Андрей/Ольга), quotes, results, metrics (1000+/500+/200+), section header text ✅
+- Philosophy fixed: correct 4 principles with exact descriptions, compass icon for СВОБОДА, VEDO Hub link, correct metaphor text ✅
+- FAQ fixed: all 7 correct questions/answers from design, correct section subtitle ✅
+- Final CTA fixed: correct subtitle text, UTP line "Не проходите курс — достигайте цель" ✅
+- Footer fixed: 4 nav columns with correct links ✅
+- pnpm typecheck + pnpm build pass (Landing 58.20kB / 13.87kB gzip) ✅
+- Cleanup of pixso-landing.css (182KB) ✅
 
-Next step: /aif-plan to create the ADR, C4 diagrams, and the mock-hub implementation
+Next step: commit the corrected Landing.tsx; verify remaining sections (Hero, Solution, Benefits, Problem) against Design if needed
 <!-- aif:active-summary:end -->
 
 ## Sessions
 <!-- aif:sessions:start -->
+### 2026-08-05 — Pixso export accuracy: DSL+SVG over design_to_code
+
+What changed:
+- Diagnosed that `design_to_code` (Path 1) produces incorrect output: Pixso-* classes, slot_4_258 props, separate 182KB pixso-landing.css, invented filler content (e.g. Pricing features made up, wrong icons, missing annual pricing).
+- Established alternative pipeline: `get_node_dsl` (structure+text) + `get_export_image` SVG (geometry) → section-by-section exact code generation.
+- Rewrote the Pricing section to match the design exactly (see Active Summary).
+- Rewrote Testimonials, Philosophy, FAQ sections with correct content from DSL.
+- Fixed Final CTA subtitle, UTP line, and Footer nav links.
+- Deleted the unused 182KB frontend/src/styles/pixso-landing.css.
+- Cleaned imports: removed Star, MessageCircle, ExternalLink; added Info, Navigation.
+
+Key notes:
+- SVG export (imageType:3) gives pixel-exact radii/positions/colors but text renders as glyph paths (not readable); files large (200-300KB/card). DSL (simplify:true) is compact (~40KB/section) and has exact text + structure. Use SVG to verify geometry, DSL to write content.
+- Section-by-section beats whole-page generation (agent context limits).
+
+Links (paths):
+- vedo-edutrack/frontend/src/pages/Landing.tsx (Pricing section rewritten; imports: +Info, +Navigation, -Star, -ExternalLink)
+- vedo-edutrack/frontend/src/styles/pixso-variables.css (kept, Approach 1)
+- vedo-edutrack/specs/adr/ADR-IMPL.UI.pixso-variables-approach.md (Approach 1 source of truth)
+- design source frame: 3:1309 «Дай пять / Desktop / Light»; pricing cards 7:23/7:66/7:114
+
 ### 2026-08-02 17:00 — Initial exploration: 21-step algorithm vs current ROADMAP
 
 What changed:
