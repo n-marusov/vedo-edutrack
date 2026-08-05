@@ -214,15 +214,21 @@ def extract_fills(fills, variables):
     if not fills:
         return None
     for f in fills:
-        if f.get("type") == "SOLID":
+        # Pixso compact DSL uses string fills like "variable:3:11" for simple colors
+        if isinstance(f, str):
+            resolved = resolve_fill(f, variables)
+            if resolved and resolved != 'var(--transparent)':
+                return resolved
+            continue
+        if isinstance(f, dict) and f.get("type") == "SOLID":
             color = f.get("color", {})
             r, g, b, a = color.get("r", 0), color.get("g", 0), color.get("b", 0), color.get("a", 1)
             if a == 0:
                 continue  # Skip fully transparent fills
             return resolve_fill(f, variables)
-        if f.get("type") == "GRADIENT_LINEAR":
+        if isinstance(f, dict) and f.get("type") == "GRADIENT_LINEAR":
             return resolve_fill(f, variables)
-        if f.get("type") == "GRADIENT_RADIAL":
+        if isinstance(f, dict) and f.get("type") == "GRADIENT_RADIAL":
             return resolve_fill(f, variables)
     return None
 
@@ -313,7 +319,8 @@ def auto_layout_classes(al, node_id=None, node_name=None):
                 if r > 0 and r != l: classes.append(px_to_tailwind_padding(r, "right"))
                 # Simplify if y and x are the same
                 if t == b and r == l and t > 0 and r > 0:
-                    classes = [c for c in classes if "top" not in c and "bottom" not in c and "left" not in c and "right" not in c]
+                    # Remove any previously added padding classes (py-*, px-*, p-*, pt-*, pb-*, pl-*, pr-*)
+                    classes = [c for c in classes if not re.match(r'^p[yxtblefr]?-\[?', c)]
                     if t == r:
                         classes.append(px_to_tailwind_padding(t))
                     else:
@@ -339,10 +346,16 @@ def box_classes(node, al):
 
     if width_resize is None or width_resize == 0:  # FIXED
         if w > 0 and w < 2000:
-            classes.append(f"w-{px_to_tailwind(w)}")
+            if h > 0 and h == w and (height_resize is None or height_resize == 0):
+                # Tailwind v4 shorthand: size-[...] when w == h
+                classes.append(f"size-{px_to_tailwind(w)}")
+            else:
+                classes.append(f"w-{px_to_tailwind(w)}")
     if height_resize is None or height_resize == 0:  # FIXED
         if h > 0 and h < 2000:
-            classes.append(f"h-{px_to_tailwind(h)}")
+            # Only add h- if we didn't already use size- shorthand
+            if not any("size-" in c for c in classes):
+                classes.append(f"h-{px_to_tailwind(h)}")
 
     return classes
 
@@ -459,7 +472,9 @@ def font_classes(font_data):
 # ─── Icon name resolution ─────────────────────────────────────────────
 
 def resolve_icon_name(svg_sha: str) -> str:
-    """Resolve SVG sha to lucide-react icon name."""
+    """Resolve SVG sha / frame name to a lucide-react icon name."""
+    if not svg_sha:
+        return ""
     name = svg_sha
     # Remove extension
     if '.' in name:
@@ -468,7 +483,49 @@ def resolve_icon_name(svg_sha: str) -> str:
     name = re.sub(r'\d+$', '', name)
     # Remove leading numbers
     name = re.sub(r'^\d+', '', name)
-    return ICON_MAP.get(name, name.title())
+    # Normalize for lookup: lowercase, strip spaces, keep hyphens
+    lookup = name.strip().lower().replace(' ', '')
+    if lookup in ICON_MAP:
+        return ICON_MAP[lookup]
+    # Title-case only if it looks like a valid identifier (avoid cyrillic "Вектор", node ids, etc.)
+    if re.match(r'^[a-zA-Z][a-zA-Z0-9-]*$', name):
+        parts = name.replace('-', ' ').split()
+        return ''.join(p.title() for p in parts)
+    return ""
+
+
+def _extract_icon_color(node, variables, depth=0):
+    """Recursively find the first non-empty fill/stroke color inside an icon."""
+    if depth > 4:
+        return None
+    for key in ("fills", "strokes", "strokePaints", "fillPaints"):
+        fills = node.get(key)
+        if fills:
+            color = extract_fills(fills, variables)
+            if color:
+                return color
+    for child in node.get("children", node.get("childNode", [])):
+        color = _extract_icon_color(child, variables, depth + 1)
+        if color:
+            return color
+    return None
+
+
+def _generate_icon(node, variables, depth):
+    """Generate a lucide-react icon from an icon FRAME node (assetType: 'icon')."""
+    indent = INDENT * depth
+    icon_name = resolve_icon_name(node.get("name", ""))
+    box = node.get("box", {})
+    w = box.get("w", 24)
+    h = box.get("h", 24)
+    size = int(round(w or h or 24))
+
+    if not icon_name:
+        return f'{indent}<span className="inline-block w-[{int(w)}px] h-[{int(h)}px] bg-current" />\n'
+
+    color = _extract_icon_color(node, variables)
+    color_attr = f' className="text-[{color}]"' if color else ''
+    return f'{indent}<{icon_name} size={{{size}}}{color_attr} strokeWidth={{2}} />\n'
 
 # ─── Code generation ──────────────────────────────────────────────────
 
@@ -508,16 +565,19 @@ def _generate_text(node, variables, depth):
     fills = node.get("fills") or node.get("fillPaints", [])
     fill_color = extract_fills(fills, variables) if fills else None
 
+    text_node = node.get("text", {})
     font_data = {
-        "fontFamily": node.get("fontFamily"),
-        "fontSize": node.get("fontSize"),
-        "fontWeight": node.get("fontWeight"),
-        "fontStyle": node.get("fontStyle"),
-        "lineHeightNumber": node.get("lineHeightNumber"),
-        "lineHeightUnit": node.get("lineHeightUnit"),
-        "letterSpacingNumber": node.get("letterSpacingNumber"),
-        "textAlignHorizontal": node.get("textAlignHorizontal"),
+        "fontFamily": node.get("fontFamily") or text_node.get("fontFamily"),
+        "fontSize": node.get("fontSize") or text_node.get("fontSize", 16),
+        "fontWeight": node.get("fontWeight") or text_node.get("fontWeight", 400),
+        "fontStyle": node.get("fontStyle") or text_node.get("fontStyle"),
+        "lineHeightNumber": node.get("lineHeightNumber") or text_node.get("lineHeight"),
+        "lineHeightUnit": node.get("lineHeightUnit") or text_node.get("lineHeightUnit"),
+        "letterSpacingNumber": node.get("letterSpacingNumber") or text_node.get("letterSpacing"),
+        "textAlignHorizontal": node.get("textAlignHorizontal") or text_node.get("textAlignHorizontal"),
     }
+    if font_data["fontSize"] is None:
+        font_data["fontSize"] = 16
     fclasses = font_classes(font_data)
 
     # Text auto resize
@@ -555,8 +615,9 @@ def _generate_text(node, variables, depth):
 def _generate_vector(node, variables, depth):
     """Generate JSX for a vector/icon node."""
     indent = INDENT * depth
-    svg_sha = node.get("svgSha", "")
-    icon_name = resolve_icon_name(svg_sha)
+    name = node.get("name", "")
+    svg_sha = node.get("svgSha", "") or node.get("vectorRef", "")
+    icon_name = resolve_icon_name(svg_sha) or resolve_icon_name(name)
 
     fills = node.get("fills") or node.get("fillPaints", [])
     fill_color = extract_fills(fills, variables) if fills else None
@@ -566,11 +627,11 @@ def _generate_vector(node, variables, depth):
     h = box.get("h", 24)
 
     if icon_name:
-        color_attr = f' strokeWidth={{1.5}} className="text-[{fill_color}]"' if fill_color else ' strokeWidth={{1.5}}'
-        return f'{indent}<{icon_name} size={{{int(w)}}}{color_attr} />\n'
+        color_attr = f' className="text-[{fill_color}]"' if fill_color else ''
+        return f'{indent}<{icon_name} size={{{int(w)}}}{color_attr} strokeWidth={{2}} />\n'
 
     # Fallback: inline SVG placeholder
-    return f'{indent}<span className="inline-block w-{px_to_tailwind(w)} h-{px_to_tailwind(h)} bg-current" />\n'
+    return f'{indent}<span className="inline-block w-[{int(w)}px] h-[{int(h)}px] bg-current" />\n'
 
 
 def _generate_instance(node, variables, depth):
@@ -629,6 +690,9 @@ def _generate_instance(node, variables, depth):
 def _generate_frame(node, variables, depth):
     """Generate JSX for a frame/group node."""
     indent = INDENT * depth
+    # Icon frame (assetType: 'icon') → render as lucide-react icon
+    if node.get("assetType") == "icon":
+        return _generate_icon(node, variables, depth)
     node_name = node.get("name", "")
     al = node.get("autoLayout", {})
     box = node.get("box", {})
@@ -1036,7 +1100,13 @@ def main():
     parser.add_argument("--structure", action="store_true", help="Only generate JSX structure")
     parser.add_argument("--list-icons", action="store_true", help="List all icon references found")
     args = parser.parse_args()
-    
+
+    # Ensure UTF-8 output (Windows cp1251 cannot encode ₽ and other chars)
+    if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if sys.stderr and hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+
     with open(args.input, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
@@ -1113,13 +1183,14 @@ def main():
             output += f"// Subtitle: {section_header['subtitle']}\n"
         output += "\n"
     
-    # Extract data arrays for reference
-    arrays = extract_data_arrays(root, variables)
-    for key, items in arrays.items():
-        output += f"// Extracted data: {len(items)} {key}\n"
-        for item in items:
-            output += f"//   - {item.get('name') or item.get('title') or item.get('author') or item.get('question', '')[:60]}\n"
-    output += "\n"
+    # Extract data arrays for reference (skip if --structure)
+    if not args.structure:
+        arrays = extract_data_arrays(root, variables)
+        for key, items in arrays.items():
+            output += f"// Extracted data: {len(items)} {key}\n"
+            for item in items:
+                output += f"//   - {item.get('name') or item.get('title') or item.get('author') or item.get('question', '')[:60]}\n"
+        output += "\n"
     
     # Generate JSX structure
     output += generate_jsx(root, variables)

@@ -244,8 +244,8 @@ function Hero() {
       </div>
 
       {/* Hero illustration card */}
-      <div className="relative size-[580px] shrink-0 rounded-[40px] bg-gradient-to-br from-[#FFF7ED] via-[#FFEDD5] to-[#ECFEFF] max-lg:hidden">
-        <div className="absolute left-[60px] top-[50px] flex size-[520px] flex-col gap-5 rounded-[32px] bg-[var(--card)] p-8 shadow-[0_16px_64px_-20px_rgba(124,45,18,0.149)]">
+      <div className="relative w-[640px] h-[580px] shrink-0 rounded-[40px] bg-gradient-to-br from-[#FFF7ED] via-[#FFEDD5] to-[#ECFEFF] max-lg:hidden">
+        <div className="absolute left-[60px] top-[50px] flex w-[520px] h-[480px] flex-col gap-5 rounded-[32px] bg-[var(--card)] p-8 shadow-[0_16px_64px_-20px_rgba(124,45,18,0.149)]">
           {/* Card header */}
           <div className="flex w-full items-center justify-between">
             <span className="text-[20px] font-bold text-[var(--foreground)]">Карта знаний</span>
@@ -1050,8 +1050,8 @@ function FaqSection() {
           subtitle="Отвечаем на сомнения до того, как они возникнут"
         />
         <div className="flex w-full flex-col items-center gap-4">
-          {FAQS.map((item) => (
-            <FAQItem key={item.question} item={item} index={i} />
+          {FAQS.map((item, index) => (
+            <FAQItem key={item.question} item={item} index={index} />
           ))}
         </div>
       </div>
